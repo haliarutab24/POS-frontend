@@ -19,41 +19,40 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    navigate('/admin')
-    // try {
-    //   const response = await axios.post(
-    //     `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
-    //     { email, password }
-    //   );
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
+        { email, password }
+      );
   
-    //   const { token, user } = response.data;
+      const { token, user } = response.data;
   
-    //   // ✅ Merge token with user and save as userInfo
-    //   const userInfo = { ...user, token };
+      // ✅ Merge token with user and save as userInfo
+      const userInfo = { ...user, token };
   
-    //   // ✅ Store in Redux (will also store in localStorage via authSlice)
-    //   dispatch(loginSuccess(userInfo));
+      // ✅ Store in Redux (will also store in localStorage via authSlice)
+      dispatch(loginSuccess(userInfo));
   
-    //   // ✅ Toast and redirect
-    //   toast.success("Logged in successfully 🎉");
-    //   console.log("Stored userInfo:", userInfo);
+      // ✅ Toast and redirect
+      toast.success("Logged in successfully 🎉");
+      console.log("Stored userInfo:", userInfo);
   
-    //   if (user.isAdmin === true || user.isAdmin === false) {
-    //     navigate("/admin");
-    //   } else {
-    //     navigate("/");
-    //   }
+      if (user.isAdmin === true || user.isAdmin === false) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
   
-    //   setTimeout(() => {
-    //     window.location.reload();
-    //   }, 100);
-    // } catch (error) {
-    //   toast.error(
-    //     error.response?.data?.message ||
-    //     error.message ||
-    //     "Login failed. Please try again."
-    //   );
-    // }
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Please try again."
+      );
+    }
   };
   
 

@@ -4,7 +4,7 @@ import Login from "./pages/admin/Login";
 import Signup from "./pages/admin/Signup";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import StaffList from "./pages/admin/StaffList";
+import ItemList from "./pages/admin/ItemList";
 import CustomerData from "./pages/admin/CustomerData";
 import FollowUp from "./pages/admin/FollowUp";
 import ProductsPage from "./pages/admin/ProductsPage";
@@ -36,7 +36,7 @@ function AppContent() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="staff" element={<StaffList />} />
+            <Route path="item-details" element={<ItemList />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="customers" element={<CustomerData />} />
             <Route path="calendar" element={<Calendar />} />

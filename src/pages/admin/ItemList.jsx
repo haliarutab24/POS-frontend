@@ -63,41 +63,41 @@ const StaffList = () => {
   }, [isSliderOpen]);
 
 
-  // Fetch data from API
-  const fetchStaff = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/staff`);
-      const result = await response.json();
+  // // Fetch data from API
+  // const fetchStaff = useCallback(async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/staff`);
+  //     const result = await response.json();
 
-      if (result.success && Array.isArray(result.data)) {
-        const mappedStaff = result.data.map((staff) => ({
-          _id: staff._id,
-          name: staff.username,
-          department: staff.department,
-          designation: staff.designation,
-          address: staff.address,
-          number: staff.number,
-          email: staff.email,
-          password:staff.password,
-          image: staff.image || [],
-        }));
+  //     if (result.success && Array.isArray(result.data)) {
+  //       const mappedStaff = result.data.map((staff) => ({
+  //         _id: staff._id,
+  //         name: staff.username,
+  //         department: staff.department,
+  //         designation: staff.designation,
+  //         address: staff.address,
+  //         number: staff.number,
+  //         email: staff.email,
+  //         password:staff.password,
+  //         image: staff.image || [],
+  //       }));
 
-        setStaffList(mappedStaff);
+  //       setStaffList(mappedStaff);
         
-      }
-    } catch (error) {
-      console.error("Error fetching staff data:", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []); // No dependencies so the function is memoized once
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching staff data:", error);
+  //   } finally {
+  //     setTimeout(() => setLoading(false), 1000);
+  //   }
+  // }, []); // No dependencies so the function is memoized once
 
-  console.log("Staff List", staffList);
+  // console.log("Staff List", staffList);
 
-  useEffect(() => {
-    fetchStaff(); // Only re-executes if fetchStaff reference changes
-  }, [fetchStaff]);
+  // useEffect(() => {
+  //   fetchStaff(); // Only re-executes if fetchStaff reference changes
+  // }, [fetchStaff]);
 
 
   // Handlers
@@ -106,7 +106,7 @@ const StaffList = () => {
   };
 
 
- //  Staff saved
+ //  Item saved
  const handleSave = async () => {
   const formData = new FormData();
   formData.append("username", staffName);
@@ -306,21 +306,21 @@ const handleDelete = async (id) => {
   
 
 
-  // Show loading spinner
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <PuffLoader
-            height="150"
-            width="150"
-            radius={1}
-            color="#00809D"
-          />
-        </div>
-      </div>
-    );
-  }
+  // // Show loading spinner
+  // if (loading) {
+  //   return (
+  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <PuffLoader
+  //           height="150"
+  //           width="150"
+  //           radius={1}
+  //           color="#00809D"
+  //         />
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -337,7 +337,7 @@ const handleDelete = async (id) => {
         </button>
       </div>
 
-      {/* Staff Table */}
+      {/* Item Table */}
       <div className="rounded-xl shadow p-6 border border-gray-100 w-full  overflow-hidden">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">

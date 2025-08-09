@@ -105,7 +105,7 @@ const AdminDashboard = () => {
   return (
     <div className="p-6 w-full bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Call Logs Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
         <div className="flex items-center">
           <div className="text-sm text-gray-600 mr-4">
             Hi, Admin. Welcome back to Amir Hameed Admin!
@@ -122,8 +122,8 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-3 gap-6 mb-8">
         {summaryData.map((item, index) => (
           <div key={index} className="bg-white rounded-lg shadow p-6 flex items-center">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
-              {index === 0 && <span className="text-2xl">👤</span>}
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4 bg-newPrimary/15">
+              {index === 0 && <span className="text-2xl ">👤</span>}
               {index === 1 && <span className="text-2xl">🛒</span>}
               {index === 2 && <span className="text-2xl">📄</span>}
             </div>

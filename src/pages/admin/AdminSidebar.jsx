@@ -3,12 +3,12 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 const links = [
   { to: "/admin", label: "Dashboard" },
-  { to: "/admin/products", label: "Products List" },
-  { to: "/admin/staff", label: "Staff List" },
+  { to: "/admin/products", label: "Item Category" },
+  { to: "/admin/staff", label: "Item Details" },
   { to: "/admin/customers", label: "Customer Data" },
-  { to: "/admin/promotion", label: "Meeting Details" },
-  { to: "/admin/followup", label: "Follow Up" },
-   { to: "/admin/calendar", label: "Calendar" },  
+  { to: "/admin/promotion", label: "Manufacture" },
+  { to: "/admin/followup", label: "Supplier" },
+   { to: "/admin/calendar", label: "Shelve Location" },  
   { to: "/admin/report", label: "Report" },
   { to: "/admin/settings", label: "Settings" },
 ];
@@ -24,7 +24,7 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="bg-white shadow h-screen w-56 flex flex-col py-8 px-4 justify-between">
+    <aside className="bg-white shadow h-screen w-68 flex flex-col py-8 px-4 justify-between">
       <div>
         <div className="flex items-center justify-center mb-12 space-x-4">
   {/* Icon with status indicator */}
@@ -48,7 +48,7 @@ const AdminSidebar = () => {
   {/* Text Content */}
   <div>
     <h1 className="text-2xl font-bold bg-gradient-to-r from-newPrimary to-primaryDark bg-clip-text text-transparent">
-      Call Logs Dashboard
+      Point of Sales 
     </h1>
     {/* <p className="text-gray-500 font-medium mt-1">
       Track and manage all customer interactions
@@ -63,8 +63,8 @@ const AdminSidebar = () => {
               className={({ isActive }) =>
                 `block px-4 py-2 rounded-lg font-medium transition ${
                   isActive
-                    ? "bg-secondary text-white"
-                    : "text-gray-700 hover:bg-secondary/30"
+                    ? "bg-newPrimary/80 text-white"
+                    : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
                 }`
               }
               end={link.to === "/admin"}

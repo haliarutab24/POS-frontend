@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
 
-const StaffList = () => {
+const ItemList = () => {
   const [staffList, setStaffList] = useState([]);
 
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -628,4 +628,4 @@ const handleDelete = async (id) => {
   );
 };
 
-export default StaffList;
+export default ItemList;

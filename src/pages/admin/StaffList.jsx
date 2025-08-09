@@ -10,15 +10,22 @@ const StaffList = () => {
   const [staffList, setStaffList] = useState([]);
 
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [staffName, setStaffName] = useState("");
-  const [department, setDepartment] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [address, setAddress] = useState("");
-  const [number, setNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [image, setImage] = useState(null);   
-  const [imagePreview, setImagePreview] = useState(null); 
+  const [itemCategory, setItemCategory] = useState("");
+  const [itemName, setItemName] = useState("");
+  const [details, setDetails] = useState("");
+  const [manufacture, setManufacture] = useState("");
+  const [supplier, setSupplier] = useState("");
+  const [shelveLocation, setShelveLocation] = useState("");
+  const [itemUnit, setItemUnit] = useState("");
+  const [perUnit, setPerUnit] = useState("");
+  const [purchase, setPurchase] = useState("");
+  const [sales, setSales] = useState("");
+  const [stock, setStock] = useState("");
+  const [reorder, setReorder] = useState("");
+  const [enabled, setEnabled] = useState(true);
+
+
+
 
   const [formState, setEditFormState] = useState({
     name: "",
@@ -161,25 +168,7 @@ const StaffList = () => {
 };
 
 
- 
-  // Image Upload
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
-  // Image Remove
-  const removeImage = () => {
-    setImagePreview("");
-    setEditFormState({ ...formState, image: "" });
-  };
+
 
 
   // Open the edit modal and populate the form
@@ -266,6 +255,56 @@ const handleDelete = async (id) => {
 };
 
   
+// Static Data
+  const items = [
+    {
+      "itemCategory": "Electronics",
+      "itemName": "Smartphone",
+      "manufacture": "Samsung",
+      "supplier": "ABC Traders",
+      "purchase": 500,
+      "sales": 650,
+      "stock": 120
+    },
+    {
+      "itemCategory": "Furniture",
+      "itemName": "Office Chair",
+      "manufacture": "Ikea",
+      "supplier": "HomeDeco",
+      "purchase": 80,
+      "sales": 120,
+      "stock": 45
+    },
+    {
+      "itemCategory": "Appliances",
+      "itemName": "Microwave Oven",
+      "manufacture": "Haier",
+      "supplier": "KitchenPro",
+      "purchase": 200,
+      "sales": 280,
+      "stock": 60
+    },
+    {
+      "itemCategory": "Clothing",
+      "itemName": "Men's Jacket",
+      "manufacture": "Levis",
+      "supplier": "Fashion Hub",
+      "purchase": 40,
+      "sales": 70,
+      "stock": 150
+    },
+    {
+      "itemCategory": "Stationery",
+      "itemName": "Notebook",
+      "manufacture": "Oxford",
+      "supplier": "PaperHouse",
+      "purchase": 2,
+      "sales": 5,
+      "stock": 500
+    }
+  ]
+  
+
 
   // Show loading spinner
   if (loading) {
@@ -287,14 +326,14 @@ const handleDelete = async (id) => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-newPrimary">Staff List</h1>
-          <p className="text-gray-500 text-sm">Call Logs Dashboard</p>
+          <h1 className="text-2xl font-bold text-newPrimary">Items List</h1>
+          <p className="text-gray-500 text-sm">Manage your items details</p>
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
           onClick={handleAddStaff}
         >
-          + Add Staff
+          + Add Item
         </button>
       </div>
 
@@ -303,51 +342,48 @@ const handleDelete = async (id) => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-7 gap-20 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-              <div>Name</div>
-              <div>Department</div>
-              <div>Designation</div>
-              <div>Address</div>
-              <div>Number</div>
-              <div>Email</div>
+            <div className="hidden lg:grid grid-cols-8 gap-20 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+              <div>Item Category</div>
+              <div>Item Name</div>
+              <div>Manufacture</div>
+              <div>Supplier</div>
+              <div>Purchase</div>
+              <div>Sales</div>
+              <div>Stock</div>
               {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
 
             {/* Staff in Table */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
-              {staffList.map((staff, index) => (
+              {items.map((staff, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-7 items-center gap-20 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-8 items-center gap-20 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Name */}
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 flex items-center justify-center bg-[#f0d694] rounded-full">
-                      <img
-                        src={staff.image?.url || "https://via.placeholder.com/40"}
-                        alt="Staff"
-                        className="w-7 h-7 object-cover rounded-full"
-                      />
-                    </div>
                     <span className="text-sm font-medium text-gray-900">
-                      {staff.name}
+                      {staff.itemCategory}
                     </span>
                   </div>
 
-                  {/* Department */}
-                  <div className="text-sm text-gray-500">{staff.department}</div>
+                  {/* itemName */}
+                  <div className="text-sm text-gray-500">{staff.itemName}</div>
 
-                  {/* Designation */}
-                  <div className="text-sm text-gray-500">{staff.designation}</div>
+                  {/* manufacture */}
+                  <div className="text-sm text-gray-500">{staff.manufacture}</div>
 
-                  {/* Address */}
-                  <div className="text-sm font-semibold text-green-600">{staff.address}</div>
+                  {/* supplier */}
+                  <div className="text-sm font-semibold text-green-600">{staff.supplier}</div>
 
-                  {/* Number */}
-                  <div className="text-sm font-semibold text-green-600">{staff.number}</div>
+                  {/* purchase */}
+                  <div className="text-sm font-semibold text-green-600">{staff.purchase}</div>
 
-                  {/* Email */}
-                  <div className="text-sm font-semibold text-green-600">{staff.email}</div>
+                  {/* sales */}
+                  <div className="text-sm font-semibold text-green-600">{staff.sales}</div>
+
+                  {/* stock */}
+                  <div className="text-sm font-semibold text-green-600">{staff.stock}</div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
@@ -360,12 +396,12 @@ const handleDelete = async (id) => {
                   transition-opacity duration-300 z-50 flex flex-col justify-between">
                         <button
                           onClick={() => handleEdit(staff)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-blue-100 text-blue-600 flex items-center gap-2">
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2">
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(staff._id)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-red-100 text-red-500 flex items-center gap-2">
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2">
                           Delete
                         </button>
                       </div>
@@ -386,7 +422,7 @@ const handleDelete = async (id) => {
             ref={sliderRef}
             className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Update Staff" : "Add a New Staff"}</h2>
+              <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Update Item" : "Add a New Item"}</h2>
               <button
                 className="text-gray-500 hover:text-gray-700"
                 onClick={() => {
@@ -400,153 +436,191 @@ const handleDelete = async (id) => {
                 ×
               </button>
             </div>
-            <div>
-              <div className="mb-4">
-               
-                <label className="block text-gray-700">Name {}
-                <span className="text-newPrimary">*</span></label>
-                <input
-                  type="text"
-                  value={staffName}
-                  onChange={(e) => setStaffName(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Department {}
-                <span className="text-newPrimary">*</span></label>
-                <input
-                  type="text"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Designation {}
-                <span className="text-newPrimary">*</span></label>
-                <input
-                  type="text"
-                  value={designation}
-                  onChange={(e) => setDesignation(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Address {}
-                <span className="text-newPrimary">*</span></label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Number {}
-                <span className="text-newPrimary">*</span></label>
-                <input
-                  type="text"
-                  value={number}
-                  onChange={(e) => setNumber(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Email {}
-                <span className="text-newPrimary">*</span></label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
 
-              <div className="mb-4">
-                <label className="block text-gray-700">Password {}
-                <span className="text-newPrimary">*</span></label>
-                <input
-                  type="text"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              
-              {/* Image Upload */}
-              <div className="mb-10">
-                    <label className="block text-gray-700 mb-4 ">
-                      Staff Image {}
-                      <span className="text-newPrimary">*</span>
-                    </label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                      <div className="space-y-1 text-center">
-                        <svg
-                          className="mx-auto h-12 w-12 text-gray-400"
-                          stroke="currentColor"
-                          fill="none"
-                          viewBox="0 0 48 48"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <div className="flex text-sm text-gray-600 justify-center">
-                          <label
-                            htmlFor="file-upload"
-                            className="relative cursor-pointer bg-white rounded-md font-medium text-newPrimary hover:text-newPrimary focus-within:outline-none"
-                          >
-                            <span>Upload files</span>
-                            <input
-                              id="file-upload"
-                              name="file-upload"
-                              type="file"
-                              onChange={handleImageUpload}
-                              className="sr-only"
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          PNG, JPG, GIF up to 10MB
-                        </p>
-                      </div>
-                    </div>
+            <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
+      {/* Item Category */}
+      <div>
+        <label className="block text-gray-700 font-medium">Item Category <span className="text-newPrimary">*</span></label>
+        <select
+          value={itemCategory}
+          required
+          onChange={(e) => setItemCategory(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Select Category</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Furniture">Furniture</option>
+          <option value="Appliances">Appliances</option>
+        </select>
+      </div>
 
-                    {/* Image Preview */}
+      {/* Item Name */}
+      <div>
+        <label className="block text-gray-700 font-medium">Item Name <span className="text-newPrimary">*</span></label>
+        <input
+          type="text"
+          value={itemName}
+          required
+          onChange={(e) => setItemName(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
 
-                    {imagePreview && (
-                      <div className="mt-4">
-                        <h3 className="text-sm font-medium text-gray-700 mb-2">Uploaded Image</h3>
-                        <div className="relative group w-48 h-32">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-full h-full object-cover rounded-md border border-gray-200"
-                          />
-                          <button
-                            onClick={removeImage}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    )}
+      {/* Details */}
+      <div>
+        <label className="block text-gray-700 font-medium">Details</label>
+        <textarea
+          value={details}
+          onChange={(e) => setDetails(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
 
-                  </div>
-              <button
-                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
-                onClick={handleSave}
-              >
-              {isEdit ? "Update Staff" : "Save Staff"}
-              </button>
-            </div>
+      {/* Manufacture */}
+      <div>
+        <label className="block text-gray-700 font-medium">Manufacture <span className="text-newPrimary">*</span></label>
+
+        <select
+          value={manufacture}
+          required
+          onChange={(e) => setManufacture(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Select Manufacture</option>
+          <option value="Samsung">Samsung</option>
+          <option value="Ikea">Ikea</option>
+          <option value="Haier">Haier</option>
+        </select>
+      </div>
+
+      {/* Supplier */}
+      <div>
+        <label className="block text-gray-700 font-medium">Supplier <span className="text-newPrimary">*</span></label>
+        <select
+          value={supplier}
+          required
+          onChange={(e) => setSupplier(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Select Supplier</option>
+          <option value="ABC Traders">ABC Traders</option>
+          <option value="HomeDeco">HomeDeco</option>
+          <option value="KitchenPro">KitchenPro</option>
+        </select>
+      </div>
+
+      {/* Shelve Location */}
+      <div>
+        <label className="block text-gray-700 font-medium">Shelve Location <span className="text-newPrimary">*</span></label>
+        <select
+          value={shelveLocation}
+          required
+          onChange={(e) => setShelveLocation(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Select Location</option>
+          <option value="A1">A1</option>
+          <option value="B2">B2</option>
+          <option value="C3">C3</option>
+        </select>
+      </div>
+
+      {/* Item Unit */}
+      <div>
+        <label className="block text-gray-700 font-medium">Item Unit <span className="text-newPrimary">*</span></label>
+        <select
+          value={itemUnit}
+          required
+          onChange={(e) => setItemUnit(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">Select Unit</option>
+          <option value="kg">Kg</option>
+          <option value="pcs">Pieces</option>
+          <option value="ltr">Liters</option>
+        </select>
+      </div>
+
+      {/* Per Unit */}
+      <div>
+        <label className="block text-gray-700 font-medium">Per Unit</label>
+        <input
+          type="number"
+          value={perUnit}
+          onChange={(e) => setPerUnit(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      {/* Purchase */}
+      <div>
+        <label className="block text-gray-700 font-medium">Purchase <span className="text-newPrimary">*</span></label>
+        <input
+          type="number"
+          required
+          value={purchase}
+          onChange={(e) => setPurchase(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      {/* Sales */}
+      <div>
+        <label className="block text-gray-700 font-medium">Sales <span className="text-newPrimary">*</span></label>
+        <input
+          type="number"
+          value={sales}
+          required
+          onChange={(e) => setSales(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      {/* Stock */}
+      <div>
+        <label className="block text-gray-700 font-medium">Stock <span className="text-newPrimary">*</span></label>
+        <input
+          type="number"
+          value={stock}
+          required
+          onChange={(e) => setStock(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      {/* Reorder */}
+      <div>
+        <label className="block text-gray-700 font-medium">Reorder</label>
+        <input
+          type="number"
+          value={reorder}
+          onChange={(e) => setReorder(e.target.value)}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      {/* Enable / Disable */}
+      <div className="flex items-center gap-3">
+        <label className="text-gray-700 font-medium">Enable / Disable </label>
+        <button
+          type="button"
+          onClick={() => setEnabled(!enabled)}
+          className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"}`}
+        >
+          <div
+            className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"}`}
+          />
+        </button>
+      </div>
+
+      {/* Save Button */}
+      <button
+        className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+        onClick={handleSave}
+      >
+        Save Item
+      </button>
+    </div>
           </div>
         </div>
       )}

@@ -1,261 +1,530 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import { PuffLoader } from "react-spinners";
+import gsap from "gsap";
+import axios from "axios";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
-const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2021, 11, 2)); // December 2, 2021
-  const [selectedDate, setSelectedDate] = useState(new Date(2021, 11, 2));
-  const [viewMode, setViewMode] = useState('month'); // 'day', 'week', or 'month'
+const ShelveLocation = () => {
+  const [shelveLocationList, setShelveLocationList] = useState([]);
+  const [isSliderOpen, setIsSliderOpen] = useState(false);
+  const [locationId, setLocationId] = useState("");
+  const [shelfName, setShelfName] = useState("");
+  const [aisleNumber, setAisleNumber] = useState("");
+  const [section, setSection] = useState("");
+  const [floor, setFloor] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [currentStockCount, setCurrentStockCount] = useState("");
+  const [status, setStatus] = useState(true); // true for Active, false for Inactive
 
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June', 
-    'July', 'August', 'September', 'October', 'November', 'December'
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const sliderRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+
+  // Slider animation
+  useEffect(() => {
+    if (isSliderOpen && sliderRef.current) {
+      gsap.fromTo(
+        sliderRef.current,
+        { x: "100%", opacity: 0 },
+        { x: "0%", opacity: 1, duration: 1.2, ease: "expo.out" }
+      );
+    }
+  }, [isSliderOpen]);
+
+  // Static Data for Shelve Locations
+  const shelveLocations = [
+    {
+      _id: "LOC001",
+      locationId: "LOC001",
+      shelfName: "SH-A1",
+      aisleNumber: 1,
+      section: "Electronics",
+      floor: 1,
+      capacity: 100,
+      currentStockCount: 75,
+      status: true,
+    },
+    {
+      _id: "LOC002",
+      locationId: "LOC002",
+      shelfName: "SH-B2",
+      aisleNumber: 2,
+      section: "Books",
+      floor: 1,
+      capacity: 200,
+      currentStockCount: 120,
+      status: true,
+    },
+    {
+      _id: "LOC003",
+      locationId: "LOC003",
+      shelfName: "SH-C3",
+      aisleNumber: 3,
+      section: "Clothing",
+      floor: 2,
+      capacity: 150,
+      currentStockCount: 90,
+      status: false,
+    },
+    {
+      _id: "LOC004",
+      locationId: "LOC004",
+      shelfName: "SH-D4",
+      aisleNumber: 4,
+      section: "Groceries",
+      floor: 1,
+      capacity: 300,
+      currentStockCount: 200,
+      status: true,
+    },
+    {
+      _id: "LOC005",
+      locationId: "LOC005",
+      shelfName: "SH-E5",
+      aisleNumber: 5,
+      section: "Home Goods",
+      floor: 2,
+      capacity: 250,
+      currentStockCount: 180,
+      status: true,
+    },
   ];
 
-  const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  const getFirstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  // Initialize shelve location list with static data
+  useEffect(() => {
+    setShelveLocationList(shelveLocations);
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
 
-  const isSameDay = (date1, date2) => {
-    return date1.getDate() === date2.getDate() && 
-           date1.getMonth() === date2.getMonth() && 
-           date1.getFullYear() === date2.getFullYear();
+  // Handlers
+  const handleAddShelveLocation = () => {
+    setIsSliderOpen(true);
+    setIsEdit(false);
+    setEditId(null);
+    setLocationId("");
+    setShelfName("");
+    setAisleNumber("");
+    setSection("");
+    setFloor("");
+    setCapacity("");
+    setCurrentStockCount("");
+    setStatus(true);
   };
 
-  const handleDateClick = (day) => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    setSelectedDate(newDate);
-  };
+  // Save or Update Shelve Location
+  const handleSave = async () => {
+    const formData = {
+      locationId,
+      shelfName,
+      aisleNumber: parseInt(aisleNumber),
+      section,
+      floor: parseInt(floor),
+      capacity: parseInt(capacity),
+      currentStockCount: parseInt(currentStockCount),
+      status,
+    };
 
-  const handlePrev = () => {
-    if (viewMode === 'day') {
-      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 1));
-    } else if (viewMode === 'week') {
-      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 7));
-    } else {
-      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    try {
+      const { token } = userInfo || {};
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
+      if (isEdit && editId) {
+        // Simulate API update
+        setShelveLocationList(
+          shelveLocationList.map((s) =>
+            s._id === editId ? { ...s, ...formData } : s
+          )
+        );
+        toast.success("✅ Shelve Location updated successfully");
+      } else {
+        // Simulate API create
+        const newShelveLocation = {
+          ...formData,
+          _id: `LOC${String(1000 + shelveLocationList.length + 1).padStart(3, "0")}`,
+        };
+        setShelveLocationList([...shelveLocationList, newShelveLocation]);
+        toast.success("✅ Shelve Location added successfully");
+      }
+
+      // Reset form
+      setLocationId("");
+      setShelfName("");
+      setAisleNumber("");
+      setSection("");
+      setFloor("");
+      setCapacity("");
+      setCurrentStockCount("");
+      setStatus(true);
+      setIsSliderOpen(false);
+      setIsEdit(false);
+      setEditId(null);
+    } catch (error) {
+      console.error(error);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} shelve location failed`);
     }
   };
 
-  const handleNext = () => {
-    if (viewMode === 'day') {
-      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1));
-    } else if (viewMode === 'week') {
-      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 7));
-    } else {
-      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-    }
+  // Edit Shelve Location
+  const handleEdit = (shelveLocation) => {
+    setIsEdit(true);
+    setEditId(shelveLocation._id);
+    setLocationId(shelveLocation.locationId);
+    setShelfName(shelveLocation.shelfName);
+    setAisleNumber(shelveLocation.aisleNumber.toString());
+    setSection(shelveLocation.section);
+    setFloor(shelveLocation.floor.toString());
+    setCapacity(shelveLocation.capacity.toString());
+    setCurrentStockCount(shelveLocation.currentStockCount.toString());
+    setStatus(shelveLocation.status);
+    setIsSliderOpen(true);
   };
 
-  const renderMiniCalendar = () => {
-    const daysInMonth = getDaysInMonth(currentDate);
-    const firstDay = getFirstDayOfMonth(currentDate);
-    const miniDays = [];
-    let dayCount = 1;
+  // Delete Shelve Location
+  const handleDelete = async (id) => {
+    const swalWithTailwindButtons = Swal.mixin({
+      customClass: {
+        actions: "space-x-2",
+        confirmButton:
+          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+        cancelButton:
+          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+      },
+      buttonsStyling: false,
+    });
 
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 7; j++) {
-        if ((i === 0 && j < firstDay) || dayCount > daysInMonth) {
-          miniDays.push(<div key={`empty-${i}-${j}`} className="h-8"></div>);
-        } else {
-          const isSelected = isSameDay(selectedDate, new Date(currentDate.getFullYear(), currentDate.getMonth(), dayCount));
-          miniDays.push(
-            <div
-              key={`day-${dayCount}`}
-              className={`h-8 flex items-center justify-center cursor-pointer ${
-                isSelected ? 'bg-blue-500 text-white rounded-full w-8' : ''
-              }`}
-              onClick={() => handleDateClick(dayCount)}
-            >
-              {dayCount++}
-            </div>
+    swalWithTailwindButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            setShelveLocationList(shelveLocationList.filter((s) => s._id !== id));
+            swalWithTailwindButtons.fire(
+              "Deleted!",
+              "Shelve Location deleted successfully.",
+              "success"
+            );
+          } catch (error) {
+            console.error("Delete error:", error);
+            swalWithTailwindButtons.fire(
+              "Error!",
+              "Failed to delete shelve location.",
+              "error"
+            );
+          }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          swalWithTailwindButtons.fire(
+            "Cancelled",
+            "Shelve Location is safe 🙂",
+            "error"
           );
         }
-      }
-    }
-    return miniDays;
+      });
   };
 
-  const renderMainCalendar = () => {
-    if (viewMode === 'day') {
-      return (
-        <div className="h-96 overflow-y-auto p-4">
-          <div className="text-xl font-bold mb-4">
-            {days[selectedDate.getDay()]}, {months[selectedDate.getMonth()]} {selectedDate.getDate()}, {selectedDate.getFullYear()}
-          </div>
-          <div className="space-y-2">
-            <div className="bg-blue-100 p-3 rounded">
-              <div className="font-medium">Customer Name</div>
-              <div className="text-sm text-gray-600">10:00 AM - 11:00 AM</div>
-            </div>
-            <div className="bg-pink-100 p-3 rounded">
-              <div className="font-medium">Meeting</div>
-              <div className="text-sm text-gray-600">2:00 PM - 3:00 PM</div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (viewMode === 'week') {
-      const weekStart = new Date(currentDate);
-      weekStart.setDate(currentDate.getDate() - currentDate.getDay());
-      
-      return (
-        <div className="h-96 overflow-y-auto">
-          <div className="grid grid-cols-7">
-            {Array.from({ length: 7 }).map((_, i) => {
-              const day = new Date(weekStart);
-              day.setDate(weekStart.getDate() + i);
-              const isSelected = isSameDay(selectedDate, day);
-              
-              return (
-                <div 
-                  key={i} 
-                  className={`border p-2 ${isSelected ? 'bg-blue-100' : ''}`}
-                  onClick={() => setSelectedDate(day)}
-                >
-                  <div className="font-medium">{days[day.getDay()]}</div>
-                  <div className="text-lg">{day.getDate()}</div>
-                  <div className="mt-2 space-y-1">
-                    {[1, 2].map((event, j) => (
-                      <div key={j} className={`text-xs p-1 rounded truncate ${
-                        j % 2 === 0 ? 'bg-blue-500 text-white' : 'bg-pink-500 text-white'
-                      }`}>
-                        {j % 2 === 0 ? 'Customer' : 'Meeting'}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
-
-    // Month view
-    const daysInMonth = getDaysInMonth(currentDate);
-    const firstDay = getFirstDayOfMonth(currentDate);
-    const calendarDays = [];
-    let dayCount = 1;
-
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 7; j++) {
-        if ((i === 0 && j < firstDay) || dayCount > daysInMonth) {
-          calendarDays.push(<div key={`empty-${i}-${j}`} className="h-24 border border-gray-200"></div>);
-        } else {
-          const isSelected = isSameDay(selectedDate, new Date(currentDate.getFullYear(), currentDate.getMonth(), dayCount));
-          calendarDays.push(
-            <div
-              key={`day-${dayCount}`}
-              className={`h-24 border border-gray-200 p-1 ${
-                isSelected ? 'bg-blue-100' : ''
-              }`}
-            >
-              <div className="text-right">{dayCount}</div>
-              {(dayCount === 2 || dayCount === 21) && (
-                <div className="space-y-1 mt-1">
-                  <div className="bg-blue-500 text-white text-xs p-1 rounded">Customer Name</div>
-                  <div className="bg-pink-500 text-white text-xs p-1 rounded">Time</div>
-                </div>
-              )}
-              {dayCount === 3 && (
-                <div className="bg-blue-500 text-white text-xs p-1 rounded mt-1">Customer Name</div>
-              )}
-              {dayCount++}
-            </div>
-          );
-        }
-      }
-    }
+  // Show loading spinner
+  if (loading) {
     return (
-      <div className="grid grid-cols-7 gap-px overflow-y-auto h-96">
-        {calendarDays}
+      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+        </div>
       </div>
     );
-  };
+  }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Follow Up Calendar</h2>
-      
-      <div className="flex space-x-4">
-        {/* Mini Calendar */}
-        <div className="w-1/3 bg-white p-4 rounded shadow">
-          <div className="text-sm font-medium mb-2">
-            {months[currentDate.getMonth()]} {currentDate.getDate()}, {currentDate.getFullYear()}
-          </div>
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
-              <div key={day} className="text-center text-xs text-gray-500">
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1 overflow-y-auto h-48">
-            {renderMiniCalendar()}
-          </div>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-newPrimary">
+            Shelve Locations List
+          </h1>
+          <p className="text-gray-500 text-sm">Manage your shelve location details</p>
         </div>
-        
-        {/* Main Calendar */}
-        <div className="w-2/3 bg-white p-4 rounded shadow">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex space-x-2">
-              <button 
-                onClick={handlePrev}
-                className="p-1 rounded hover:bg-gray-100"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h3 className="text-md font-semibold text-gray-700">
-                {viewMode === 'day' ? (
-                  `${days[selectedDate.getDay()]}, ${months[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`
-                ) : viewMode === 'week' ? (
-                  `Week of ${months[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`
-                ) : (
-                  `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`
-                )}
-              </h3>
-              <button 
-                onClick={handleNext}
-                className="p-1 rounded hover:bg-gray-100"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+        <button
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+          onClick={handleAddShelveLocation}
+        >
+          + Add Shelve Location
+        </button>
+      </div>
+
+      {/* Shelve Location Table */}
+      <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="w-full">
+            {/* Table Headers */}
+            <div className="hidden lg:grid grid-cols-9 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+              <div>Location ID</div>
+              <div>Shelf Name / Code</div>
+              <div>Aisle Number</div>
+              <div>Section</div>
+              <div>Floor</div>
+              <div>Capacity</div>
+              <div>Current Stock Count</div>
+              <div>Status</div>
+              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
-            <div className="flex space-x-1 bg-gray-100 rounded p-1">
-              {['day', 'week', 'month'].map((mode) => (
-                <button
-                  key={mode}
-                  className={`px-3 py-1 text-sm rounded ${
-                    viewMode === mode ? 'bg-white shadow' : 'hover:bg-gray-200'
-                  }`}
-                  onClick={() => setViewMode(mode)}
+
+            {/* Shelve Locations in Table */}
+            <div className="mt-4 flex flex-col gap-[14px] pb-14">
+              {shelveLocationList.map((shelveLocation) => (
+                <div
+                  key={shelveLocation._id}
+                  className="grid grid-cols-9 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {viewMode === 'month' && (
-            <div className="grid grid-cols-7 gap-px mb-1">
-              {days.map((day) => (
-                <div key={day} className="text-center text-sm font-medium text-gray-700 p-2">
-                  {day}
+                  {/* Location ID */}
+                  <div className="text-sm font-medium text-gray-900">
+                    {shelveLocation.locationId}
+                  </div>
+
+                  {/* Shelf Name / Code */}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.shelfName}
+                  </div>
+
+                  {/* Aisle Number */}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.aisleNumber}
+                  </div>
+
+                  {/* Section */}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.section}
+                  </div>
+
+                  {/* Floor */}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.floor}
+                  </div>
+
+                  {/* Capacity */}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.capacity}
+                  </div>
+
+                  {/* Current Stock Count */}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.currentStockCount}
+                  </div>
+
+                  {/* Status */}
+                  <div className="text-sm font-semibold">
+                    {shelveLocation.status ? (
+                      <span className="text-green-600">Active</span>
+                    ) : (
+                      <span className="text-red-600">Inactive</span>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  {userInfo?.isAdmin && (
+                    <div className="flex justify-end">
+                      <div className="relative group">
+                        <button className="text-gray-400 hover:text-gray-600 text-xl">
+                          ⋯
+                        </button>
+                        <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+                          <button
+                            onClick={() => handleEdit(shelveLocation)}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(shelveLocation._id)}
+                            className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-          )}
-          
-          {renderMainCalendar()}
+          </div>
         </div>
       </div>
+
+      {/* Slider */}
+      {isSliderOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
+          <div
+            ref={sliderRef}
+            className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-newPrimary">
+                {isEdit ? "Update Shelve Location" : "Add a New Shelve Location"}
+              </h2>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  setIsSliderOpen(false);
+                  setIsEdit(false);
+                  setEditId(null);
+                  setLocationId("");
+                  setShelfName("");
+                  setAisleNumber("");
+                  setSection("");
+                  setFloor("");
+                  setCapacity("");
+                  setCurrentStockCount("");
+                  setStatus(true);
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
+              {/* Location ID */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Location ID <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={locationId}
+                  required
+                  onChange={(e) => setLocationId(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Shelf Name / Code */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Shelf Name / Code <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={shelfName}
+                  required
+                  onChange={(e) => setShelfName(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Aisle Number */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Aisle Number <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={aisleNumber}
+                  required
+                  onChange={(e) => setAisleNumber(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Section */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Section <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={section}
+                  required
+                  onChange={(e) => setSection(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Floor */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Floor <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={floor}
+                  required
+                  onChange={(e) => setFloor(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Capacity */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Capacity <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={capacity}
+                  required
+                  onChange={(e) => setCapacity(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Current Stock Count */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Current Stock Count <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={currentStockCount}
+                  required
+                  onChange={(e) => setCurrentStockCount(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center gap-3">
+                <label className="text-gray-700 font-medium">Status</label>
+                <button
+                  type="button"
+                  onClick={() => setStatus(!status)}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                    status ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                      status ? "translate-x-7" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+                <span>{status ? "Active" : "Inactive"}</span>
+              </div>
+
+              {/* Save Button */}
+              <button
+                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                onClick={handleSave}
+              >
+                Save Shelve Location
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Calendar;
+export default ShelveLocation;

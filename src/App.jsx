@@ -13,8 +13,10 @@ import { ToastContainer } from "react-toastify";
 import Calendar from "./pages/admin/Calendar";
 import "react-toastify/dist/ReactToastify.css";
 import Promotion from "./pages/admin/Promotion";
-import Category from "./pages/admin/Category";
+import CategoryItem from "./pages/admin/CategoryItem";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SupplierList from "./pages/admin/Supplier";
+import Manufacture from "./pages/admin/Manufacture";
 
 function AppContent() {
   return (
@@ -40,10 +42,11 @@ function AppContent() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="customers" element={<CustomerData />} />
             <Route path="calendar" element={<Calendar />} />
-            <Route path="followup" element={<FollowUp />} />
+            <Route path="category-item" element={<CategoryItem />} />
+            <Route path="supplier" element={<SupplierList />} />
+            <Route path="manufacture" element={<Manufacture />} />
             <Route path="products/add" element={<AddProduct />} />
             <Route path="promotion" element={<Promotion />} />
-            <Route path="category" element={<Category />} />
           </Route>
         </Routes>
       </main>

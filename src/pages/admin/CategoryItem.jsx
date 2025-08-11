@@ -16,31 +16,31 @@ const Category = () => {
   const [isEnable, setIsEnable] = useState(true);
   const [editingCategory, setEditingCategory] = useState(null);
 
-  // Fetch all categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setLoading(true)
-      try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`);
-        setCategories(Array.isArray(data.data) ? data.data : []);
-        setTimeout(() => {
-          setLoading(false);
-        }, 1500);
-      } catch (error) {
-        toast.error("Failed to fetch categories.");
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
+  // // Fetch all categories
+  // useEffect(() => {
+  //   const fetchCategories = async () => {
+  //     setLoading(true)
+  //     try {
+  //       const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`);
+  //       setCategories(Array.isArray(data.data) ? data.data : []);
+  //       setTimeout(() => {
+  //         setLoading(false);
+  //       }, 1500);
+  //     } catch (error) {
+  //       toast.error("Failed to fetch categories.");
+  //       setCategories([]);
+  //     }
+  //   };
+  //   fetchCategories();
+  // }, []);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[80vh]">
-        <PuffLoader color="#00c7fc" />
-      </div>
-    );
-  }
+    // if (loading) {
+    //   return (
+    //     <div className="flex justify-center items-center h-[80vh]">
+    //       <PuffLoader color="#00c7fc" />
+    //     </div>
+    //   );
+    // }
 
   // Open modal for adding
   const handleAddClick = () => {
@@ -117,13 +117,13 @@ const Category = () => {
     <div className="container mx-auto px-4 py-10 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-primary">Categories</h1>
+        <h1 className="text-3xl font-bold text-primary">All Categories</h1>
         <button
           onClick={handleAddClick}
           className="bg-primary text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-blue-700 transition-all"
         >
           <span className="text-xl">+</span>
-          <span>Add Category</span>
+          <span>Add Category Item</span>
         </button>
       </div>
 

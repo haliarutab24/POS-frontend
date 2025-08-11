@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "./pages/admin/Login";
 import Signup from "./pages/admin/Signup";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -9,13 +9,13 @@ import CustomerData from "./pages/admin/CustomerData";
 import { ToastContainer } from "react-toastify";
 import Calendar from "./pages/admin/Calendar";
 import "react-toastify/dist/ReactToastify.css";
-// import Promotion from "./pages/admin/Promotion";
 import CategoryItem from "./pages/admin/CategoryItem";
-import ProtectedRoute from "./components/ProtectedRoute";
+// import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierList from "./pages/admin/Supplier";
 import Manufacture from "./pages/admin/Manufacture";
 import ItemBarcode from "./pages/admin/ItemBarcode";
 import ItemPurchase from "./pages/admin/ItemPurchase";
+
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -29,9 +29,9 @@ function AppContent() {
           <Route
             path="/admin/*"
             element={
-              // <ProtectedRoute >
-                <AdminLayout />
-              //  </ProtectedRoute>
+              // <ProtectedRoute>
+              <AdminLayout />
+              // </ProtectedRoute>
             }
           >
             <Route index element={<AdminDashboard />} />

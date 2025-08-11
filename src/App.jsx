@@ -1,12 +1,11 @@
 import React from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "./pages/admin/Login";
 import Signup from "./pages/admin/Signup";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ItemList from "./pages/admin/ItemList";
 import CustomerData from "./pages/admin/CustomerData";
-
 import { ToastContainer } from "react-toastify";
 import Calendar from "./pages/admin/Calendar";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,7 +15,6 @@ import SupplierList from "./pages/admin/Supplier";
 import Manufacture from "./pages/admin/Manufacture";
 import ItemBarcode from "./pages/admin/ItemBarcode";
 import ItemPurchase from "./pages/admin/ItemPurchase";
-
 
 function AppContent() {
   return (
@@ -31,9 +29,9 @@ function AppContent() {
           <Route
             path="/admin/*"
             element={
-              // <ProtectedRoute >
-                <AdminLayout />
-              //  </ProtectedRoute>
+              // <ProtectedRoute>
+              <AdminLayout />
+              // </ProtectedRoute>
             }
           >
             <Route index element={<AdminDashboard />} />
@@ -41,14 +39,11 @@ function AppContent() {
             <Route path="item-details" element={<ItemList />} />
             <Route path="customers" element={<CustomerData />} />
             <Route path="calendar" element={<Calendar />} />
-            
             <Route path="category-item" element={<CategoryItem />} />
             <Route path="supplier" element={<SupplierList />} />
             <Route path="manufacture" element={<Manufacture />} />
-            
             <Route path="item-barcode" element={<ItemBarcode />} />
             <Route path="item-purchase" element={<ItemPurchase />} />
-            
           </Route>
         </Routes>
       </main>

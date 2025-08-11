@@ -13,10 +13,12 @@ const links = [
       { to: "/admin/manufacture", label: "Manufacture" },
       { to: "/admin/supplier", label: "Supplier" },
       { to: "/admin/calendar", label: "Shelve Location" },
+      { to: "/admin/item-purchase", label: "Item Purchase" },
     ],
   },
   { to: "/admin/item-details", label: "Item Details" },
   { to: "/admin/customers", label: "Customer Data" },
+  { to: "/admin/item-barcode", label: "Item Barcode" },
   { to: "/admin/report", label: "Report" },
   { to: "/admin/settings", label: "Settings" },
 ];

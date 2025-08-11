@@ -6,18 +6,19 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ItemList from "./pages/admin/ItemList";
 import CustomerData from "./pages/admin/CustomerData";
-import FollowUp from "./pages/admin/FollowUp";
+import FollowUp from "./pages/admin/ItemBarcode";
 import ProductsPage from "./pages/admin/ProductsPage";
 import AddProduct from "./pages/admin/AddProduct";
 import { ToastContainer } from "react-toastify";
 import Calendar from "./pages/admin/Calendar";
 import "react-toastify/dist/ReactToastify.css";
-import Promotion from "./pages/admin/Promotion";
+// import Promotion from "./pages/admin/Promotion";
 import CategoryItem from "./pages/admin/CategoryItem";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierList from "./pages/admin/Supplier";
 import Manufacture from "./pages/admin/Manufacture";
-
+import ItemBarcode from "./pages/admin/ItemBarcode";
+import ItemPurchase from "./pages/admin/ItemPurchase";
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -46,7 +47,8 @@ function AppContent() {
             <Route path="supplier" element={<SupplierList />} />
             <Route path="manufacture" element={<Manufacture />} />
             <Route path="products/add" element={<AddProduct />} />
-            <Route path="promotion" element={<Promotion />} />
+            <Route path="item-barcode" element={<ItemBarcode />} />
+            <Route path="item-purchase" element={<ItemPurchase />} />
           </Route>
         </Routes>
       </main>

@@ -18,9 +18,7 @@ const links = [
   },
   { to: "/admin/item-details", label: "Item Details" },
   { to: "/admin/customers", label: "Customer Data" },
-  { to: "/admin/barcodes", label: "Print Barcodes" },
-  { to: "/admin/expirytags", label: "Print Expiry Tags" },
-  { to: "/admin/invoice", label: "Sales Invoice" },
+  { to: "/admin/item-barcode", label: "Item Barcode" },
   { to: "/admin/report", label: "Report" },
   { to: "/admin/settings", label: "Settings" },
 ];

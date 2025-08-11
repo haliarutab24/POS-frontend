@@ -6,14 +6,10 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ItemList from "./pages/admin/ItemList";
 import CustomerData from "./pages/admin/CustomerData";
-import Supplier from "./pages/admin/Supplier";
 import ProductsPage from "./pages/admin/ProductsPage";
-import AddProduct from "./pages/admin/AddProduct";
 import { ToastContainer } from "react-toastify";
 import Calendar from "./pages/admin/Calendar";
 import "react-toastify/dist/ReactToastify.css";
-
-// import Promotion from "./pages/admin/Promotion";
 import CategoryItem from "./pages/admin/CategoryItem";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierList from "./pages/admin/Supplier";
@@ -44,12 +40,10 @@ function AppContent() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="customers" element={<CustomerData />} />
             <Route path="calendar" element={<Calendar />} />
-
+            
             <Route path="category-item" element={<CategoryItem />} />
             <Route path="supplier" element={<SupplierList />} />
             <Route path="manufacture" element={<Manufacture />} />
-            <Route path="products/add" element={<AddProduct />} />
-            {/* <Route path="promotion" element={<Promotion />} /> */}
 
           </Route>
         </Routes>

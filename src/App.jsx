@@ -11,9 +11,11 @@ import { ToastContainer } from "react-toastify";
 import Calendar from "./pages/admin/Calendar";
 import "react-toastify/dist/ReactToastify.css";
 import CategoryItem from "./pages/admin/CategoryItem";
-import ProtectedRoute from "./components/ProtectedRoute";
+// import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierList from "./pages/admin/Supplier";
 import Manufacture from "./pages/admin/Manufacture";
+import ItemBarcode from "./pages/admin/ItemBarcode";
+import ItemPurchase from "./pages/admin/ItemPurchase";
 
 
 function AppContent() {
@@ -43,7 +45,10 @@ function AppContent() {
             <Route path="category-item" element={<CategoryItem />} />
             <Route path="supplier" element={<SupplierList />} />
             <Route path="manufacture" element={<Manufacture />} />
-
+            
+            <Route path="item-barcode" element={<ItemBarcode />} />
+            <Route path="item-purchase" element={<ItemPurchase />} />
+            
           </Route>
         </Routes>
       </main>

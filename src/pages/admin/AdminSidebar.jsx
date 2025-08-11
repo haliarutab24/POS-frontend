@@ -18,8 +18,11 @@ const links = [
   },
   { to: "/admin/item-details", label: "Item Details" },
   { to: "/admin/customers", label: "Customer Data" },
+  { to: "/admin/sales-invoice", label: "Sales Invoice" },
   { to: "/admin/item-barcode", label: "Item Barcode" },
+  { to: "/admin/expiry-tags", label: "Expiry Tags" },
   { to: "/admin/report", label: "Report" },
+
   { to: "/admin/settings", label: "Settings" },
 ];
 

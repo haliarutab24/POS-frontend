@@ -15,7 +15,8 @@ import SupplierList from "./pages/admin/Supplier";
 import Manufacture from "./pages/admin/Manufacture";
 import ItemBarcode from "./pages/admin/ItemBarcode";
 import ItemPurchase from "./pages/admin/ItemPurchase";
-
+import  SalesInvoice from './pages/admin/SalesInvoice';
+import ExpiryTags from "./pages/admin/ExpiryTags";
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -43,7 +44,9 @@ function AppContent() {
             <Route path="supplier" element={<SupplierList />} />
             <Route path="manufacture" element={<Manufacture />} />
             <Route path="item-barcode" element={<ItemBarcode />} />
+            <Route path="sales-invoice" element={<SalesInvoice />} />
             <Route path="item-purchase" element={<ItemPurchase />} />
+            <Route path="expiry-tags" element={<ExpiryTags />} />
           </Route>
         </Routes>
       </main>

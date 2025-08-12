@@ -6,24 +6,25 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 const links = [
   { to: "/admin", label: "Dashboard" },
-  {
-    label: "Item Setup",
-    children: [
-      { to: "/admin/category-item", label: "Item Categories" },
-      { to: "/admin/manufacture", label: "Manufacture" },
-      { to: "/admin/supplier", label: "Supplier" },
-      { to: "/admin/calendar", label: "Shelve Location" },
-      { to: "/admin/item-purchase", label: "Item Purchase" },
-    ],
-  },
+  
   { to: "/admin/item-details", label: "Item Details" },
-  { to: "/admin/customers", label: "Customer Data" },
-  { to: "/admin/sales-invoice", label: "Sales Invoice" },
+  { to: "/admin/item-purchase", label: "Purchase" },
+  { to: "/admin/sales-invoice", label: "Sales" },
+  { to: "/admin/customers-booking", label: "Booking Customer" },
   { to: "/admin/item-barcode", label: "Item Barcode" },
   { to: "/admin/expiry-tags", label: "Expiry Tags" },
   { to: "/admin/report", label: "Report" },
+  {
+    label: "Setup",
+    children: [
+      { to: "/admin/category-item", label: "Item Categories" },
+      { to: "/admin/manufacture", label: "Manufacturer" },
+      { to: "/admin/supplier", label: "Supplier" },
+      { to: "/admin/calendar", label: "Shelve Location" },
+    ],
+  },
 
-  { to: "/admin/settings", label: "Settings" },
+  { to: "/admin/settings", label: "Security" },
 ];
 
 const AdminSidebar = () => {

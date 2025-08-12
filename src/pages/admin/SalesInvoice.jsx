@@ -160,13 +160,13 @@ const SalesInvoice = () => {
   };
 
   // Print invoice
-const handlePrint = (invoice) => {
-  const printWindow = window.open("", "_blank");
+  const handlePrint = (invoice) => {
+    const printWindow = window.open("", "_blank");
 
-  // Build items table HTML
-  const itemsHTML = invoice.items
-    .map(
-      (i, idx) => `
+    // Build items table HTML
+    const itemsHTML = invoice.items
+      .map(
+        (i, idx) => `
       <tr>
         <td style="border:1px solid #000;padding:4px;text-align:center;">${idx + 1}</td>
         <td style="border:1px solid #000;padding:4px;">${i.itemName}</td>
@@ -175,10 +175,10 @@ const handlePrint = (invoice) => {
         <td style="border:1px solid #000;padding:4px;text-align:right;">${i.total}</td>
       </tr>
     `
-    )
-    .join("");
+      )
+      .join("");
 
-  printWindow.document.write(`
+    printWindow.document.write(`
     <html>
       <head>
         <title>Invoice - ${invoice.receiptNo}</title>
@@ -228,8 +228,8 @@ const handlePrint = (invoice) => {
     </html>
   `);
 
-  printWindow.document.close();
-};
+    printWindow.document.close();
+  };
 
 
   return (
@@ -300,9 +300,20 @@ const handlePrint = (invoice) => {
       {isSliderOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
           <div ref={sliderRef} className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold mb-4">
               {isEdit ? "Edit Invoice" : "Add New Invoice"}
             </h2>
+            <button
+              className="text-gray-500 hover:text-gray-800 text-2xl"
+              onClick={() => {
+                setIsSliderOpen(false);
+
+              }}
+            >
+              ×
+            </button>
+            </div>
 
             {/* Customer Info */}
             <input

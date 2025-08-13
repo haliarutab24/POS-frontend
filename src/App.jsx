@@ -18,6 +18,7 @@ import ItemPurchase from "./pages/admin/ItemPurchase";
 import  SalesInvoice from './pages/admin/SalesInvoice';
 import ExpiryTags from "./pages/admin/ExpiryTags";
 import BookingOrder from "./pages/admin/BookingOrder";
+import ItemUnit from './pages/admin/ItemUnit'
 
 function AppContent() {
   return (
@@ -49,6 +50,7 @@ function AppContent() {
             <Route path="sales-invoice" element={<SalesInvoice />} />
             <Route path="item-purchase" element={<ItemPurchase />} />
             <Route path="expiry-tags" element={<ExpiryTags />} />
+             <Route path="item-unit" element={<ItemUnit />} />
             <Route path="customers-booking" element={<BookingOrder />} />
 
           </Route>

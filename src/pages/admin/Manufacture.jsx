@@ -1,20 +1,23 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
 const Manufacture = () => {
   const [manufacturerList, setManufacturerList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
+  const [manufacturerId, setManufacturerId] = useState("");
   const [manufacturerName, setManufacturerName] = useState("");
   const [address, setAddress] = useState("");
-  const [productsSupplied, setProductsSupplied] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [personName, setPersonName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [ntn, setNtn] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState(true); // true for Active, false for Inactive
-  const [gstNumber, setGstNumber] = useState("");
-
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
@@ -39,46 +42,66 @@ const Manufacture = () => {
       _id: "10001",
       name: "Samsung",
       address: "123 Tech Street, Seoul, South Korea",
-      productsSupplied: "Smartphones, TVs, Appliances",
+      phoneNumber: "+82-2-1234-5678",
+      personName: "John Kim",
+      mobileNumber: "+82-10-9876-5432",
+      designation: "Sales Manager",
+      ntn: "NTN123456789",
+      gstNumber: "27ABCDE1234F1Z5",
       email: "contact@samsung.com",
       status: true,
-      gstNumber: "27ABCDE1234F1Z5"
     },
     {
       _id: "10002",
       name: "Ikea",
       address: "456 Furniture Ave, Stockholm, Sweden",
-      productsSupplied: "Furniture, Home Decor",
+      phoneNumber: "+46-8-2345-6789",
+      personName: "Anna Svensson",
+      mobileNumber: "+46-70-1234-5678",
+      designation: "Regional Director",
+      ntn: "NTN987654321",
+      gstNumber: "29FGHIJ5678K2M9",
       email: "support@ikea.com",
       status: true,
-      gstNumber: "29FGHIJ5678K2M9"
     },
     {
       _id: "10003",
       name: "Haier",
       address: "789 Appliance Road, Qingdao, China",
-      productsSupplied: "Microwaves, Refrigerators",
+      phoneNumber: "+86-532-1234-5678",
+      personName: "Li Wei",
+      mobileNumber: "+86-138-1234-5678",
+      designation: "Operations Head",
+      ntn: "NTN456789123",
+      gstNumber: "30NOPQR9012S3T4",
       email: "info@haier.com",
       status: false,
-      gstNumber: "30NOPQR9012S3T4"
     },
     {
       _id: "10004",
       name: "Levis",
       address: "101 Fashion Blvd, San Francisco, USA",
-      productsSupplied: "Clothing, Jackets",
+      phoneNumber: "+1-415-123-4567",
+      personName: "Sarah Johnson",
+      mobileNumber: "+1-510-987-6543",
+      designation: "Marketing Lead",
+      ntn: "NTN789123456",
+      gstNumber: "06UVWXY3456Z7A8",
       email: "sales@levis.com",
       status: true,
-      gstNumber: "06UVWXY3456Z7A8"
     },
     {
       _id: "10005",
       name: "Oxford",
       address: "202 Stationery Lane, London, UK",
-      productsSupplied: "Notebooks, Pens",
+      phoneNumber: "+44-20-1234-5678",
+      personName: "James Brown",
+      mobileNumber: "+44-7700-123456",
+      designation: "Procurement Manager",
+      ntn: "NTN321654987",
+      gstNumber: "09BCDEF6789G1H2",
       email: "contact@oxford.com",
       status: false,
-      gstNumber: "09BCDEF6789G1H2"
     },
   ];
 
@@ -93,22 +116,32 @@ const Manufacture = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
     setEditId(null);
+    setManufacturerId("");
     setManufacturerName("");
     setAddress("");
-    setProductsSupplied("");
-    setEmail("");
+    setPhoneNumber("");
+    setPersonName("");
+    setMobileNumber("");
+    setDesignation("");
+    setNtn("");
     setGstNumber("");
+    setEmail("");
     setStatus(true);
   };
 
   // Save or Update Manufacturer
   const handleSave = async () => {
     const formData = {
+      _id: manufacturerId,
       name: manufacturerName,
       address,
-      productsSupplied,
-      email,
+      phoneNumber,
+      personName,
+      mobileNumber,
+      designation,
+      ntn,
       gstNumber,
+      email,
       status,
     };
 
@@ -138,11 +171,16 @@ const Manufacture = () => {
       }
 
       // Reset form
+      setManufacturerId("");
       setManufacturerName("");
       setAddress("");
-      setProductsSupplied("");
-      setEmail("");
+      setPhoneNumber("");
+      setPersonName("");
+      setMobileNumber("");
+      setDesignation("");
+      setNtn("");
       setGstNumber("");
+      setEmail("");
       setStatus(true);
       setIsSliderOpen(false);
       setIsEdit(false);
@@ -157,11 +195,16 @@ const Manufacture = () => {
   const handleEdit = (manufacturer) => {
     setIsEdit(true);
     setEditId(manufacturer._id);
+    setManufacturerId(manufacturer._id);
     setManufacturerName(manufacturer.name);
     setAddress(manufacturer.address);
-    setProductsSupplied(manufacturer.productsSupplied);
-    setEmail(manufacturer.email);
+    setPhoneNumber(manufacturer.phoneNumber);
+    setPersonName(manufacturer.personName);
+    setMobileNumber(manufacturer.mobileNumber);
+    setDesignation(manufacturer.designation);
+    setNtn(manufacturer.ntn);
     setGstNumber(manufacturer.gstNumber);
+    setEmail(manufacturer.email);
     setStatus(manufacturer.status);
     setIsSliderOpen(true);
   };
@@ -249,15 +292,18 @@ const Manufacture = () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-8 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-[100px_150px_200px_120px_120px_120px_120px_120px_120px_80px_80px] gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Manufacturer ID</div>
               <div>Name</div>
               <div>Address</div>
-              <div>Products Supplied</div>
-              <div>Email</div>
-              <div>GST/Tax Number</div>
+              <div>Phone Number</div>
+              <div>Person Name</div>
+              <div>Mobile Number</div>
+              <div>Designation</div>
+              <div>NTN</div>
+              <div>GST</div>
               <div>Status</div>
-              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
+              {userInfo?.isAdmin && <div className="text-center">Actions</div>}
             </div>
 
             {/* Manufacturers in Table */}
@@ -265,7 +311,7 @@ const Manufacture = () => {
               {manufacturerList.map((manufacturer) => (
                 <div
                   key={manufacturer._id}
-                  className="grid grid-cols-8 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-[100px_150px_200px_120px_120px_120px_120px_120px_120px_80px_80px] items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Manufacturer ID */}
                   <div className="text-sm font-medium text-gray-900">
@@ -282,17 +328,32 @@ const Manufacture = () => {
                     {manufacturer.address}
                   </div>
 
-                  {/* Products Supplied */}
+                  {/* Phone Number */}
                   <div className="text-sm text-gray-500">
-                    {manufacturer.productsSupplied}
+                    {manufacturer.phoneNumber}
                   </div>
 
-                  {/* Email */}
+                  {/* Person Name */}
                   <div className="text-sm text-gray-500">
-                    {manufacturer.email}
+                    {manufacturer.personName}
                   </div>
 
-                  {/* GST/Tax Number */}
+                  {/* Mobile Number */}
+                  <div className="text-sm text-gray-500">
+                    {manufacturer.mobileNumber}
+                  </div>
+
+                  {/* Designation */}
+                  <div className="text-sm text-gray-500">
+                    {manufacturer.designation}
+                  </div>
+
+                  {/* NTN */}
+                  <div className="text-sm text-gray-500">
+                    {manufacturer.ntn}
+                  </div>
+
+                  {/* GST */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.gstNumber}
                   </div>
@@ -308,7 +369,7 @@ const Manufacture = () => {
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
-                    <div className="flex justify-end">
+                    <div className="flex justify-center">
                       <div className="relative group">
                         <button className="text-gray-400 hover:text-gray-600 text-xl">
                           ⋯
@@ -354,11 +415,16 @@ const Manufacture = () => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
                   setEditId(null);
+                  setManufacturerId("");
                   setManufacturerName("");
                   setAddress("");
-                  setProductsSupplied("");
-                  setEmail("");
+                  setPhoneNumber("");
+                  setPersonName("");
+                  setMobileNumber("");
+                  setDesignation("");
+                  setNtn("");
                   setGstNumber("");
+                  setEmail("");
                   setStatus(true);
                 }}
               >
@@ -367,6 +433,22 @@ const Manufacture = () => {
             </div>
 
             <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
+              {/* Manufacturer ID */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Manufacturer ID <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={manufacturerId}
+                  required
+                  onChange={(e) => setManufacturerId(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  disabled={isEdit}
+                  placeholder="e.g. 10001"
+                />
+              </div>
+
               {/* Manufacturer Name */}
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -395,31 +477,76 @@ const Manufacture = () => {
                 />
               </div>
 
-              {/* Products Supplied */}
+              {/* Phone Number */}
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Products Supplied <span className="text-newPrimary">*</span>
+                  Phone Number <span className="text-newPrimary">*</span>
                 </label>
                 <input
                   type="text"
-                  value={productsSupplied}
+                  value={phoneNumber}
                   required
-                  onChange={(e) => setProductsSupplied(e.target.value)}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. +82-2-1234-5678"
+                />
+              </div>
+
+              {/* Person Name */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Person Name <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={personName}
+                  required
+                  onChange={(e) => setPersonName(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
 
-              {/* Email */}
+              {/* Mobile Number */}
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Email Address <span className="text-newPrimary">*</span>
+                  Mobile Number <span className="text-newPrimary">*</span>
                 </label>
                 <input
-                  type="email"
-                  value={email}
+                  type="text"
+                  value={mobileNumber}
                   required
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setMobileNumber(e.target.value)}
                   className="w-full p-2 border rounded"
+                  placeholder="e.g. +82-10-9876-5432"
+                />
+              </div>
+
+              {/* Designation */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Designation <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={designation}
+                  required
+                  onChange={(e) => setDesignation(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* NTN */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  NTN <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={ntn}
+                  required
+                  onChange={(e) => setNtn(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. NTN123456789"
                 />
               </div>
 
@@ -435,6 +562,20 @@ const Manufacture = () => {
                   onChange={(e) => setGstNumber(e.target.value)}
                   className="w-full p-2 border rounded"
                   placeholder="e.g. 27ABCDE1234F1Z5"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Email Address <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  required
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-2 border rounded"
                 />
               </div>
 

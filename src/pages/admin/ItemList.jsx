@@ -1,14 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
-
 const ItemList = () => {
-  const [staffList, setStaffList] = useState([]);
-
+  const [itemList, setItemList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [itemCategory, setItemCategory] = useState("");
   const [itemName, setItemName] = useState("");
@@ -21,179 +18,228 @@ const ItemList = () => {
   const [purchase, setPurchase] = useState("");
   const [sales, setSales] = useState("");
   const [stock, setStock] = useState("");
+  const [price, setPrice] = useState("");
+  const [barcode, setBarcode] = useState("");
   const [reorder, setReorder] = useState("");
   const [enabled, setEnabled] = useState(true);
-
-
-
-
-  const [formState, setEditFormState] = useState({
-    name: "",
-    department: "",
-    designation: "",
-    address: "",
-    number: "",
-    email: "",
-    password: "",
-    image: ""
-  });
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
-
   const sliderRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-  console.log("Admin", userInfo.isAdmin);
 
-  // slider styling 
+  // Slider animation
   useEffect(() => {
     if (isSliderOpen && sliderRef.current) {
       gsap.fromTo(
         sliderRef.current,
-        { x: "100%", opacity: 0 },  // offscreen right
-        {
-          x: "0%",
-          opacity: 1,
-          duration: 1.2,
-          ease: "expo.out",          // smoother easing
-        }
+        { x: "100%", opacity: 0 },
+        { x: "0%", opacity: 1, duration: 1.2, ease: "expo.out" }
       );
     }
   }, [isSliderOpen]);
 
+  // Static Data
+  const items = [
+    {
+      _id: "ITEM001",
+      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
+      itemCategory: "Electronics",
+      itemName: "Smartphone",
+      manufacture: "Samsung",
+      supplier: "ABC Traders",
+      purchase: 500,
+      sales: 650,
+      stock: 120,
+      price: 600,
+      barcode: "BAR1234567890",
+    },
+    {
+      _id: "ITEM002",
+      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
+      itemCategory: "Furniture",
+      itemName: "Office Chair",
+      manufacture: "Ikea",
+      supplier: "HomeDeco",
+      purchase: 80,
+      sales: 120,
+      stock: 45,
+      price: 100,
+      barcode: "BAR9876543210",
+    },
+    {
+      _id: "ITEM003",
+      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
+      itemCategory: "Appliances",
+      itemName: "Microwave Oven",
+      manufacture: "Haier",
+      supplier: "KitchenPro",
+      purchase: 200,
+      sales: 280,
+      stock: 60,
+      price: 250,
+      barcode: "BAR4567891234",
+    },
+    {
+      _id: "ITEM004",
+      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
+      itemCategory: "Clothing",
+      itemName: "Men's Jacket",
+      manufacture: "Levis",
+      supplier: "Fashion Hub",
+      purchase: 40,
+      sales: 70,
+      stock: 150,
+      price: 60,
+      barcode: "BAR7891234567",
+    },
+    {
+      _id: "ITEM005",
+      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
+      itemCategory: "Stationery",
+      itemName: "Notebook",
+      manufacture: "Oxford",
+      supplier: "PaperHouse",
+      purchase: 2,
+      sales: 5,
+      stock: 500,
+      price: 4,
+      barcode: "BAR3216549870",
+    },
+  ];
 
-  // // Fetch data from API
-  // const fetchStaff = useCallback(async () => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/staff`);
-  //     const result = await response.json();
-
-  //     if (result.success && Array.isArray(result.data)) {
-  //       const mappedStaff = result.data.map((staff) => ({
-  //         _id: staff._id,
-  //         name: staff.username,
-  //         department: staff.department,
-  //         designation: staff.designation,
-  //         address: staff.address,
-  //         number: staff.number,
-  //         email: staff.email,
-  //         password:staff.password,
-  //         image: staff.image || [],
-  //       }));
-
-  //       setStaffList(mappedStaff);
-
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching staff data:", error);
-  //   } finally {
-  //     setTimeout(() => setLoading(false), 1000);
-  //   }
-  // }, []); // No dependencies so the function is memoized once
-
-  // console.log("Staff List", staffList);
-
-  // useEffect(() => {
-  //   fetchStaff(); // Only re-executes if fetchStaff reference changes
-  // }, [fetchStaff]);
-
+  // Initialize item list with static data
+  useEffect(() => {
+    setItemList(items);
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
 
   // Handlers
-  const handleAddStaff = () => {
+  const handleAddItem = () => {
     setIsSliderOpen(true);
+    setIsEdit(false);
+    setEditId(null);
+    setItemCategory("");
+    setItemName("");
+    setDetails("");
+    setManufacture("");
+    setSupplier("");
+    setShelveLocation("");
+    setItemUnit("");
+    setPerUnit("");
+    setPurchase("");
+    setSales("");
+    setStock("");
+    setPrice("");
+    setBarcode("");
+    setReorder("");
+    setEnabled(true);
+    setImage(null);
+    setImagePreview(null);
   };
 
-
-  //  Item saved
+  // Save or Update Item
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("username", staffName);
-    formData.append("department", department);
-    formData.append("designation", designation);
-    formData.append("address", address);
-    formData.append("number", number);
-    formData.append("email", email);
-    formData.append('password', password)
+    const formData = {
+      itemCategory,
+      itemName,
+      details,
+      manufacture,
+      supplier,
+      shelveLocation,
+      itemUnit,
+      perUnit: parseInt(perUnit) || 0,
+      purchase: parseFloat(purchase) || 0,
+      sales: parseFloat(sales) || 0,
+      stock: parseInt(stock) || 0,
+      price: parseFloat(price) || 0,
+      barcode,
+      reorder: parseInt(reorder) || 0,
+      enabled,
+    };
+
     if (image) {
-      formData.append("image", image);
+      formData.image = imagePreview; // Simulate image upload using preview URL
     }
 
-    console.log("Form Data", formData);
-
     try {
-      const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      };
-
       if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/staff/${editId}`,
-          formData,
-          { headers }
+        // Simulate API update
+        setItemList(
+          itemList.map((item) =>
+            item._id === editId ? { ...item, ...formData } : item
+          )
         );
-        toast.success("✅ Staff updated successfully");
+        toast.success("✅ Item updated successfully");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/staff`,
-          formData,
-          { headers }
-        );
-        toast.success("✅ Staff added successfully");
+        // Simulate API create
+        const newItem = {
+          ...formData,
+          _id: `ITEM${String(1000 + itemList.length + 1).padStart(3, "0")}`,
+        };
+        setItemList([...itemList, newItem]);
+        toast.success("✅ Item added successfully");
       }
 
       // Reset fields
-      setStaffName("");
-      setDepartment("");
-      setDesignation("");
-      setAddress("");
-      setNumber("");
-      setEmail("");
+      setItemCategory("");
+      setItemName("");
+      setDetails("");
+      setManufacture("");
+      setSupplier("");
+      setShelveLocation("");
+      setItemUnit("");
+      setPerUnit("");
+      setPurchase("");
+      setSales("");
+      setStock("");
+      setPrice("");
+      setBarcode("");
+      setReorder("");
+      setEnabled(true);
       setImage(null);
       setImagePreview(null);
       setEditId(null);
       setIsEdit(false);
       setIsSliderOpen(false);
-
-      // Refresh list
-      fetchStaff();
-
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} staff failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} item failed`);
     }
   };
 
-
-
-
-
-  // Open the edit modal and populate the form
-  const handleEdit = (staff) => {
+  // Edit Item
+  const handleEdit = (item) => {
     setIsEdit(true);
-    setEditId(staff._id);
-    setStaffName(staff.name || "");
-    setDepartment(staff.department || "");
-    setDesignation(staff.designation || "");
-    setAddress(staff.address || "");
-    setNumber(staff.number || "");
-    setEmail(staff.email || "");
-    setPassword(staff.password || "");
-    setImagePreview(staff.image?.url || "");
+    setEditId(item._id);
+    setItemCategory(item.itemCategory || "");
+    setItemName(item.itemName || "");
+    setDetails(item.details || "");
+    setManufacture(item.manufacture || "");
+    setSupplier(item.supplier || "");
+    setShelveLocation(item.shelveLocation || "");
+    setItemUnit(item.itemUnit || "");
+    setPerUnit(item.perUnit ? item.perUnit.toString() : "");
+    setPurchase(item.purchase ? item.purchase.toString() : "");
+    setSales(item.sales ? item.sales.toString() : "");
+    setStock(item.stock ? item.stock.toString() : "");
+    setPrice(item.price ? item.price.toString() : "");
+    setBarcode(item.barcode || "");
+    setReorder(item.reorder ? item.reorder.toString() : "");
+    setEnabled(item.enabled !== undefined ? item.enabled : true);
+    setImagePreview(item.image || "");
     setImage(null);
     setIsSliderOpen(true);
   };
 
-  // Delete Staff
+  // Delete Item
   const handleDelete = async (id) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
-        actions: "space-x-2", // gap between buttons
+        actions: "space-x-2",
         confirmButton:
           "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
         cancelButton:
@@ -215,145 +261,65 @@ const ItemList = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const token = userInfo?.token;
-            if (!token) {
-              toast.error("Authorization token missing!");
-              return;
-            }
-
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/staff/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
-
-            // Update UI
-            setStaffList(staffList.filter((p) => p._id !== id));
-
+            setItemList(itemList.filter((item) => item._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Staff deleted successfully.",
+              "Item deleted successfully.",
               "success"
             );
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete staff.",
+              "Failed to delete item.",
               "error"
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
             "Cancelled",
-            "Staff is safe 🙂",
+            "Item is safe 🙂",
             "error"
           );
         }
       });
   };
 
-
-  // Static Data
-  const items = [
-    {
-      "image": "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      "itemCategory": "Electronics",
-      "itemName": "Smartphone",
-      "manufacture": "Samsung",
-      "supplier": "ABC Traders",
-      "purchase": 500,
-      "sales": 650,
-      "stock": 120
-    },
-    {
-      
-      "image": "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      "itemCategory": "Furniture",
-      "itemName": "Office Chair",
-      "manufacture": "Ikea",
-      "supplier": "HomeDeco",
-      "purchase": 80,
-      "sales": 120,
-      "stock": 45
-    },
-    {
-      "image": "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      "itemCategory": "Appliances",
-      "itemName": "Microwave Oven",
-      "manufacture": "Haier",
-      "supplier": "KitchenPro",
-      "purchase": 200,
-      "sales": 280,
-      "stock": 60
-    },
-    {
-      "image": "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      "itemCategory": "Clothing",
-      "itemName": "Men's Jacket",
-      "manufacture": "Levis",
-      "supplier": "Fashion Hub",
-      "purchase": 40,
-      "sales": 70,
-      "stock": 150
-    },
-    {
-      "image": "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      "itemCategory": "Stationery",
-      "itemName": "Notebook",
-      "manufacture": "Oxford",
-      "supplier": "PaperHouse",
-      "purchase": 2,
-      "sales": 5,
-      "stock": 500
-    }
-  ]
-
-
   // Image Upload
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file); // For upload
+      setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result); // For preview
+        setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-
+  // Remove Image
   const removeImage = () => {
+    setImage(null);
     setImagePreview("");
-    setEditFormState({ ...formState, image: "" });
   };
 
+  // Capitalize First Letter
+  function capitalizeFirstLetter(string) {
+    if (!string) return "";
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
 
-    // Capital 1st letter 
-    function capitalizeFirstLetter(string) {
-      if (!string) return '';
-      return string.charAt(0).toUpperCase() + string.slice(1);
-    }
-
-  // // Show loading spinner
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <PuffLoader
-  //           height="150"
-  //           width="150"
-  //           radius={1}
-  //           color="#00809D"
-  //         />
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  // Show loading spinner
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -364,82 +330,80 @@ const ItemList = () => {
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
-          onClick={handleAddStaff}
+          onClick={handleAddItem}
         >
           + Add Item
         </button>
       </div>
 
       {/* Item Table */}
-      <div className="rounded-xl shadow p-6 border border-gray-100 w-full  overflow-hidden">
+      <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
             <div className="hidden lg:grid grid-cols-8 gap-12 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Item Category</div>
               <div>Item Name</div>
-              <div>Manufacture</div>
-              <div>Supplier</div>
               <div>Purchase</div>
               <div>Sales</div>
               <div>Stock</div>
+              <div>Price</div>
+              <div>Barcode</div>
               {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
 
-            {/* Staff in Table */}
+            {/* Items in Table */}
             <div className="mt-4 flex flex-col gap-[6px]">
-              {items.map((staff, index) => (
+              {itemList.map((item) => (
                 <div
-                  key={index}
+                  key={item._id}
                   className="grid grid-cols-8 items-center gap-12 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {/* Name */}
+                  {/* Item Category */}
                   <div className="flex items-center gap-3">
-                          <img
-                            src={staff.image[0]?.url || staff.image}
-                            alt="Product Icon"
-                            className="w-7 h-7 object-cover rounded-full"
-                          />
-                        <span className="text-sm font-medium text-gray-900">
-                          {capitalizeFirstLetter(staff.itemCategory)}
-                        </span>
-                      </div>
+                    <img
+                      src={item.image}
+                      alt="Product Icon"
+                      className="w-7 h-7 object-cover rounded-full"
+                    />
+                    <span className="text-sm font-medium text-gray-900">
+                      {capitalizeFirstLetter(item.itemCategory)}
+                    </span>
+                  </div>
 
-                  {/* itemName */}
-                  <div className="text-sm text-gray-500">{staff.itemName}</div>
+                  {/* Item Name */}
+                  <div className="text-sm text-gray-500">{item.itemName}</div>
 
-                  {/* manufacture */}
-                  <div className="text-sm text-gray-500">{staff.manufacture}</div>
+                  {/* Purchase */}
+                  <div className="text-sm font-semibold text-gray-500">{item.purchase}</div>
 
-                  {/* supplier */}
-                  <div className="text-sm font-semibold text-gray-500">{staff.supplier}</div>
+                  {/* Sales */}
+                  <div className="text-sm font-semibold text-gray-500">{item.sales}</div>
 
-                  {/* purchase */}
-                  <div className="text-sm font-semibold text-gray-500">{staff.purchase}</div>
+                  {/* Stock */}
+                  <div className="text-sm font-semibold text-gray-500">{item.stock}</div>
 
-                  {/* sales */}
-                  <div className="text-sm font-semibold text-gray-500">{staff.sales}</div>
+                  {/* Price */}
+                  <div className="text-sm font-semibold text-gray-500">{item.price}</div>
 
-                  {/* stock */}
-                  <div className="text-sm font-semibold text-gray-500">{staff.stock}</div>
+                  {/* Barcode */}
+                  <div className="text-sm font-semibold text-gray-500">{item.barcode}</div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
                     <div className="text-right relative group">
                       <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-
-                      {/* Dropdown */}
-                      <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg 
-                  opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto 
-                  transition-opacity duration-300 z-50 flex flex-col justify-between">
+                      <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col justify-between">
                         <button
-                          onClick={() => handleEdit(staff)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2">
+                          onClick={() => handleEdit(item)}
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
+                        >
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(staff._id)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2">
+                          onClick={() => handleDelete(item._id)}
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                        >
                           Delete
                         </button>
                       </div>
@@ -452,13 +416,10 @@ const ItemList = () => {
         </div>
       </div>
 
-
       {/* Slider */}
       {isSliderOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
-          <div
-            ref={sliderRef}
-            className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg">
+          <div ref={sliderRef} className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Update Item" : "Add a New Item"}</h2>
               <button
@@ -467,6 +428,21 @@ const ItemList = () => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
                   setEditId(null);
+                  setItemCategory("");
+                  setItemName("");
+                  setDetails("");
+                  setManufacture("");
+                  setSupplier("");
+                  setShelveLocation("");
+                  setItemUnit("");
+                  setPerUnit("");
+                  setPurchase("");
+                  setSales("");
+                  setStock("");
+                  setPrice("");
+                  setBarcode("");
+                  setReorder("");
+                  setEnabled(true);
                   setImage(null);
                   setImagePreview(null);
                 }}
@@ -478,7 +454,9 @@ const ItemList = () => {
             <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
               {/* Item Category */}
               <div>
-                <label className="block text-gray-700 font-medium">Item Category <span className="text-newPrimary">*</span></label>
+                <label className="block text-gray-700 font-medium">
+                  Item Category <span className="text-newPrimary">*</span>
+                </label>
                 <select
                   value={itemCategory}
                   required
@@ -494,7 +472,9 @@ const ItemList = () => {
 
               {/* Item Name */}
               <div>
-                <label className="block text-gray-700 font-medium">Item Name <span className="text-newPrimary">*</span></label>
+                <label className="block text-gray-700 font-medium">
+                  Item Name <span className="text-newPrimary">*</span>
+                </label>
                 <input
                   type="text"
                   value={itemName}
@@ -504,20 +484,11 @@ const ItemList = () => {
                 />
               </div>
 
-              {/* Details */}
-              <div>
-                <label className="block text-gray-700 font-medium">Details</label>
-                <textarea
-                  value={details}
-                  onChange={(e) => setDetails(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
               {/* Manufacture */}
               <div>
-                <label className="block text-gray-700 font-medium">Manufacture <span className="text-newPrimary">*</span></label>
-
+                <label className="block text-gray-700 font-medium">
+                  Manufacture <span className="text-newPrimary">*</span>
+                </label>
                 <select
                   value={manufacture}
                   required
@@ -533,7 +504,9 @@ const ItemList = () => {
 
               {/* Supplier */}
               <div>
-                <label className="block text-gray-700 font-medium">Supplier <span className="text-newPrimary">*</span></label>
+                <label className="block text-gray-700 font-medium">
+                  Supplier <span className="text-newPrimary">*</span>
+                </label>
                 <select
                   value={supplier}
                   required
@@ -547,9 +520,92 @@ const ItemList = () => {
                 </select>
               </div>
 
+              {/* Purchase */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Purchase <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={purchase}
+                  required
+                  onChange={(e) => setPurchase(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Sales */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Sales <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={sales}
+                  required
+                  onChange={(e) => setSales(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Stock */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Stock <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={stock}
+                  required
+                  onChange={(e) => setStock(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Price <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={price}
+                  required
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Barcode */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Barcode <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={barcode}
+                  required
+                  onChange={(e) => setBarcode(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. BAR1234567890"
+                />
+              </div>
+
+              {/* Details */}
+              <div>
+                <label className="block text-gray-700 font-medium">Details</label>
+                <textarea
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
               {/* Shelve Location */}
               <div>
-                <label className="block text-gray-700 font-medium">Shelve Location <span className="text-newPrimary">*</span></label>
+                <label className="block text-gray-700 font-medium">
+                  Shelve Location <span className="text-newPrimary">*</span>
+                </label>
                 <select
                   value={shelveLocation}
                   required
@@ -565,7 +621,9 @@ const ItemList = () => {
 
               {/* Item Unit */}
               <div>
-                <label className="block text-gray-700 font-medium">Item Unit <span className="text-newPrimary">*</span></label>
+                <label className="block text-gray-700 font-medium">
+                  Item Unit <span className="text-newPrimary">*</span>
+                </label>
                 <select
                   value={itemUnit}
                   required
@@ -590,42 +648,6 @@ const ItemList = () => {
                 />
               </div>
 
-              {/* Purchase */}
-              <div>
-                <label className="block text-gray-700 font-medium">Purchase <span className="text-newPrimary">*</span></label>
-                <input
-                  type="number"
-                  required
-                  value={purchase}
-                  onChange={(e) => setPurchase(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Sales */}
-              <div>
-                <label className="block text-gray-700 font-medium">Sales <span className="text-newPrimary">*</span></label>
-                <input
-                  type="number"
-                  value={sales}
-                  required
-                  onChange={(e) => setSales(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Stock */}
-              <div>
-                <label className="block text-gray-700 font-medium">Stock <span className="text-newPrimary">*</span></label>
-                <input
-                  type="number"
-                  value={stock}
-                  required
-                  onChange={(e) => setStock(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
               {/* Reorder */}
               <div>
                 <label className="block text-gray-700 font-medium">Reorder</label>
@@ -640,8 +662,7 @@ const ItemList = () => {
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Product Images { }
-                  <span className="text-newPrimary">*</span>
+                  Product Images <span className="text-newPrimary">*</span>
                 </label>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                   <div className="space-y-1 text-center">
@@ -675,14 +696,11 @@ const ItemList = () => {
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      PNG, JPG, GIF up to 10MB
-                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
                   </div>
                 </div>
 
                 {/* Image Preview */}
-
                 {imagePreview && (
                   <div className="mt-4">
                     <h3 className="text-sm font-medium text-gray-700 mb-2">Uploaded Image</h3>
@@ -701,19 +719,22 @@ const ItemList = () => {
                     </div>
                   </div>
                 )}
-
               </div>
 
               {/* Enable / Disable */}
               <div className="flex items-center gap-3">
-                <label className="text-gray-700 font-medium">Enable / Disable </label>
+                <label className="text-gray-700 font-medium">Enable / Disable</label>
                 <button
                   type="button"
                   onClick={() => setEnabled(!enabled)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"}`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                    enabled ? "bg-green-500" : "bg-gray-300"
+                  }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"}`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                      enabled ? "translate-x-7" : "translate-x-0"
+                    }`}
                   />
                 </button>
               </div>

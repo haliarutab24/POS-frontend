@@ -290,7 +290,7 @@ const SupplierList = () => {
           <p className="text-gray-500 text-sm">Manage your supplier details</p>
         </div>
         <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
           onClick={handleAddSupplier}
         >
           + Add Supplier
@@ -302,16 +302,13 @@ const SupplierList = () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-[80px_160px_130px_160px_220px_130px_130px_130px_130px_110px_80px_80px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-[80px_160px_130px_160px_220px_170px_170px_170px_80px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Supplier ID</div>
               <div>Supplier Name</div>
               <div>Contact Person</div>
               <div>Email</div>
               <div>Address</div>
               <div>Phone Number</div>
-              <div>Designation</div>
-              <div>NTN</div>
-              <div>GST</div>
               <div>Payment Terms</div>
               <div>Status</div>
               {userInfo?.isAdmin && <div className="text-center">Actions</div>}
@@ -322,7 +319,7 @@ const SupplierList = () => {
               {supplierList.map((supplier) => (
                 <div
                   key={supplier._id}
-                  className="grid grid-cols-[80px_160px_130px_160px_220px_130px_130px_130px_130px_110px_80px_80px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-[80px_160px_130px_160px_220px_170px_170px_170px_80px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Supplier ID */}
                   <div className="text-sm font-medium text-gray-900">
@@ -350,17 +347,7 @@ const SupplierList = () => {
                     {supplier.phoneNumber}
                   </div>
 
-                  {/* Designation */}
-                  <div className="text-sm text-gray-500">
-                    {supplier.designation}
-                  </div>
-
-                  {/* NTN */}
-                  <div className="text-sm text-gray-500">{supplier.ntn}</div>
-
-                  {/* GST */}
-                  <div className="text-sm text-gray-500">{supplier.gst}</div>
-
+                  
                   {/* Payment Terms */}
                   <div className="text-sm text-gray-500">
                     {supplier.paymentTerms}
@@ -419,7 +406,7 @@ const SupplierList = () => {
                 {isEdit ? "Update Supplier" : "Add a New Supplier"}
               </h2>
               <button
-                className="text-gray-500 hover:text-gray-700"
+                className="text-2xl text-gray-500 hover:text-gray-700"
                 onClick={() => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
@@ -457,6 +444,36 @@ const SupplierList = () => {
                 />
               </div>
 
+              {/* Phone Number */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Phone Number <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={phoneNumber}
+                  required
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. +1-212-555-1234"
+                />
+              </div>
+
+              
+              {/* Email */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Email Address <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  required
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
               {/* Contact Person */}
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -471,19 +488,6 @@ const SupplierList = () => {
                 />
               </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Email Address <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  required
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
 
               {/* Address */}
               <div>
@@ -499,10 +503,10 @@ const SupplierList = () => {
                 />
               </div>
 
-              {/* Phone Number */}
+              {/* Mobile Number */}
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Phone Number <span className="text-newPrimary">*</span>
+                  Mobile Number <span className="text-newPrimary">*</span>
                 </label>
                 <input
                   type="text"

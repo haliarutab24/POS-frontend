@@ -1,22 +1,16 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
 const ShelveLocation = () => {
   const [shelveLocationList, setShelveLocationList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [locationId, setLocationId] = useState("");
   const [shelfName, setShelfName] = useState("");
-  const [aisleNumber, setAisleNumber] = useState("");
   const [section, setSection] = useState("");
-  const [floor, setFloor] = useState("");
-  const [capacity, setCapacity] = useState("");
   const [currentStockCount, setCurrentStockCount] = useState("");
-  const [status, setStatus] = useState(true); // true for Active, false for Inactive
-
+  const [description, setDescription] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
@@ -39,58 +33,38 @@ const ShelveLocation = () => {
   const shelveLocations = [
     {
       _id: "LOC001",
-      locationId: "LOC001",
       shelfName: "SH-A1",
-      aisleNumber: 1,
       section: "Electronics",
-      floor: 1,
-      capacity: 100,
       currentStockCount: 75,
-      status: true,
+      description: "Main electronics storage for small gadgets",
     },
     {
       _id: "LOC002",
-      locationId: "LOC002",
       shelfName: "SH-B2",
-      aisleNumber: 2,
       section: "Books",
-      floor: 1,
-      capacity: 200,
       currentStockCount: 120,
-      status: true,
+      description: "Bookshelf for fiction and non-fiction",
     },
     {
       _id: "LOC003",
-      locationId: "LOC003",
       shelfName: "SH-C3",
-      aisleNumber: 3,
       section: "Clothing",
-      floor: 2,
-      capacity: 150,
       currentStockCount: 90,
-      status: false,
+      description: "Storage for seasonal clothing items",
     },
     {
       _id: "LOC004",
-      locationId: "LOC004",
       shelfName: "SH-D4",
-      aisleNumber: 4,
       section: "Groceries",
-      floor: 1,
-      capacity: 300,
       currentStockCount: 200,
-      status: true,
+      description: "Shelf for non-perishable food items",
     },
     {
       _id: "LOC005",
-      locationId: "LOC005",
       shelfName: "SH-E5",
-      aisleNumber: 5,
       section: "Home Goods",
-      floor: 2,
-      capacity: 250,
       currentStockCount: 180,
-      status: true,
+      description: "Storage for household essentials",
     },
   ];
 
@@ -105,27 +79,19 @@ const ShelveLocation = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
     setEditId(null);
-    setLocationId("");
     setShelfName("");
-    setAisleNumber("");
     setSection("");
-    setFloor("");
-    setCapacity("");
     setCurrentStockCount("");
-    setStatus(true);
+    setDescription("");
   };
 
   // Save or Update Shelve Location
   const handleSave = async () => {
     const formData = {
-      locationId,
       shelfName,
-      aisleNumber: parseInt(aisleNumber),
       section,
-      floor: parseInt(floor),
-      capacity: parseInt(capacity),
       currentStockCount: parseInt(currentStockCount),
-      status,
+      description,
     };
 
     try {
@@ -154,14 +120,10 @@ const ShelveLocation = () => {
       }
 
       // Reset form
-      setLocationId("");
       setShelfName("");
-      setAisleNumber("");
       setSection("");
-      setFloor("");
-      setCapacity("");
       setCurrentStockCount("");
-      setStatus(true);
+      setDescription("");
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
@@ -175,14 +137,10 @@ const ShelveLocation = () => {
   const handleEdit = (shelveLocation) => {
     setIsEdit(true);
     setEditId(shelveLocation._id);
-    setLocationId(shelveLocation.locationId);
     setShelfName(shelveLocation.shelfName);
-    setAisleNumber(shelveLocation.aisleNumber.toString());
     setSection(shelveLocation.section);
-    setFloor(shelveLocation.floor.toString());
-    setCapacity(shelveLocation.capacity.toString());
     setCurrentStockCount(shelveLocation.currentStockCount.toString());
-    setStatus(shelveLocation.status);
+    setDescription(shelveLocation.description);
     setIsSliderOpen(true);
   };
 
@@ -269,16 +227,12 @@ const ShelveLocation = () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-9 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-              <div>Location ID</div>
+            <div className="hidden lg:grid grid-cols-[150px_150px_150px_200px_80px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Shelf Name / Code</div>
-              <div>Aisle Number</div>
               <div>Section</div>
-              <div>Floor</div>
-              <div>Capacity</div>
               <div>Current Stock Count</div>
-              <div>Status</div>
-              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
+              <div>Description</div>
+              {userInfo?.isAdmin && <div className="text-center">Actions</div>}
             </div>
 
             {/* Shelve Locations in Table */}
@@ -286,21 +240,11 @@ const ShelveLocation = () => {
               {shelveLocationList.map((shelveLocation) => (
                 <div
                   key={shelveLocation._id}
-                  className="grid grid-cols-9 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-[150px_150px_150px_200px_80px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {/* Location ID */}
-                  <div className="text-sm font-medium text-gray-900">
-                    {shelveLocation.locationId}
-                  </div>
-
                   {/* Shelf Name / Code */}
                   <div className="text-sm text-gray-500">
                     {shelveLocation.shelfName}
-                  </div>
-
-                  {/* Aisle Number */}
-                  <div className="text-sm text-gray-500">
-                    {shelveLocation.aisleNumber}
                   </div>
 
                   {/* Section */}
@@ -308,33 +252,19 @@ const ShelveLocation = () => {
                     {shelveLocation.section}
                   </div>
 
-                  {/* Floor */}
-                  <div className="text-sm text-gray-500">
-                    {shelveLocation.floor}
-                  </div>
-
-                  {/* Capacity */}
-                  <div className="text-sm text-gray-500">
-                    {shelveLocation.capacity}
-                  </div>
-
                   {/* Current Stock Count */}
                   <div className="text-sm text-gray-500">
                     {shelveLocation.currentStockCount}
                   </div>
 
-                  {/* Status */}
-                  <div className="text-sm font-semibold">
-                    {shelveLocation.status ? (
-                      <span className="text-green-600">Active</span>
-                    ) : (
-                      <span className="text-red-600">Inactive</span>
-                    )}
+                  {/* Description */}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.description}
                   </div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
-                    <div className="flex justify-end">
+                    <div className="flex justify-center">
                       <div className="relative group">
                         <button className="text-gray-400 hover:text-gray-600 text-xl">
                           ⋯
@@ -380,14 +310,10 @@ const ShelveLocation = () => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
                   setEditId(null);
-                  setLocationId("");
                   setShelfName("");
-                  setAisleNumber("");
                   setSection("");
-                  setFloor("");
-                  setCapacity("");
                   setCurrentStockCount("");
-                  setStatus(true);
+                  setDescription("");
                 }}
               >
                 ×
@@ -395,20 +321,6 @@ const ShelveLocation = () => {
             </div>
 
             <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
-              {/* Location ID */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Location ID <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={locationId}
-                  required
-                  onChange={(e) => setLocationId(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
               {/* Shelf Name / Code */}
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -419,20 +331,6 @@ const ShelveLocation = () => {
                   value={shelfName}
                   required
                   onChange={(e) => setShelfName(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Aisle Number */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Aisle Number <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={aisleNumber}
-                  required
-                  onChange={(e) => setAisleNumber(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
@@ -451,34 +349,6 @@ const ShelveLocation = () => {
                 />
               </div>
 
-              {/* Floor */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Floor <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={floor}
-                  required
-                  onChange={(e) => setFloor(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Capacity */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Capacity <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={capacity}
-                  required
-                  onChange={(e) => setCapacity(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
               {/* Current Stock Count */}
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -493,23 +363,18 @@ const ShelveLocation = () => {
                 />
               </div>
 
-              {/* Status */}
-              <div className="flex items-center gap-3">
-                <label className="text-gray-700 font-medium">Status</label>
-                <button
-                  type="button"
-                  onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    status ? "bg-green-500" : "bg-gray-300"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      status ? "translate-x-7" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-                <span>{status ? "Active" : "Inactive"}</span>
+              {/* Description */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Description <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={description}
+                  required
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
               </div>
 
               {/* Save Button */}

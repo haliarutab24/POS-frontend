@@ -15,6 +15,11 @@ const SupplierList = () => {
   const [productsSupplied, setProductsSupplied] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
   const [status, setStatus] = useState(true); // true for Active, false for Inactive
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [ntn, setNtn] = useState("");
+  const [gst, setGst] = useState("");
+  const [creditLimit, setCreditLimit] = useState("");
 
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -42,8 +47,11 @@ const SupplierList = () => {
       contactPerson: "John Doe",
       email: "john@abctraders.com",
       address: "123 Commerce St, New York, USA",
-      productsSupplied: "Smartphones, TVs",
-      paymentTerms: "Net 30",
+      phoneNumber: "+1-212-555-1234",
+      designation: "Sales Manager",
+      ntn: "NTN123456789",
+      gst: "27ABCDE1234F1Z5",
+      paymentTerms: "Cash",
       status: true,
     },
     {
@@ -52,8 +60,12 @@ const SupplierList = () => {
       contactPerson: "Emma Smith",
       email: "emma@homedeco.com",
       address: "456 Decor Ave, London, UK",
-      productsSupplied: "Furniture, Home Decor",
-      paymentTerms: "Net 60",
+      phoneNumber: "+44-20-5555-6789",
+      designation: "Regional Director",
+      ntn: "NTN987654321",
+      gst: "29FGHIJ5678K2M9",
+      paymentTerms: "CreditCard",
+      creditLimit: "4000000",
       status: true,
     },
     {
@@ -62,8 +74,11 @@ const SupplierList = () => {
       contactPerson: "Li Wei",
       email: "wei@kitchenpro.com",
       address: "789 Kitchen Rd, Shanghai, China",
-      productsSupplied: "Microwaves, Ovens",
-      paymentTerms: "COD",
+      phoneNumber: "+86-21-5555-9876",
+      designation: "Operations Head",
+      ntn: "NTN456789123",
+      gst: "30NOPQR9012S3T4",
+      paymentTerms: "Cash",
       status: false,
     },
     {
@@ -72,8 +87,12 @@ const SupplierList = () => {
       contactPerson: "Sarah Johnson",
       email: "sarah@fashionhub.com",
       address: "101 Style Blvd, Paris, France",
-      productsSupplied: "Clothing, Accessories",
-      paymentTerms: "Net 30",
+      phoneNumber: "+33-1-5555-4567",
+      designation: "Marketing Lead",
+      ntn: "NTN789123456",
+      gst: "06UVWXY3456Z7A8",
+      paymentTerms: "CreditCard",
+      creditLimit: "4500000",
       status: true,
     },
     {
@@ -82,8 +101,11 @@ const SupplierList = () => {
       contactPerson: "Michael Brown",
       email: "michael@paperhouse.com",
       address: "202 Stationery Ln, Sydney, Australia",
-      productsSupplied: "Notebooks, Pens",
-      paymentTerms: "Net 45",
+      phoneNumber: "+61-2-5555-2345",
+      designation: "Procurement Manager",
+      ntn: "NTN321654987",
+      gst: "09BCDEF6789G1H2",
+      paymentTerms: "Cash",
       status: false,
     },
   ];
@@ -105,18 +127,32 @@ const SupplierList = () => {
     setAddress("");
     setProductsSupplied("");
     setPaymentTerms("");
+    setPhoneNumber("");
+    setDesignation("");
+    setNtn("");
+    setGst("");
+    setCreditLimit("");
     setStatus(true);
   };
 
   // Save or Update Supplier
   const handleSave = async () => {
+    if (paymentTerms === "CreditCard" && status && (!creditLimit || creditLimit > 5000000)) {
+      toast.error("❌ Credit limit is required and must not exceed 50 lac");
+      return;
+    }
+
     const formData = {
       supplierName,
       contactPerson,
       email,
       address,
-      productsSupplied,
+      phoneNumber,
+      designation,
+      ntn,
+      gst,
       paymentTerms,
+      creditLimit: paymentTerms === "CreditCard" && status ? creditLimit : undefined,
       status,
     };
 
@@ -152,6 +188,11 @@ const SupplierList = () => {
       setAddress("");
       setProductsSupplied("");
       setPaymentTerms("");
+      setPhoneNumber("");
+      setDesignation("");
+      setNtn("");
+      setGst("");
+      setCreditLimit("");
       setStatus(true);
       setIsSliderOpen(false);
       setIsEdit(false);
@@ -170,8 +211,12 @@ const SupplierList = () => {
     setContactPerson(supplier.contactPerson);
     setEmail(supplier.email);
     setAddress(supplier.address);
-    setProductsSupplied(supplier.productsSupplied);
-    setPaymentTerms(supplier.paymentTerms);
+    setPhoneNumber(supplier.phoneNumber || "");
+    setDesignation(supplier.designation || "");
+    setNtn(supplier.ntn || "");
+    setGst(supplier.gst || "");
+    setPaymentTerms(supplier.paymentTerms || "");
+    setCreditLimit(supplier.creditLimit || "");
     setStatus(supplier.status);
     setIsSliderOpen(true);
   };
@@ -257,16 +302,19 @@ const SupplierList = () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-9 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-[80px_160px_130px_160px_220px_130px_130px_130px_130px_110px_80px_80px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Supplier ID</div>
               <div>Supplier Name</div>
               <div>Contact Person</div>
               <div>Email</div>
               <div>Address</div>
-              <div>Products Supplied</div>
+              <div>Phone Number</div>
+              <div>Designation</div>
+              <div>NTN</div>
+              <div>GST</div>
               <div>Payment Terms</div>
               <div>Status</div>
-              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
+              {userInfo?.isAdmin && <div className="text-center">Actions</div>}
             </div>
 
             {/* Suppliers in Table */}
@@ -274,7 +322,7 @@ const SupplierList = () => {
               {supplierList.map((supplier) => (
                 <div
                   key={supplier._id}
-                  className="grid grid-cols-9 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-[80px_160px_130px_160px_220px_130px_130px_130px_130px_110px_80px_80px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Supplier ID */}
                   <div className="text-sm font-medium text-gray-900">
@@ -297,14 +345,26 @@ const SupplierList = () => {
                   {/* Address */}
                   <div className="text-sm text-gray-500">{supplier.address}</div>
 
-                  {/* Products Supplied */}
+                  {/* Phone Number */}
                   <div className="text-sm text-gray-500">
-                    {supplier.productsSupplied}
+                    {supplier.phoneNumber}
                   </div>
+
+                  {/* Designation */}
+                  <div className="text-sm text-gray-500">
+                    {supplier.designation}
+                  </div>
+
+                  {/* NTN */}
+                  <div className="text-sm text-gray-500">{supplier.ntn}</div>
+
+                  {/* GST */}
+                  <div className="text-sm text-gray-500">{supplier.gst}</div>
 
                   {/* Payment Terms */}
                   <div className="text-sm text-gray-500">
                     {supplier.paymentTerms}
+                    {supplier.paymentTerms === "CreditCard" && supplier.creditLimit ? ` (${supplier.creditLimit})` : ""}
                   </div>
 
                   {/* Status */}
@@ -318,7 +378,7 @@ const SupplierList = () => {
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
-                    <div className="flex justify-end">
+                    <div className="flex justify-center">
                       <div className="relative group">
                         <button className="text-gray-400 hover:text-gray-600 text-xl">
                           ⋯
@@ -370,6 +430,11 @@ const SupplierList = () => {
                   setAddress("");
                   setProductsSupplied("");
                   setPaymentTerms("");
+                  setPhoneNumber("");
+                  setDesignation("");
+                  setNtn("");
+                  setGst("");
+                  setCreditLimit("");
                   setStatus(true);
                 }}
               >
@@ -434,17 +499,63 @@ const SupplierList = () => {
                 />
               </div>
 
-              {/* Products Supplied */}
+              {/* Phone Number */}
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Products Supplied <span className="text-newPrimary">*</span>
+                  Phone Number <span className="text-newPrimary">*</span>
                 </label>
                 <input
                   type="text"
-                  value={productsSupplied}
+                  value={phoneNumber}
                   required
-                  onChange={(e) => setProductsSupplied(e.target.value)}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   className="w-full p-2 border rounded"
+                  placeholder="e.g. +1-212-555-1234"
+                />
+              </div>
+
+              {/* Designation */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Designation <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={designation}
+                  required
+                  onChange={(e) => setDesignation(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. Sales Manager"
+                />
+              </div>
+
+              {/* NTN */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  NTN <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={ntn}
+                  required
+                  onChange={(e) => setNtn(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. NTN123456789"
+                />
+              </div>
+
+              {/* GST */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  GST <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={gst}
+                  required
+                  onChange={(e) => setGst(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. 27ABCDE1234F1Z5"
                 />
               </div>
 
@@ -453,19 +564,47 @@ const SupplierList = () => {
                 <label className="block text-gray-700 font-medium">
                   Payment Terms <span className="text-newPrimary">*</span>
                 </label>
-                <select
-                  value={paymentTerms}
-                  required
-                  onChange={(e) => setPaymentTerms(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select Payment Terms</option>
-                  <option value="Net 30">Net 30</option>
-                  <option value="Net 60">Net 60</option>
-                  <option value="COD">COD</option>
-                  <option value="Net 45">Net 45</option>
-                </select>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      value="CreditCard"
+                      checked={paymentTerms === "CreditCard"}
+                      onChange={(e) => setPaymentTerms(e.target.value)}
+                      className="form-radio"
+                    />
+                    Credit Card
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      value="Cash"
+                      checked={paymentTerms === "Cash"}
+                      onChange={(e) => setPaymentTerms(e.target.value)}
+                      className="form-radio"
+                    />
+                    Cash
+                  </label>
+                </div>
               </div>
+
+              {/* Credit Limit (Conditional) */}
+              {paymentTerms === "CreditCard" && status && (
+                <div>
+                  <label className="block text-gray-700 font-medium">
+                    Credit Limit (Max 50 Lac) <span className="text-newPrimary">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={creditLimit}
+                    required
+                    onChange={(e) => setCreditLimit(e.target.value)}
+                    className="w-full p-2 border rounded"
+                    placeholder="Enter credit limit (e.g. 4000000)"
+                    max="5000000"
+                  />
+                </div>
+              )}
 
               {/* Status */}
               <div className="flex items-center gap-3">

@@ -287,61 +287,45 @@ const Manufacture = () => {
         </button>
       </div>
 
+
+
+        
       {/* Manufacturer Table */}
       <div className="rounded-xl shadow p-6 border border-gray-100 w-full">
-        {/* Wrap the whole table area in a scrollable box */}
-        <div className="overflow-x-auto overflow-y-auto scrollbar-hide max-h-[500px]">
+        <div className="overflow-x-auto max-h-[500px]">
           <div className="min-w-max">
-            {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-[130px_120px_240px_120px_120px_120px_120px_120px_120px_100px_60px] gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-t-lg sticky top-0 z-10">
-              <div>Manufacturer ID</div>
-              <div>Name</div>
-              <div>Address</div>
-              <div>Phone Number</div>
-              <div>Person Name</div>
-              <div>Mobile Number</div>
-              <div>Designation</div>
-              <div>NTN</div>
-              <div>GST</div>
-              <div className="items-center flex justify-center">Status</div>
-              {userInfo?.isAdmin && <div className="text-center">Actions</div>}
+            {/* Table Header */}
+            <div className="hidden lg:grid grid-cols-[1fr_1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-t-lg sticky top-0 z-10">
+              <div className="whitespace-nowrap">Manufacturer ID</div>
+              <div className="whitespace-nowrap">Name</div>
+              <div className="whitespace-nowrap">Address</div>
+              <div className="whitespace-nowrap">Phone Number</div>
+              <div className="whitespace-nowrap">Person Name</div>
+              <div className="whitespace-nowrap">Mobile Number</div>
+              <div className="whitespace-nowrap">Designation</div>
+              <div className="whitespace-nowrap">NTN</div>
+              <div className="whitespace-nowrap">GST</div>
+              <div className="whitespace-nowrap text-center">Status</div>
+              {userInfo?.isAdmin && <div className="whitespace-nowrap text-center">Actions</div>}
             </div>
 
-            {/* Manufacturers in Table */}
+            {/* Table Rows */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
               {manufacturerList.map((manufacturer) => (
                 <div
                   key={manufacturer._id}
-                  className="px-4 grid grid-cols-[130px_120px_240px_120px_120px_120px_120px_120px_120px_100px_60px] items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-[1fr_1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  <div className="text-sm font-medium text-gray-900">
-                    {manufacturer._id}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.name}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.address}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.phoneNumber}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.personName}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.mobileNumber}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.designation}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.ntn}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {manufacturer.gstNumber}
-                  </div>
-                  <div className="text-sm font-semibold items-center flex justify-center">
+                  <div className="text-sm font-medium text-gray-900 whitespace-nowrap">{manufacturer._id}</div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">{manufacturer.name}</div>
+                  <div className="text-sm text-gray-500">{manufacturer.address}</div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">{manufacturer.phoneNumber}</div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">{manufacturer.personName}</div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">{manufacturer.mobileNumber}</div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">{manufacturer.designation}</div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">{manufacturer.ntn}</div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">{manufacturer.gstNumber}</div>
+                  <div className="text-sm font-semibold flex justify-center items-center whitespace-nowrap">
                     {manufacturer.status ? (
                       <span className="text-green-600">Active</span>
                     ) : (
@@ -350,25 +334,7 @@ const Manufacture = () => {
                   </div>
                   {userInfo?.isAdmin && (
                     <div className="flex justify-center">
-                      <div className="relative group">
-                        <button className="text-gray-400 hover:text-gray-600 text-xl">
-                          ⋯
-                        </button>
-                        <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
-                          <button
-                            onClick={() => handleEdit(manufacturer)}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(manufacturer._id)}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
+                      <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
                     </div>
                   )}
                 </div>
@@ -377,6 +343,9 @@ const Manufacture = () => {
           </div>
         </div>
       </div>
+
+
+
 
 
       {/* Slider */}

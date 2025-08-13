@@ -42,7 +42,7 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="bg-white shadow h-screen w-68 flex flex-col py-8 px-4 justify-between">
+    <aside className="bg-white shadow min-h-screen w-68 flex flex-col py-8 px-4 justify-between">
       <div>
         {/* Logo + Title */}
         <div className="flex items-center justify-center mb-12 space-x-4">

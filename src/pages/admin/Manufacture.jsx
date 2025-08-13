@@ -288,11 +288,12 @@ const Manufacture = () => {
       </div>
 
       {/* Manufacturer Table */}
-      <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
-        <div className="overflow-x-auto scrollbar-hide">
-          <div className="w-full">
+      <div className="rounded-xl shadow p-6 border border-gray-100 w-full">
+        {/* Wrap the whole table area in a scrollable box */}
+        <div className="overflow-x-auto overflow-y-auto scrollbar-hide max-h-[500px]">
+          <div className="min-w-max">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-[130px_120px_240px_120px_120px_120px_120px_120px_120px_100px_60px] gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-[130px_120px_240px_120px_120px_120px_120px_120px_120px_100px_60px] gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-t-lg sticky top-0 z-10">
               <div>Manufacturer ID</div>
               <div>Name</div>
               <div>Address</div>
@@ -313,52 +314,33 @@ const Manufacture = () => {
                   key={manufacturer._id}
                   className="px-4 grid grid-cols-[130px_120px_240px_120px_120px_120px_120px_120px_120px_100px_60px] items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {/* Manufacturer ID */}
                   <div className="text-sm font-medium text-gray-900">
                     {manufacturer._id}
                   </div>
-
-                  {/* Name */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.name}
                   </div>
-
-                  {/* Address */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.address}
                   </div>
-
-                  {/* Phone Number */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.phoneNumber}
                   </div>
-
-                  {/* Person Name */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.personName}
                   </div>
-
-                  {/* Mobile Number */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.mobileNumber}
                   </div>
-
-                  {/* Designation */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.designation}
                   </div>
-
-                  {/* NTN */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.ntn}
                   </div>
-
-                  {/* GST */}
                   <div className="text-sm text-gray-500">
                     {manufacturer.gstNumber}
                   </div>
-
-                  {/* Status */}
                   <div className="text-sm font-semibold items-center flex justify-center">
                     {manufacturer.status ? (
                       <span className="text-green-600">Active</span>
@@ -366,8 +348,6 @@ const Manufacture = () => {
                       <span className="text-red-600">Inactive</span>
                     )}
                   </div>
-
-                  {/* Actions */}
                   {userInfo?.isAdmin && (
                     <div className="flex justify-center">
                       <div className="relative group">
@@ -397,6 +377,7 @@ const Manufacture = () => {
           </div>
         </div>
       </div>
+
 
       {/* Slider */}
       {isSliderOpen && (
@@ -579,7 +560,7 @@ const Manufacture = () => {
                 />
               </div>
 
-              
+
 
               {/* Status */}
               <div className="flex items-center gap-3">
@@ -587,14 +568,12 @@ const Manufacture = () => {
                 <button
                   type="button"
                   onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    status ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      status ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
                 <span>{status ? "Active" : "Inactive"}</span>

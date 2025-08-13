@@ -287,49 +287,9 @@ const Manufacture = () => {
         </button>
       </div>
 
-       <div className="p-4">
-      {/* Scrollable container */}
-      <div className="overflow-x-auto max-w-full border rounded-lg">
-        <table className="min-w-[1200px] border-collapse border border-gray-300 text-sm">
-          <thead>
-            <tr className="bg-gray-100 text-gray-700">
-              <th className="px-4 py-2 border">ID</th>
-              <th className="px-4 py-2 border">Name</th>
-              <th className="px-4 py-2 border">Email</th>
-              <th className="px-4 py-2 border">Phone</th>
-              <th className="px-4 py-2 border">City</th>
-              <th className="px-4 py-2 border">Country</th>
-              <th className="px-4 py-2 border">Role</th>
-              <th className="px-4 py-2 border">Department</th>
-              <th className="px-4 py-2 border">Status</th>
-              <th className="px-4 py-2 border">Created At</th>
-              <th className="px-4 py-2 border">Updated At</th>
-              <th className="px-4 py-2 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="hover:bg-gray-50">
-              <td className="px-4 py-2 border">1</td>
-              <td className="px-4 py-2 border">John Doe</td>
-              <td className="px-4 py-2 border">john@example.com</td>
-              <td className="px-4 py-2 border">+123456789</td>
-              <td className="px-4 py-2 border">New York</td>
-              <td className="px-4 py-2 border">USA</td>
-              <td className="px-4 py-2 border">Admin</td>
-              <td className="px-4 py-2 border">IT</td>
-              <td className="px-4 py-2 border">Active</td>
-              <td className="px-4 py-2 border">2025-08-13</td>
-              <td className="px-4 py-2 border">2025-08-13</td>
-              <td className="px-4 py-2 border text-blue-500 cursor-pointer">
-                Edit
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
 
+        
       {/* Manufacturer Table */}
       <div className="rounded-xl shadow p-6 border border-gray-100 w-full">
         <div className="overflow-x-auto max-h-[500px]">

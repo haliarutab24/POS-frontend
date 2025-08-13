@@ -280,7 +280,7 @@ const Manufacture = () => {
           <p className="text-gray-500 text-sm">Manage your manufacturer details</p>
         </div>
         <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
           onClick={handleAddManufacturer}
         >
           + Add Manufacturer
@@ -292,7 +292,7 @@ const Manufacture = () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-[100px_150px_200px_120px_120px_120px_120px_120px_120px_80px_80px] gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-[130px_120px_240px_120px_120px_120px_120px_120px_120px_100px_60px] gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Manufacturer ID</div>
               <div>Name</div>
               <div>Address</div>
@@ -302,7 +302,7 @@ const Manufacture = () => {
               <div>Designation</div>
               <div>NTN</div>
               <div>GST</div>
-              <div>Status</div>
+              <div className="items-center flex justify-center">Status</div>
               {userInfo?.isAdmin && <div className="text-center">Actions</div>}
             </div>
 
@@ -311,7 +311,7 @@ const Manufacture = () => {
               {manufacturerList.map((manufacturer) => (
                 <div
                   key={manufacturer._id}
-                  className="grid grid-cols-[100px_150px_200px_120px_120px_120px_120px_120px_120px_80px_80px] items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="px-4 grid grid-cols-[130px_120px_240px_120px_120px_120px_120px_120px_120px_100px_60px] items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Manufacturer ID */}
                   <div className="text-sm font-medium text-gray-900">
@@ -359,7 +359,7 @@ const Manufacture = () => {
                   </div>
 
                   {/* Status */}
-                  <div className="text-sm font-semibold">
+                  <div className="text-sm font-semibold items-center flex justify-center">
                     {manufacturer.status ? (
                       <span className="text-green-600">Active</span>
                     ) : (
@@ -410,7 +410,7 @@ const Manufacture = () => {
                 {isEdit ? "Update Manufacturer" : "Add a New Manufacturer"}
               </h2>
               <button
-                className="text-gray-500 hover:text-gray-700"
+                className="text-2xl text-gray-500 hover:text-gray-700"
                 onClick={() => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
@@ -473,6 +473,20 @@ const Manufacture = () => {
                   value={address}
                   required
                   onChange={(e) => setAddress(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Email Address <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  required
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
@@ -565,19 +579,7 @@ const Manufacture = () => {
                 />
               </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Email Address <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  required
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
+              
 
               {/* Status */}
               <div className="flex items-center gap-3">

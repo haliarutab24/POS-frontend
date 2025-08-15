@@ -14,20 +14,23 @@ const Category = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const sliderRef = useRef(null);
 
-  // Static data for categories (for demonstration)
-  const staticCategories = [
-    { _id: "001", name: "Electronics", isEnable: true, createdAt: "2025-01-15T10:00:00Z" },
-    { _id: "002", name: "Clothes", isEnable: true, createdAt: "2025-02-20T12:00:00Z" },
-    { _id: "003", name: "Furniture", isEnable: false, createdAt: "2025-03-10T09:00:00Z" },
-    { _id: "004", name: "Books", isEnable: true, createdAt: "2025-04-05T15:00:00Z" },
-    { _id: "005", name: "Appliances", isEnable: false, createdAt: "2025-05-12T11:00:00Z" },
-  ];
-
   // Initialize categories with static data
-  useEffect(() => {
-    setCategories(staticCategories);
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`);
+      setCategories(res.data); // store actual categories array
+      console.log("Categories", res.data);
+    } catch (error) {
+      console.error("Failed to fetch products or categories", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
+
 
   // Slider animation
   useEffect(() => {
@@ -218,7 +221,7 @@ const Category = () => {
                       className="grid grid-cols-[250px_250px_250px_250px_250px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                     >
                       <div className="text-sm font-medium text-gray-500">{index + 1}</div>
-                      <div className="text-sm text-gray-500 ">{category.name}</div>
+                      <div className="text-sm text-gray-500 ">{category.categoryName}</div>
                       <div className="text-sm font-semibold ">
                         {category.isEnable ? (
                           <span className="text-green-600">Enabled</span>

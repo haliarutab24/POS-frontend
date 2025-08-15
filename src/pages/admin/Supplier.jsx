@@ -16,6 +16,8 @@ const SupplierList = () => {
   const [paymentTerms, setPaymentTerms] = useState("");
   const [status, setStatus] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+
   const [designation, setDesignation] = useState("");
   const [ntn, setNtn] = useState("");
   const [gst, setGst] = useState("");
@@ -38,82 +40,22 @@ const SupplierList = () => {
     }
   }, [isSliderOpen]);
 
-  // Static Data for Suppliers
-  const suppliers = [
-    {
-      _id: "1",
-      supplierName: "ABC Traders",
-      contactPerson: "John Doe",
-      email: "john@abctraders.com",
-      address: "123 Commerce St, New York, USA",
-      phoneNumber: "+1-212-555-1234",
-      designation: "Sales Manager",
-      ntn: "NTN123456789",
-      gst: "27ABCDE1234F1Z5",
-      paymentTerms: "Cash",
-      status: true,
-    },
-    {
-      _id: "2",
-      supplierName: "HomeDeco",
-      contactPerson: "Emma Smith",
-      email: "emma@homedeco.com",
-      address: "456 Decor Ave, London, UK",
-      phoneNumber: "+44-20-5555-6789",
-      designation: "Regional Director",
-      ntn: "NTN987654321",
-      gst: "29FGHIJ5678K2M9",
-      paymentTerms: "CreditCard",
-      creditLimit: "4000000",
-      status: true,
-    },
-    {
-      _id: "3",
-      supplierName: "KitchenPro",
-      contactPerson: "Li Wei",
-      email: "wei@kitchenpro.com",
-      address: "789 Kitchen Rd, Shanghai, China",
-      phoneNumber: "+86-21-5555-9876",
-      designation: "Operations Head",
-      ntn: "NTN456789123",
-      gst: "30NOPQR9012S3T4",
-      paymentTerms: "Cash",
-      status: false,
-    },
-    {
-      _id: "4",
-      supplierName: "Fashion Hub",
-      contactPerson: "Sarah Johnson",
-      email: "sarah@fashionhub.com",
-      address: "101 Style Blvd, Paris, France",
-      phoneNumber: "+33-1-5555-4567",
-      designation: "Marketing Lead",
-      ntn: "NTN789123456",
-      gst: "06UVWXY3456Z7A8",
-      paymentTerms: "CreditCard",
-      creditLimit: "4500000",
-      status: true,
-    },
-    {
-      _id: "5",
-      supplierName: "PaperHouse",
-      contactPerson: "Michael Brown",
-      email: "michael@paperhouse.com",
-      address: "202 Stationery Ln, Sydney, Australia",
-      phoneNumber: "+61-2-5555-2345",
-      designation: "Procurement Manager",
-      ntn: "NTN321654987",
-      gst: "09BCDEF6789G1H2",
-      paymentTerms: "Cash",
-      status: false,
-    },
-  ];
-
   // Initialize supplier list with static data
   useEffect(() => {
-    setSupplierList(suppliers);
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/suppliers`);
+      setSupplierList(res.data); // store actual categories array
+      console.log("Suppliers", res.data);
+    } catch (error) {
+      console.error("Failed to fetch products or categories", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
 
   // Handlers
   const handleAddSupplier = () => {
@@ -435,6 +377,8 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
+
+
               <div>
                 <label className="block text-gray-700 font-medium">
                   Contact Person <span className="text-newPrimary">*</span>
@@ -447,6 +391,24 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
+              
+
+              {/* Mobile Number */}
+              
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Mobile Number <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={mobileNumber}
+                  required
+                  onChange={(e) => setMobileNumber(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              
+                {/* Address */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Address <span className="text-newPrimary">*</span>

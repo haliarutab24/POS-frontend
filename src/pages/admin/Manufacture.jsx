@@ -3,6 +3,7 @@ import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const Manufacture = () => {
   const [manufacturerList, setManufacturerList] = useState([]);
@@ -35,78 +36,25 @@ const Manufacture = () => {
     }
   }, [isSliderOpen]);
 
-  const manufacturers = [
-    {
-      _id: "10001",
-      name: "Samsung",
-      address: "123 Tech Street, Seoul, South Korea",
-      phoneNumber: "+82-2-1234-5678",
-      personName: "John Kim",
-      mobileNumber: "+82-10-9876-5432",
-      designation: "Sales Manager",
-      ntn: "NTN123456789",
-      gstNumber: "27ABCDE1234F1Z5",
-      email: "contact@samsung.com",
-      status: true,
-    },
-    {
-      _id: "10002",
-      name: "Ikea",
-      address: "456 Furniture Ave, Stockholm, Sweden",
-      phoneNumber: "+46-8-2345-6789",
-      personName: "Anna Svensson",
-      mobileNumber: "+46-70-1234-5678",
-      designation: "Regional Director",
-      ntn: "NTN987654321",
-      gstNumber: "29FGHIJ5678K2M9",
-      email: "support@ikea.com",
-      status: true,
-    },
-    {
-      _id: "10003",
-      name: "Haier",
-      address: "789 Appliance Road, Qingdao, China",
-      phoneNumber: "+86-532-1234-5678",
-      personName: "Li Wei",
-      mobileNumber: "+86-138-1234-5678",
-      designation: "Operations Head",
-      ntn: "NTN456789123",
-      gstNumber: "30NOPQR9012S3T4",
-      email: "info@haier.com",
-      status: false,
-    },
-    {
-      _id: "10004",
-      name: "Levis",
-      address: "101 Fashion Blvd, San Francisco, USA",
-      phoneNumber: "+1-415-123-4567",
-      personName: "Sarah Johnson",
-      mobileNumber: "+1-510-987-6543",
-      designation: "Marketing Lead",
-      ntn: "NTN789123456",
-      gstNumber: "06UVWXY3456Z7A8",
-      email: "sales@levis.com",
-      status: true,
-    },
-    {
-      _id: "10005",
-      name: "Oxford",
-      address: "202 Stationery Lane, London, UK",
-      phoneNumber: "+44-20-1234-5678",
-      personName: "James Brown",
-      mobileNumber: "+44-7700-123456",
-      designation: "Procurement Manager",
-      ntn: "NTN321654987",
-      gstNumber: "09BCDEF6789G1H2",
-      email: "contact@oxford.com",
-      status: false,
-    },
-  ];
 
   useEffect(() => {
-    setManufacturerList(manufacturers);
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/manufacturers`);
+      setManufacturerList(res.data); // store actual categories array
+      console.log("Manufacturers", res.data);
+    } catch (error) {
+      console.error("Failed to fetch products or categories", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
+
+
+
 
   const handleAddManufacturer = () => {
     setIsSliderOpen(true);

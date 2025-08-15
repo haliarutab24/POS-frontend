@@ -3,6 +3,7 @@ import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const ShelveLocation = () => {
   const [shelveLocationList, setShelveLocationList] = useState([]);
@@ -29,51 +30,24 @@ const ShelveLocation = () => {
     }
   }, [isSliderOpen]);
 
-  // Static Data for Shelve Locations
-  const shelveLocations = [
-    {
-      _id: "LOC001",
-      shelfName: "SH-A1",
-      // section: "Electronics",
-      // currentStockCount: 75,
-      description: "Main electronics storage for small gadgets",
-    },
-    {
-      _id: "LOC002",
-      shelfName: "SH-B2",
-      // section: "Books",
-      // currentStockCount: 120,
-      description: "Bookshelf for fiction and non-fiction",
-    },
-    {
-      _id: "LOC003",
-      shelfName: "SH-C3",
-      // section: "Clothing",
-      // currentStockCount: 90,
-      description: "Storage for seasonal clothing items",
-    },
-    {
-      _id: "LOC004",
-      shelfName: "SH-D4",
-      // section: "Groceries",
-      // currentStockCount: 200,
-      description: "Shelf for non-perishable food items",
-    },
-    {
-      _id: "LOC005",
-      shelfName: "SH-E5",
-      // section: "Home Goods",
-      // currentStockCount: 180,
-      description: "Storage for household essentials",
-    },
-  ];
+
 
   // Initialize shelve location list with static data
   useEffect(() => {
-    setShelveLocationList(shelveLocations);
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
-
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/shelves`);
+      setShelveLocationList(res.data); // store actual categories array
+      console.log("Shelves Location", res.data);
+    } catch (error) {
+      console.error("Failed to fetch products or categories", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
   // Handlers
   const handleAddShelveLocation = () => {
     setIsSliderOpen(true);
@@ -244,18 +218,10 @@ const ShelveLocation = () => {
                 >
                   {/* Shelf Name / Code */}
                   <div className="text-sm text-gray-500">
-                    {shelveLocation.shelfName}
+                    {shelveLocation.shelfNameCode}
                   </div>
 
-                  {/* Section
-                  <div className="text-sm text-gray-500">
-                    {shelveLocation.section}
-                  </div>
-
-                  {/* Current Stock Count */}
-                  {/* <div className="text-sm text-gray-500">
-                    {shelveLocation.currentStockCount}
-                  </div> */}
+             
 
                   {/* Description */}
                   <div className="text-sm text-gray-500">

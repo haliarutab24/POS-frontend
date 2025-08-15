@@ -3,6 +3,7 @@ import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const ItemList = () => {
   const [itemList, setItemList] = useState([]);
@@ -42,80 +43,23 @@ const ItemList = () => {
     }
   }, [isSliderOpen]);
 
-  // Static Data
-  const items = [
-    {
-      _id: "ITEM001",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Electronics",
-      itemName: "Smartphone",
-      manufacture: "Samsung",
-      supplier: "ABC Traders",
-      purchase: 500,
-      sales: 650,
-      stock: 120,
-      price: 600,
-      barcode: "BAR1234567890",
-    },
-    {
-      _id: "ITEM002",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Furniture",
-      itemName: "Office Chair",
-      manufacture: "Ikea",
-      supplier: "HomeDeco",
-      purchase: 80,
-      sales: 120,
-      stock: 45,
-      price: 100,
-      barcode: "BAR9876543210",
-    },
-    {
-      _id: "ITEM003",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Appliances",
-      itemName: "Microwave Oven",
-      manufacture: "Haier",
-      supplier: "KitchenPro",
-      purchase: 200,
-      sales: 280,
-      stock: 60,
-      price: 250,
-      barcode: "BAR4567891234",
-    },
-    {
-      _id: "ITEM004",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Clothing",
-      itemName: "Men's Jacket",
-      manufacture: "Levis",
-      supplier: "Fashion Hub",
-      purchase: 40,
-      sales: 70,
-      stock: 150,
-      price: 60,
-      barcode: "BAR7891234567",
-    },
-    {
-      _id: "ITEM005",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Stationery",
-      itemName: "Notebook",
-      manufacture: "Oxford",
-      supplier: "PaperHouse",
-      purchase: 2,
-      sales: 5,
-      stock: 500,
-      price: 4,
-      barcode: "BAR3216549870",
-    },
-  ];
 
-  // Initialize item list with static data
+  // Initialize item list with dynamic data
   useEffect(() => {
-    setItemList(items);
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/item-details`);
+      setItemList(res.data); // store actual categories array
+      console.log("Item Details", res.data);
+    } catch (error) {
+      console.error("Failed to fetch products or categories", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
 
   // Handlers
   const handleAddItem = () => {
@@ -305,10 +249,12 @@ const ItemList = () => {
   };
 
   // Capitalize First Letter
-  function capitalizeFirstLetter(string) {
-    if (!string) return "";
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
+function capitalizeFirstLetter(value) {
+  if (!value) return "";
+  const str = String(value); // ensure it's a string
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 
   // Show loading spinner
   if (loading) {
@@ -362,7 +308,7 @@ const ItemList = () => {
                   {/* Item Category */}
                   <div className="flex items-center gap-3">
                     <img
-                      src={item.image}
+                      src={item.itemImage.url}
                       alt="Product Icon"
                       className="w-7 h-7 object-cover rounded-full"
                     />
@@ -387,7 +333,7 @@ const ItemList = () => {
                   <div className="text-sm font-semibold text-gray-500">{item.price}</div>
 
                   {/* Barcode */}
-                  <div className="text-sm font-semibold text-gray-500">{item.barcode}</div>
+                  <div className="text-sm font-semibold text-gray-500">{item.labelBarcode.slice(0,12)}</div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (

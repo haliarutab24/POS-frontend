@@ -1,254 +1,364 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { PuffLoader } from "react-spinners";
+import gsap from "gsap";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { PuffLoader } from "react-spinners"; 
+import Swal from "sweetalert2";
 
 const Category = () => {
-  // State for the list of categories
   const [categories, setCategories] = useState([]);
-  
-  // State for the modal
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  
-  // State for the form
+  const [isSliderOpen, setIsSliderOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [categoryName, setCategoryName] = useState("");
   const [isEnable, setIsEnable] = useState(true);
   const [editingCategory, setEditingCategory] = useState(null);
+  const sliderRef = useRef(null);
 
-  // // Fetch all categories
-  // useEffect(() => {
-  //   const fetchCategories = async () => {
-  //     setLoading(true)
-  //     try {
-  //       const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`);
-  //       setCategories(Array.isArray(data.data) ? data.data : []);
-  //       setTimeout(() => {
-  //         setLoading(false);
-  //       }, 1500);
-  //     } catch (error) {
-  //       toast.error("Failed to fetch categories.");
-  //       setCategories([]);
-  //     }
-  //   };
-  //   fetchCategories();
-  // }, []);
+  // Static data for categories (for demonstration)
+  const staticCategories = [
+    { _id: "001", name: "Electronics", isEnable: true, createdAt: "2025-01-15T10:00:00Z" },
+    { _id: "002", name: "Clothes", isEnable: true, createdAt: "2025-02-20T12:00:00Z" },
+    { _id: "003", name: "Furniture", isEnable: false, createdAt: "2025-03-10T09:00:00Z" },
+    { _id: "004", name: "Books", isEnable: true, createdAt: "2025-04-05T15:00:00Z" },
+    { _id: "005", name: "Appliances", isEnable: false, createdAt: "2025-05-12T11:00:00Z" },
+  ];
 
-    // if (loading) {
-    //   return (
-    //     <div className="flex justify-center items-center h-[80vh]">
-    //       <PuffLoader color="#00c7fc" />
-    //     </div>
-    //   );
-    // }
+  // Initialize categories with static data
+  useEffect(() => {
+    setCategories(staticCategories);
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
 
-  // Open modal for adding
+  // Slider animation
+  useEffect(() => {
+    if (isSliderOpen && sliderRef.current) {
+      gsap.fromTo(
+        sliderRef.current,
+        { x: "100%", opacity: 0 },
+        { x: "0%", opacity: 1, duration: 1.2, ease: "expo.out" }
+      );
+    }
+  }, [isSliderOpen]);
+
+  // Handlers
   const handleAddClick = () => {
     setEditingCategory(null);
     setCategoryName("");
     setIsEnable(true);
-    setShowModal(true);
+    setIsSliderOpen(true);
   };
 
-  // Open modal for editing
   const handleEditClick = (category) => {
     setEditingCategory(category);
     setCategoryName(category.name);
     setIsEnable(category.isEnable);
-    setShowModal(true);
+    setIsSliderOpen(true);
   };
 
-  // Handle create and update
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const trimmedName = categoryName.trim();
+    if (!trimmedName) {
+      toast.error("❌ Category name cannot be empty.");
+      return;
+    }
     setLoading(true);
-    
-    const payload = { name: categoryName, isEnable };
-    const url = editingCategory
-      ? `${import.meta.env.VITE_API_BASE_URL}/categories/${editingCategory._id}`
-      : `${import.meta.env.VITE_API_BASE_URL}/categories`;
-    const method = editingCategory ? 'patch' : 'post';
+
+    const payload = { name: trimmedName, isEnable };
 
     try {
-      const { data } = await axios[method](url, payload);
       if (editingCategory) {
-        setCategories(categories.map(c => (c._id === editingCategory._id ? data.data : c)));
-        toast.success("Category updated!");
+        setCategories(categories.map(c => (c._id === editingCategory._id ? { ...c, ...payload } : c)));
+        toast.success("✅ Category updated!");
       } else {
-        setCategories([...categories, data.data]);
-        toast.success("Category added!");
+        const newCategory = { ...payload, _id: String(categories.length + 1), createdAt: new Date().toISOString() };
+        setCategories([...categories, newCategory]);
+        toast.success("✅ Category added!");
       }
-      setShowModal(false);
+      setIsSliderOpen(false);
+      setCategoryName("");
+      setIsEnable(true);
+      setEditingCategory(null);
     } catch (error) {
-      toast.error(`Failed to ${editingCategory ? 'update' : 'add'} category.`);
+      toast.error(`❌ Failed to ${editingCategory ? "update" : "add"} category.`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle enable/disable toggle
   const handleToggleEnable = async (category) => {
-    try {
-      const { data } = await axios.patch(
-        `${import.meta.env.VITE_API_BASE_URL}/categories/${category._id}`,
-        { isEnable: !category.isEnable }
-      );
-      setCategories(categories.map(c => (c._id === category._id ? data.data : c)));
-      toast.success(`Category ${!category.isEnable ? 'enabled' : 'disabled'}.`);
-    } catch (error) {
-      toast.error("Failed to update status.");
-    }
+    const swalWithTailwindButtons = Swal.mixin({
+      customClass: {
+        actions: "space-x-2",
+        confirmButton:
+          "bg-green-500 text-white px-4 py-4 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+        cancelButton:
+          "bg-red-500 text-white px-4 py-4 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+      },
+      buttonsStyling: false,
+    });
+
+    swalWithTailwindButtons
+      .fire({
+        title: "Are you sure?",
+        text: `Do you want to ${category.isEnable ? "disable" : "enable"} this category?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: `Yes, ${category.isEnable ? "disable" : "enable"} it!`,
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            setCategories(categories.map(c => (c._id === category._id ? { ...c, isEnable: !category.isEnable } : c)));
+            toast.success(`✅ Category ${!category.isEnable ? "enabled" : "disabled"}.`);
+          } catch (error) {
+            toast.error("❌ Failed to update status.");
+          }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          swalWithTailwindButtons.fire(
+            "Cancelled",
+            "Category status unchanged 🙂",
+            "error"
+          );
+        }
+      });
   };
 
-  // Handle delete
   const handleDelete = async (categoryId) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
-      try {
-        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/categories/${categoryId}`);
-        setCategories(categories.filter(c => c._id !== categoryId));
-        toast.error("Category deleted.");
-      } catch (error) {
-        toast.error("Failed to delete category.");
-      }
-    }
+    const swalWithTailwindButtons = Swal.mixin({
+      customClass: {
+        actions: "space-x-2",
+        confirmButton:
+          "bg-green-500 text-white px-4 py-4 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+        cancelButton:
+          "bg-red-500 text-white px-4 py-4 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+      },
+      buttonsStyling: false,
+    });
+
+    swalWithTailwindButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            setCategories(categories.filter(c => c._id !== categoryId));
+            swalWithTailwindButtons.fire(
+              "Deleted!",
+              "Category deleted successfully.",
+              "success"
+            );
+          } catch (error) {
+            toast.error("❌ Failed to delete category.");
+          }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          swalWithTailwindButtons.fire(
+            "Cancelled",
+            "Category is safe 🙂",
+            "error"
+          );
+        }
+      });
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-10 min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-primary">All Categories</h1>
-        <button
-          onClick={handleAddClick}
-          className="bg-primary text-white px-4 py-2 rounded-md flex items-center space-x-2 hover:bg-blue-700 transition-all"
-        >
-          <span className="text-xl">+</span>
-          <span>Add Category Item</span>
-        </button>
-      </div>
-
-      {/* Categories Table */}
-      <div className="bg-white p-6 rounded-xl shadow-lg w-full">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="py-2 px-4 text-left w-16">S.No.</th>
-              <th className="py-2 px-4 text-left w-1/3">Name</th>
-              <th className="py-2 px-4 text-left w-1/4">Status</th>
-              <th className="py-2 px-4 text-left">Created At</th>
-              <th className="py-2 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center py-4 text-gray-500">
-                  No categories found.
-                </td>
-              </tr>
-            ) : (
-              categories.map((category, index) => (
-                <tr key={category._id} className="border-b">
-                  <td className="py-2 px-4">{index + 1}</td>
-                  <td className="py-2 px-4">{category.name}</td>
-                  <td className="py-2 px-4">
-                    {category.isEnable ? (
-                      <span className="text-green-600 font-semibold">Enabled</span>
-                    ) : (
-                      <span className="text-red-500 font-semibold">Disabled</span>
-                    )}
-                  </td>
-                  <td className="py-2 px-4">
-                    {new Date(category.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="py-2 px-4 text-right">
-                    {/* Flex container for responsive layout */}
-                    <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:justify-end">
-                      <button
-                        onClick={() => handleToggleEnable(category)}
-                        className="w-20 px-3 py-1 rounded text-white text-xs font-semibold text-center transition-colors
-                                   bg-gray-500 hover:bg-gray-600
-                                   data-[enabled=true]:bg-green-500 data-[enabled=true]:hover:bg-green-600"
-                        data-enabled={!category.isEnable}
-                      >
-                        {category.isEnable ? "Disable" : "Enable"}
-                      </button>
-                      <button 
-                        onClick={() => handleEditClick(category)}
-                        className="w-20 px-3 py-1 rounded bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold text-center transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(category._id)}
-                        className="w-20 px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white text-xs font-semibold text-center transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal for Add/Edit */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm flex flex-col"
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-newPrimary">All Categories</h1>
+            <p className="text-gray-500 text-sm">Manage your category details</p>
+          </div>
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+            onClick={handleAddClick}
           >
-            <h2 className="text-2xl font-bold mb-6 text-primary text-center">
-              {editingCategory ? "Edit Category" : "Add Category"}
-            </h2>
-            <div className="w-full mb-4">
-              <label className="block text-gray-700 mb-2 font-medium" htmlFor="categoryName">
-                Category Name
-              </label>
-              <input
-                id="categoryName"
-                type="text"
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="e.g. Electronics, Clothes"
-                required
-              />
-            </div>
-            <div className="w-full mb-6 flex items-center">
-              <input
-                id="isEnable"
-                type="checkbox"
-                checked={isEnable}
-                onChange={(e) => setIsEnable(e.target.checked)}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-              />
-              <label className="ml-2 block text-sm text-gray-900" htmlFor="isEnable">
-                Enable Category
-              </label>
-            </div>
-            <div className="flex w-full gap-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-primary hover:bg-blue-700 text-white py-2 rounded-md font-semibold transition-all"
-              >
-                {loading ? "Saving..." : "Save"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-md font-semibold transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+             + Add Category
+          </button>
         </div>
-      )}
+
+        <div className="rounded-xl shadow border border-gray-100 overflow-hidden">
+          <div className="table-container max-w-full">
+            <div className="w-full">
+            <div className="hidden lg:grid grid-cols-[250px_250px_250px_250px_250px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+                <div>S.No.</div>
+                <div>Name</div>
+                <div>Status</div>
+                <div>Created At</div>
+                <div>Actions</div>
+              </div>
+              <div className="flex flex-col divide-y divide-gray-100">
+                {categories.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No categories found.
+                  </div>
+                ) : (
+                  categories.map((category, index) => (
+                    <div
+                      key={category._id}
+                      className="grid grid-cols-[250px_250px_250px_250px_250px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                    >
+                      <div className="text-sm font-medium text-gray-500">{index + 1}</div>
+                      <div className="text-sm text-gray-500 ">{category.name}</div>
+                      <div className="text-sm font-semibold ">
+                        {category.isEnable ? (
+                          <span className="text-green-600">Enabled</span>
+                        ) : (
+                          <span className="text-red-600">Disabled</span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-500 truncate">
+                        {new Date(category.createdAt).toLocaleDateString()}
+                      </div>
+                      {/* <div className="flex justify-center"> */}
+                        <div className="relative group">
+                          <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                            <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+                            <button
+                              onClick={() => handleEditClick(category)}
+                              className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleToggleEnable(category)}
+                              className="w-full text-left px-4 py-4 text-sm hover:bg-gray-50 text-gray-500 flex items-center gap-2"
+                            >
+                              {category.isEnable ? "Disable" : "Enable"}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(category._id)}
+                              className="w-full text-left px-4 py-4 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      {/* </div> */}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {isSliderOpen && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
+            <div
+              ref={sliderRef}
+              className="w-full max-w-md bg-white p-4 h-full overflow-y-auto custom-scrollbar"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-newPrimary">
+                  {editingCategory ? "Update Category" : "Add a New Category"}
+                </h2>
+                <button
+                  className="text-2xl text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    setIsSliderOpen(false);
+                    setCategoryName("");
+                    setIsEnable(true);
+                    setEditingCategory(null);
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-4">
+                    Category Name <span className="text-newPrimary">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                    className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="e.g. Electronics, Clothes"
+                    required
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-gray-700 font-medium">Status</label>
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsEnable(!isEnable)}
+                      className={`w-8 h-3 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                        isEnable ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                          isEnable ? "translate-x-7" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                    <span className="text-sm text-gray-600">{isEnable ? "Enabled" : "Disabled"}</span>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-newPrimary text-white px-4 py-4 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-newPrimary/50"
+                >
+                  {loading ? "Saving..." : "Save Category"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        <style jsx>{`
+          .table-container {
+            max-width: 100%;
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #edf2f7;
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #a0aec0;
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+          }
+          @media (max-width: 1024px) {
+            .grid-cols-\[60px_2fr_1fr_2fr_1fr\] {
+              grid-template-columns: 60px 1.5fr 0.8fr 1.5fr 0.8fr;
+            }
+          }
+          @media (max-width: 640px) {
+            .grid-cols-\[60px_2fr_1fr_2fr_1fr\] {
+              grid-template-columns: 50px 1.2fr 0.6fr 1.2fr 0.6fr;
+            }
+          }
+        `}</style>
+      </div>
     </div>
   );
 };

@@ -20,7 +20,7 @@ const links = [
       { to: "/admin/category-item", label: "Item Categories" },
       { to: "/admin/manufacture", label: "Manufacturer" },
       { to: "/admin/supplier", label: "Supplier" },
-      { to: "/admin/calendar", label: "Shelve Location" },
+      { to: "/admin/shelve-location", label: "Shelve Location" },
        { to: "/admin/item-unit", label: "Item Unit" },
     ],
   },

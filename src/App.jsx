@@ -7,7 +7,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ItemList from "./pages/admin/ItemList";
 import CustomerData from "./pages/admin/CustomerData";
 import { ToastContainer } from "react-toastify";
-import Calendar from "./pages/admin/Calendar";
+import ShelveLocation from "./pages/admin/ShelveLocation";
 import "react-toastify/dist/ReactToastify.css";
 import CategoryItem from "./pages/admin/CategoryItem";
 // import ProtectedRoute from "./components/ProtectedRoute";
@@ -42,7 +42,7 @@ function AppContent() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="item-details" element={<ItemList />} />
             <Route path="customers" element={<CustomerData />} />
-            <Route path="calendar" element={<Calendar />} />
+            <Route path="shelve-location" element={<ShelveLocation />} />
             <Route path="category-item" element={<CategoryItem />} />
             <Route path="supplier" element={<SupplierList />} />
             <Route path="manufacture" element={<Manufacture />} />

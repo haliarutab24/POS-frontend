@@ -186,7 +186,7 @@ const SalesInvoice = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-newPrimary">Expiry Tags List</h1>
         <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
           onClick={() => {
             resetForm();
             setIsSliderOpen(true);
@@ -224,27 +224,32 @@ const SalesInvoice = () => {
               <div>{inv.supplier}</div>
               <div>{inv.category}</div>
               <div>{inv.salePrice}</div>
-              <div className="text-right space-x-2">
+             <div className="flex justify-center">
+                        <div className="relative group">
+                          <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                            <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
                 <button
                   onClick={() => handleEdit(inv, index)}
-                  className="text-blue-500 hover:underline"
+                    className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(index)}
-                  className="text-red-500 hover:underline"
+                    className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-red-500 flex items-center gap-2"
                 >
                   Delete
                 </button>
                 <button
                   onClick={() => handlePrint(inv)}
-                  className="text-green-500 hover:underline"
+                   className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-blue-700 flex items-center gap-2"
                 >
                   Print
                 </button>
+                 </div>
+                      </div>
+                    </div>
               </div>
-            </div>
           ))}
         </div>
       </div>
@@ -253,15 +258,15 @@ const SalesInvoice = () => {
       {isSliderOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
           <div ref={sliderRef} className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
+  <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Edit Expiry Tag" : "Add New Expiry Tag"}
               </h2>
               <button
-                className="text-red-500 hover:text-red-700"
+                       className="text-2xl text-gray-500 hover:text-gray-700"
                 onClick={() => setIsSliderOpen(false)}
               >
-                ✕
+                 ×
               </button>
             </div>
 
@@ -278,19 +283,19 @@ const SalesInvoice = () => {
             </select>
             <input
               placeholder="Manufacturer"
-              className="w-full border p-2 mb-2"
+          className="w-full border p-2 mb-2"
               value={manufacturer}
               onChange={(e) => setManufacturer(e.target.value)}
             />
             <input
               placeholder="Supplier"
-              className="w-full border p-2 mb-2"
+             className="w-full border p-2 mb-2"
               value={supplier}
               onChange={(e) => setSupplier(e.target.value)}
             />
             <input
               placeholder="Item Name"
-              className="w-full border p-2 mb-2"
+          className="w-full border p-2 mb-2"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
             />
@@ -298,6 +303,7 @@ const SalesInvoice = () => {
               type="number"
               placeholder="Sale Price"
               className="w-full border p-2 mb-2"
+              // className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
               value={salePrice}
               onChange={(e) => setSalePrice(parseFloat(e.target.value))}
             />
@@ -316,7 +322,7 @@ const SalesInvoice = () => {
 
             {/* Save */}
             <button
-              className="bg-blue-700 text-white px-4 py-2 rounded-lg w-full"
+              className="bg-newPrimary text-white px-4 py-2 rounded-lg w-full"
               onClick={handleSaveInvoice}
             >
               Save Expiry Tag

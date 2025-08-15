@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
@@ -14,13 +14,12 @@ const SupplierList = () => {
   const [address, setAddress] = useState("");
   const [productsSupplied, setProductsSupplied] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
-  const [status, setStatus] = useState(true); // true for Active, false for Inactive
+  const [status, setStatus] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [designation, setDesignation] = useState("");
   const [ntn, setNtn] = useState("");
   const [gst, setGst] = useState("");
   const [creditLimit, setCreditLimit] = useState("");
-
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
@@ -164,7 +163,6 @@ const SupplierList = () => {
       };
 
       if (isEdit && editId) {
-        // Simulate API update
         setSupplierList(
           supplierList.map((s) =>
             s._id === editId ? { ...s, ...formData } : s
@@ -172,7 +170,6 @@ const SupplierList = () => {
         );
         toast.success("✅ Supplier updated successfully");
       } else {
-        // Simulate API create
         const newSupplier = {
           ...formData,
           _id: String(supplierList.length + 1),
@@ -181,7 +178,6 @@ const SupplierList = () => {
         toast.success("✅ Supplier added successfully");
       }
 
-      // Reset form
       setSupplierName("");
       setContactPerson("");
       setEmail("");
@@ -298,11 +294,11 @@ const SupplierList = () => {
       </div>
 
       {/* Supplier Table */}
-      <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
-        <div className="overflow-x-auto scrollbar-hide">
+      <div className="rounded-xl shadow border border-gray-100">
+        <div className="table-container max-w-full">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-[80px_160px_130px_160px_220px_170px_170px_170px_80px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-[1fr_2fr_1.5fr_2fr_3fr_2fr_2fr_1fr_0.5fr] gap-2 bg-gray-50 py-3 px-4 text-xs font-medium text-gray-500 uppercase rounded-t-lg sticky top-0 z-10">
               <div>Supplier ID</div>
               <div>Supplier Name</div>
               <div>Contact Person</div>
@@ -315,61 +311,33 @@ const SupplierList = () => {
             </div>
 
             {/* Suppliers in Table */}
-            <div className="mt-4 flex flex-col gap-[14px] pb-14">
+            <div className="flex flex-col gap-2">
               {supplierList.map((supplier) => (
                 <div
                   key={supplier._id}
-                  className="grid grid-cols-[80px_160px_130px_160px_220px_170px_170px_170px_80px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-[1fr_2fr_1.5fr_2fr_3fr_2fr_2fr_1fr_0.5fr] items-center gap-2 bg-white p-4 rounded-lg border-b border-gray-100 hover:bg-gray-50 transition"
                 >
-                  {/* Supplier ID */}
-                  <div className="text-sm font-medium text-gray-900">
-                    {supplier._id}
-                  </div>
-
-                  {/* Supplier Name */}
-                  <div className="text-sm text-gray-500">
-                    {supplier.supplierName}
-                  </div>
-
-                  {/* Contact Person */}
-                  <div className="text-sm text-gray-500">
-                    {supplier.contactPerson}
-                  </div>
-
-                  {/* Email */}
-                  <div className="text-sm text-gray-500">{supplier.email}</div>
-
-                  {/* Address */}
-                  <div className="text-sm text-gray-500">{supplier.address}</div>
-
-                  {/* Phone Number */}
-                  <div className="text-sm text-gray-500">
-                    {supplier.phoneNumber}
-                  </div>
-
-                  
-                  {/* Payment Terms */}
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm font-medium text-gray-900 truncate">{supplier._id}</div>
+                  <div className="text-sm text-gray-500 truncate">{supplier.supplierName}</div>
+                  <div className="text-sm text-gray-500 truncate">{supplier.contactPerson}</div>
+                  <div className="text-sm text-gray-500 truncate">{supplier.email}</div>
+                  <div className="text-sm text-gray-500 truncate">{supplier.address}</div>
+                  <div className="text-sm text-gray-500 truncate">{supplier.phoneNumber}</div>
+                  <div className="text-sm text-gray-500 truncate">
                     {supplier.paymentTerms}
                     {supplier.paymentTerms === "CreditCard" && supplier.creditLimit ? ` (${supplier.creditLimit})` : ""}
                   </div>
-
-                  {/* Status */}
-                  <div className="text-sm font-semibold">
+                  <div className="text-sm font-semibold text-center">
                     {supplier.status ? (
                       <span className="text-green-600">Active</span>
                     ) : (
                       <span className="text-red-600">Inactive</span>
                     )}
                   </div>
-
-                  {/* Actions */}
                   {userInfo?.isAdmin && (
                     <div className="flex justify-center">
                       <div className="relative group">
-                        <button className="text-gray-400 hover:text-gray-600 text-xl">
-                          ⋯
-                        </button>
+                        <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
                         <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
                           <button
                             onClick={() => handleEdit(supplier)}
@@ -399,7 +367,7 @@ const SupplierList = () => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
           <div
             ref={sliderRef}
-            className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg"
+            className="w-full max-w-md bg-white p-6 h-full overflow-y-auto custom-scrollbar"
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-newPrimary">
@@ -429,8 +397,7 @@ const SupplierList = () => {
               </button>
             </div>
 
-            <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
-              {/* Supplier Name */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-gray-700 font-medium">
                   Supplier Name <span className="text-newPrimary">*</span>
@@ -443,8 +410,6 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
-              {/* Phone Number */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Phone Number <span className="text-newPrimary">*</span>
@@ -458,9 +423,6 @@ const SupplierList = () => {
                   placeholder="e.g. +1-212-555-1234"
                 />
               </div>
-
-              
-              {/* Email */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Email Address <span className="text-newPrimary">*</span>
@@ -473,8 +435,6 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
-              {/* Contact Person */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Contact Person <span className="text-newPrimary">*</span>
@@ -487,9 +447,6 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
-
-              {/* Address */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Address <span className="text-newPrimary">*</span>
@@ -502,23 +459,6 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
-              {/* Mobile Number */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Mobile Number <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  required
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder="e.g. +1-212-555-1234"
-                />
-              </div>
-
-              {/* Designation */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Designation <span className="text-newPrimary">*</span>
@@ -532,8 +472,6 @@ const SupplierList = () => {
                   placeholder="e.g. Sales Manager"
                 />
               </div>
-
-              {/* NTN */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   NTN <span className="text-newPrimary">*</span>
@@ -547,8 +485,6 @@ const SupplierList = () => {
                   placeholder="e.g. NTN123456789"
                 />
               </div>
-
-              {/* GST */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   GST <span className="text-newPrimary">*</span>
@@ -562,8 +498,6 @@ const SupplierList = () => {
                   placeholder="e.g. 27ABCDE1234F1Z5"
                 />
               </div>
-
-              {/* Payment Terms */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Payment Terms <span className="text-newPrimary">*</span>
@@ -591,8 +525,6 @@ const SupplierList = () => {
                   </label>
                 </div>
               </div>
-
-              {/* Credit Limit (Conditional) */}
               {paymentTerms === "CreditCard" && status && (
                 <div>
                   <label className="block text-gray-700 font-medium">
@@ -609,8 +541,6 @@ const SupplierList = () => {
                   />
                 </div>
               )}
-
-              {/* Status */}
               <div className="flex items-center gap-3">
                 <label className="text-gray-700 font-medium">Status</label>
                 <button
@@ -628,8 +558,6 @@ const SupplierList = () => {
                 </button>
                 <span>{status ? "Active" : "Inactive"}</span>
               </div>
-
-              {/* Save Button */}
               <button
                 className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
                 onClick={handleSave}
@@ -640,6 +568,35 @@ const SupplierList = () => {
           </div>
         </div>
       )}
+      <style jsx>{`
+        .table-container {
+          max-width: 100%;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #edf2f7;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #a0aec0;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #718096;
+        }
+        @media (max-width: 1024px) {
+          .grid-cols-\[1fr_2fr_1.5fr_2fr_3fr_2fr_2fr_1fr_0.5fr\] {
+            grid-template-columns: 1fr 2fr 1.5fr 2fr 2.5fr 1.5fr 1.5fr 1fr 0.5fr;
+          }
+        }
+        @media (max-width: 640px) {
+          .grid-cols-\[1fr_2fr_1.5fr_2fr_3fr_2fr_2fr_1fr_0.5fr\] {
+            grid-template-columns: 1fr 1.5fr 1fr 1.5fr 2fr 1fr 1fr 0.8fr 0.5fr;
+          }
+        }
+      `}</style>
     </div>
   );
 };

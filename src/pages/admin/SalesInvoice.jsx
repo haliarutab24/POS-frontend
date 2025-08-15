@@ -271,26 +271,31 @@ const SalesInvoice = () => {
               <div>{inv.payable}</div>
               <div>{inv.givenAmount}</div>
               <div>{inv.returnAmount}</div>
-              <div className="text-right space-x-2">
+             <div className="flex justify-center">
+                        <div className="relative group">
+                <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                            <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
                 <button
                   onClick={() => handleEdit(inv, index)}
-                  className="text-blue-500 hover:underline"
+                  className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(index)}
-                  className="text-red-500 hover:underline"
+                   className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-red-500 flex items-center gap-2"
                 >
                   Delete
                 </button>
                 <button
                   onClick={() => handlePrint(inv)}
-                  className="text-green-500 hover:underline"
+                  className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-blue-700 flex items-center gap-2"
                 >
                   Print
                 </button>
               </div>
+            </div>
+            </div>
             </div>
           ))}
         </div>

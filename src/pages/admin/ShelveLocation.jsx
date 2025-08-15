@@ -9,7 +9,7 @@ const ShelveLocation = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [shelfName, setShelfName] = useState("");
   const [section, setSection] = useState("");
-  const [currentStockCount, setCurrentStockCount] = useState("");
+  // const [currentStockCount, setCurrentStockCount] = useState("");
   const [description, setDescription] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -34,36 +34,36 @@ const ShelveLocation = () => {
     {
       _id: "LOC001",
       shelfName: "SH-A1",
-      section: "Electronics",
-      currentStockCount: 75,
+      // section: "Electronics",
+      // currentStockCount: 75,
       description: "Main electronics storage for small gadgets",
     },
     {
       _id: "LOC002",
       shelfName: "SH-B2",
-      section: "Books",
-      currentStockCount: 120,
+      // section: "Books",
+      // currentStockCount: 120,
       description: "Bookshelf for fiction and non-fiction",
     },
     {
       _id: "LOC003",
       shelfName: "SH-C3",
-      section: "Clothing",
-      currentStockCount: 90,
+      // section: "Clothing",
+      // currentStockCount: 90,
       description: "Storage for seasonal clothing items",
     },
     {
       _id: "LOC004",
       shelfName: "SH-D4",
-      section: "Groceries",
-      currentStockCount: 200,
+      // section: "Groceries",
+      // currentStockCount: 200,
       description: "Shelf for non-perishable food items",
     },
     {
       _id: "LOC005",
       shelfName: "SH-E5",
-      section: "Home Goods",
-      currentStockCount: 180,
+      // section: "Home Goods",
+      // currentStockCount: 180,
       description: "Storage for household essentials",
     },
   ];
@@ -80,8 +80,8 @@ const ShelveLocation = () => {
     setIsEdit(false);
     setEditId(null);
     setShelfName("");
-    setSection("");
-    setCurrentStockCount("");
+    // setSection("");
+    // setCurrentStockCount("");
     setDescription("");
   };
 
@@ -89,8 +89,8 @@ const ShelveLocation = () => {
   const handleSave = async () => {
     const formData = {
       shelfName,
-      section,
-      currentStockCount: parseInt(currentStockCount),
+      // section,
+      // currentStockCount: parseInt(currentStockCount),
       description,
     };
 
@@ -121,8 +121,8 @@ const ShelveLocation = () => {
 
       // Reset form
       setShelfName("");
-      setSection("");
-      setCurrentStockCount("");
+      // setSection("");
+      // setCurrentStockCount("");
       setDescription("");
       setIsSliderOpen(false);
       setIsEdit(false);
@@ -138,8 +138,8 @@ const ShelveLocation = () => {
     setIsEdit(true);
     setEditId(shelveLocation._id);
     setShelfName(shelveLocation.shelfName);
-    setSection(shelveLocation.section);
-    setCurrentStockCount(shelveLocation.currentStockCount.toString());
+    // setSection(shelveLocation.section);
+    // setCurrentStockCount(shelveLocation.currentStockCount.toString());
     setDescription(shelveLocation.description);
     setIsSliderOpen(true);
   };
@@ -215,7 +215,7 @@ const ShelveLocation = () => {
           <p className="text-gray-500 text-sm">Manage your shelve location details</p>
         </div>
         <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
           onClick={handleAddShelveLocation}
         >
           + Add Shelve Location
@@ -229,8 +229,8 @@ const ShelveLocation = () => {
             {/* Table Headers */}
             <div className="hidden lg:grid grid-cols-[150px_150px_150px_200px_80px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Shelf Name / Code</div>
-              <div>Section</div>
-              <div>Current Stock Count</div>
+              {/* <div>Section</div>
+              <div>Current Stock Count</div> */}
               <div>Description</div>
               {userInfo?.isAdmin && <div className="text-center">Actions</div>}
             </div>
@@ -247,15 +247,15 @@ const ShelveLocation = () => {
                     {shelveLocation.shelfName}
                   </div>
 
-                  {/* Section */}
+                  {/* Section
                   <div className="text-sm text-gray-500">
                     {shelveLocation.section}
                   </div>
 
                   {/* Current Stock Count */}
-                  <div className="text-sm text-gray-500">
+                  {/* <div className="text-sm text-gray-500">
                     {shelveLocation.currentStockCount}
-                  </div>
+                  </div> */}
 
                   {/* Description */}
                   <div className="text-sm text-gray-500">
@@ -311,8 +311,8 @@ const ShelveLocation = () => {
                   setIsEdit(false);
                   setEditId(null);
                   setShelfName("");
-                  setSection("");
-                  setCurrentStockCount("");
+                  // setSection("");
+                  // setCurrentStockCount("");
                   setDescription("");
                 }}
               >
@@ -336,7 +336,7 @@ const ShelveLocation = () => {
               </div>
 
               {/* Section */}
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 font-medium">
                   Section <span className="text-newPrimary">*</span>
                 </label>
@@ -347,10 +347,10 @@ const ShelveLocation = () => {
                   onChange={(e) => setSection(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
-              </div>
+              </div> */}
 
               {/* Current Stock Count */}
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 font-medium">
                   Current Stock Count <span className="text-newPrimary">*</span>
                 </label>
@@ -361,7 +361,7 @@ const ShelveLocation = () => {
                   onChange={(e) => setCurrentStockCount(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
-              </div>
+              </div> */}
 
               {/* Description */}
               <div>

@@ -485,7 +485,7 @@ const ItemList = () => {
               </div>
 
               {/* Manufacture */}
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 font-medium">
                   Manufacture <span className="text-newPrimary">*</span>
                 </label>
@@ -500,10 +500,10 @@ const ItemList = () => {
                   <option value="Ikea">Ikea</option>
                   <option value="Haier">Haier</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* Supplier */}
-              <div>
+              {/* <div>
                 <label className="block text-gray-700 font-medium">
                   Supplier <span className="text-newPrimary">*</span>
                 </label>
@@ -518,7 +518,7 @@ const ItemList = () => {
                   <option value="HomeDeco">HomeDeco</option>
                   <option value="KitchenPro">KitchenPro</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* Purchase */}
               <div>
@@ -741,7 +741,7 @@ const ItemList = () => {
 
               {/* Save Button */}
               <button
-                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
                 Save Item

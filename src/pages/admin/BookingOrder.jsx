@@ -208,7 +208,7 @@ const BookingOrder = () => {
                     <p className="text-gray-500 text-sm">Manage your customer Booking order details</p>
                 </div>
                 <button
-                    className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+                    className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
                     onClick={handleAddStaff}
                 >
                     + Booking Order
@@ -482,7 +482,7 @@ const BookingOrder = () => {
 
                             {/* Save Button */}
                             <button
-                                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                                 onClick={handleSave}
                             >
                                 Save Item

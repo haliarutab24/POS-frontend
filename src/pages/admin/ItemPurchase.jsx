@@ -279,7 +279,7 @@ export default function PurchaseManager() {
                                     <input
                                         type="number"
                                         placeholder="GRN No"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={formData.grnNo}
                                         onChange={(e) =>
                                             setFormData({ ...formData, grnNo: e.target.value })
@@ -290,7 +290,7 @@ export default function PurchaseManager() {
                                     <label className="block text-gray-700 font-medium mb-1">GRN Date <span className="text-newPrimary">*</span></label>
                                     <input
                                         type="date"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={formData.grnDate}
                                         onChange={(e) =>
                                             setFormData({ ...formData, grnDate: e.target.value })
@@ -300,7 +300,7 @@ export default function PurchaseManager() {
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-1">Supplier <span className="text-newPrimary">*</span></label>
                                     <select
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={formData.supplier}
                                         onChange={(e) =>
                                             setFormData({ ...formData, supplier: e.target.value })
@@ -316,7 +316,7 @@ export default function PurchaseManager() {
                                     <input
                                         type="number"
                                         placeholder="Invoice No"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={formData.invoiceNo}
                                         onChange={(e) =>
                                             setFormData({ ...formData, invoiceNo: e.target.value })
@@ -368,7 +368,7 @@ export default function PurchaseManager() {
                                     <input
                                         type="number"
                                         placeholder="Discount %"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={formData.discountPercent}
                                         onChange={(e) =>
                                             setFormData({
@@ -429,7 +429,7 @@ export default function PurchaseManager() {
                                     <input
                                         type="text"
                                         placeholder="Item Name"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={newItem.name}
                                         onChange={(e) =>
                                             setNewItem({ ...newItem, name: e.target.value })
@@ -439,7 +439,7 @@ export default function PurchaseManager() {
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-1">Item Category <span className="text-newPrimary">*</span></label>
                                     <select
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={newItem.category}
                                         onChange={(e) =>
                                             setNewItem({ ...newItem, category: e.target.value })
@@ -455,7 +455,7 @@ export default function PurchaseManager() {
                                     <input
                                         type="number"
                                         placeholder="Purchase Price"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={newItem.purchase}
                                         onChange={(e) =>
                                             setNewItem({ ...newItem, purchase: Number(e.target.value) })
@@ -467,7 +467,7 @@ export default function PurchaseManager() {
                                     <input
                                         type="number"
                                         placeholder="Sale Price"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={newItem.sale}
                                         onChange={(e) =>
                                             setNewItem({ ...newItem, sale: Number(e.target.value) })
@@ -479,7 +479,7 @@ export default function PurchaseManager() {
                                     <input
                                         type="number"
                                         placeholder="Quantity"
-                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary/80"
                                         value={newItem.qty}
                                         onChange={(e) =>
                                             setNewItem({ ...newItem, qty: Number(e.target.value) })

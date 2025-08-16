@@ -350,7 +350,7 @@ const ItemUnit = () => {
 
               {/* Save Button */}
               <button
-                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
                 Save Item Unit

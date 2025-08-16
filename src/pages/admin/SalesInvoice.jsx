@@ -237,7 +237,7 @@ const SalesInvoice = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-newPrimary">Sales Invoice List</h1>
         <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
           onClick={() => {
             resetForm();
             setIsSliderOpen(true);
@@ -289,7 +289,7 @@ const SalesInvoice = () => {
                 </button>
                 <button
                   onClick={() => handlePrint(inv)}
-                  className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-blue-700 flex items-center gap-2"
+                  className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
                 >
                   Print
                 </button>
@@ -306,7 +306,7 @@ const SalesInvoice = () => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
           <div ref={sliderRef} className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold mb-4">
+            <h2 className="text-xl font-bold mb-4  text-newPrimary">
               {isEdit ? "Edit Invoice" : "Add New Invoice"}
             </h2>
             <button
@@ -406,7 +406,7 @@ const SalesInvoice = () => {
 
             {/* Save */}
             <button
-              className="bg-blue-700 text-white px-4 py-2 rounded-lg w-full"
+              className="bg-newPrimary text-white px-4 py-2 rounded-lg w-full"
               onClick={handleSaveInvoice}
             >
               Save Invoice

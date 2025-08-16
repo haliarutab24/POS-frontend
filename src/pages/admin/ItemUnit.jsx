@@ -8,12 +8,8 @@ import Swal from "sweetalert2";
 const ItemUnit = () => {
   const [itemUnit, setItemUnitList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [manufacturerName, setManufacturerName] = useState("");
-  const [address, setAddress] = useState("");
-  const [productsSupplied, setProductsSupplied] = useState("");
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState(true); // true for Active, false for Inactive
-  const [gstNumber, setGstNumber] = useState("");
+  const [unitName, setUnitName] = useState("");
+  const [description, setDescription] = useState("");
 
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -34,10 +30,7 @@ const ItemUnit = () => {
   }, [isSliderOpen]);
 
  
-
-
-  useEffect(() => {
-  const fetchData = async () => {
+const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/item-unit`);
@@ -46,86 +39,67 @@ const ItemUnit = () => {
     } catch (error) {
       console.error("Failed to fetch products or categories", error);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 1000);
     }
-  };
+  }, []);
+
+  useEffect(() => {
   fetchData();
-}, []);
+}, [fetchData]);
   // Handlers
   const handleAddManufacturer = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
     setEditId(null);
-    setManufacturerName("");
-    setAddress("");
-    setProductsSupplied("");
-    setEmail("");
-    setGstNumber("");
-    setStatus(true);
+    
   };
 
   // Save or Update Manufacturer
   const handleSave = async () => {
     const formData = {
-      name: manufacturerName,
-      address,
-      productsSupplied,
-      email,
-      gstNumber,
-      status,
+      unitName,
+      description
     };
+  console.log("Form Data", formData);
 
-    try {
-      const { token } = userInfo || {};
+   try {
       const headers = {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${userInfo.token}`,
         "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        // Simulate API update
-        setItemUnitList(
-          manufacturerList.map((m) =>
-            m._id === editId ? { ...m, ...formData } : m
-          )
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/item-unit/${editId}`,
+          formData,
+          { headers }
         );
-        toast.success("✅ Manufacturer updated successfully");
+        toast.success("Item Unit Updated successfully");
       } else {
-        // Simulate API create
-        const newManufacturer = {
-          ...formData,
-          _id: String(10000 + manufacturerList.length + 1),
-        };
-        setItemUnitList([...manufacturerList, newManufacturer]);
-        toast.success("✅ Manufacturer added successfully");
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/item-unit`,
+          formData,
+          { headers }
+        );
+        toast.success("Item Unit Added successfully");
       }
-
-      // Reset form
-      setManufacturerName("");
-      setAddress("");
-      setProductsSupplied("");
-      setEmail("");
-      setGstNumber("");
-      setStatus(true);
+      
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
+      fetchData()
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} Item Unit failed`);
     }
   };
 
   // Edit Manufacturer
-  const handleEdit = (manufacturer) => {
+  const handleEdit = (unit) => {
     setIsEdit(true);
-    setEditId(manufacturer._id);
-    setManufacturerName(manufacturer.name);
-    setAddress(manufacturer.address);
-    setProductsSupplied(manufacturer.productsSupplied);
-    setEmail(manufacturer.email);
-    setGstNumber(manufacturer.gstNumber);
-    setStatus(manufacturer.status);
+    setEditId(unit._id);
+    setUnitName(unit.unitName || '');
+    setDescription(unit.description || '');
     setIsSliderOpen(true);
   };
 
@@ -155,24 +129,32 @@ const ItemUnit = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            setItemUnitList(manufacturerList.filter((m) => m._id !== id));
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/item-unit/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
+                }
+              }
+            );
+            setItemUnitList(itemUnit.filter((m) => m._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Manufacturer deleted successfully.",
+              "Item Unit deleted successfully.",
               "success"
             );
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete manufacturer.",
+              "Failed to delete Item Unit.",
               "error"
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
             "Cancelled",
-            "Manufacturer is safe 🙂",
+            "Item Unit is safe 🙂",
             "error"
           );
         }
@@ -286,7 +268,7 @@ const ItemUnit = () => {
                 {isEdit ? "Update Item Unit" : "Add a New Item Unit"}
               </h2>
               <button
-                className="text-gray-500 hover:text-gray-700"
+                className="text-2xl text-gray-500 hover:text-gray-700"
                 onClick={() => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
@@ -305,9 +287,9 @@ const ItemUnit = () => {
                 </label>
                 <input
                   type="text"
-                  value={manufacturerName}
+                  value={unitName}
                   required
-                  onChange={(e) => setManufacturerName(e.target.value)}
+                  onChange={(e) => setUnitName(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
@@ -319,9 +301,9 @@ const ItemUnit = () => {
                 </label>
                 <input
                   type="text"
-                  value={address}
+                  value={description}
                   required
-                  onChange={(e) => setAddress(e.target.value)}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
@@ -329,7 +311,7 @@ const ItemUnit = () => {
 
               {/* Save Button */}
               <button
-                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/70 w-full"
                 onClick={handleSave}
               >
                 Save Item Unit

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
@@ -21,6 +21,7 @@ const Manufacture = () => {
   const [status, setStatus] = useState(true);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
+
   const sliderRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,9 +37,7 @@ const Manufacture = () => {
     }
   }, [isSliderOpen]);
 
-
-  useEffect(() => {
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/manufacturers`);
@@ -47,11 +46,14 @@ const Manufacture = () => {
     } catch (error) {
       console.error("Failed to fetch products or categories", error);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 1000);
     }
-  };
-  fetchData();
-}, []);
+  }, []);
+
+  useEffect(() => {
+
+    fetchData();
+  }, [fetchData]);
 
 
 
@@ -75,8 +77,8 @@ const Manufacture = () => {
 
   const handleSave = async () => {
     const formData = {
-      _id: manufacturerId,
-      name: manufacturerName,
+      manufacturerId: manufacturerId,
+      manufacturerName,
       address,
       phoneNumber,
       personName,
@@ -87,55 +89,49 @@ const Manufacture = () => {
       email,
       status,
     };
+    console.log("Form data", formData);
 
     try {
-      const { token } = userInfo || {};
       const headers = {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${userInfo.token}`,
         "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        setManufacturerList(
-          manufacturerList.map((m) =>
-            m._id === editId ? { ...m, ...formData } : m
-          )
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/manufacturers/${editId}`,
+          formData,
+          { headers }
         );
-        toast.success("✅ Manufacturer updated successfully");
+        toast.success("Manufacturers Updated successfully");
       } else {
-        const newManufacturer = {
-          ...formData,
-          _id: String(10000 + manufacturerList.length + 1),
-        };
-        setManufacturerList([...manufacturerList, newManufacturer]);
-        toast.success("✅ Manufacturer added successfully");
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/manufacturers`,
+          formData,
+          { headers }
+        );
+        toast.success("Manufacturers Added successfully");
       }
 
-      setManufacturerId("");
-      setManufacturerName("");
-      setAddress("");
-      setPhoneNumber("");
-      setPersonName("");
-      setMobileNumber("");
-      setDesignation("");
-      setNtn("");
-      setGstNumber("");
-      setEmail("");
-      setStatus(true);
-      setIsSliderOpen(false);
-      setIsEdit(false);
+      // Reset fields
       setEditId(null);
+      setIsEdit(false);
+      setIsSliderOpen(false);
+
+      // Refresh list
+      fetchData();
+
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturers failed`);
     }
   };
 
   const handleEdit = (manufacturer) => {
     setIsEdit(true);
     setEditId(manufacturer._id);
-    setManufacturerId(manufacturer._id);
-    setManufacturerName(manufacturer.name);
+    setManufacturerId(manufacturer.manufacturerId);
+    setManufacturerName(manufacturer.manufacturerName);
     setAddress(manufacturer.address);
     setPhoneNumber(manufacturer.phoneNumber);
     setPersonName(manufacturer.personName);
@@ -173,6 +169,16 @@ const Manufacture = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
+
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/manufacturers/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
+                }
+              }
+            );
+
             setManufacturerList(manufacturerList.filter((m) => m._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -251,7 +257,7 @@ const Manufacture = () => {
                   className="grid grid-cols-[90px_90px_180px_110px_110px_110px_110px_110px_110px_70px_70px] items-center gap-2 bg-white p-2 rounded-lg border-b border-gray-100 hover:bg-gray-50 transition"
                 >
                   <div className="text-sm font-medium text-gray-900 truncate">
-                    {manufacturer._id}
+                    {manufacturer.manufacturerId}
                   </div>
                   <div className="text-sm text-gray-500 truncate">
                     {manufacturer.name}
@@ -480,14 +486,12 @@ const Manufacture = () => {
                 <button
                   type="button"
                   onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    status ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      status ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
                 <span>{status ? "Active" : "Inactive"}</span>
@@ -495,8 +499,11 @@ const Manufacture = () => {
               <button
                 className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
                 onClick={handleSave}
-              >
-                Save Manufacturer
+              > {loading
+                ? "Saving..."
+                : isEdit
+                  ? "Update Manufacturer"
+                  : "Save Manufacturer"}
               </button>
             </div>
           </div>

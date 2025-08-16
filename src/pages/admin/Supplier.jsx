@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
@@ -25,7 +25,7 @@ const SupplierList = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
@@ -41,8 +41,8 @@ const SupplierList = () => {
   }, [isSliderOpen]);
 
   // Initialize supplier list with static data
-  useEffect(() => {
-  const fetchData = async () => {
+
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/suppliers`);
@@ -51,11 +51,13 @@ const SupplierList = () => {
     } catch (error) {
       console.error("Failed to fetch products or categories", error);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 1000);
     }
-  };
-  fetchData();
-}, []);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Handlers
   const handleAddSupplier = () => {
@@ -78,7 +80,7 @@ const SupplierList = () => {
 
   // Save or Update Supplier
   const handleSave = async () => {
-    if (paymentTerms === "CreditCard" && status && (!creditLimit || creditLimit > 5000000)) {
+    if (paymentTerms === "Credit" && status && (!creditLimit || creditLimit > 5000000)) {
       toast.error("❌ Credit limit is required and must not exceed 50 lac");
       return;
     }
@@ -93,31 +95,31 @@ const SupplierList = () => {
       ntn,
       gst,
       paymentTerms,
-      creditLimit: paymentTerms === "CreditCard" && status ? creditLimit : undefined,
+      creditLimit: paymentTerms === "Credit" && status ? creditLimit : undefined,
       status,
     };
+    console.log("Form Data", formData);
 
     try {
-      const { token } = userInfo || {};
       const headers = {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${userInfo.token}`,
         "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        setSupplierList(
-          supplierList.map((s) =>
-            s._id === editId ? { ...s, ...formData } : s
-          )
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/suppliers/${editId}`,
+          formData,
+          { headers }
         );
-        toast.success("✅ Supplier updated successfully");
+        toast.success("Suppliers Updated successfully");
       } else {
-        const newSupplier = {
-          ...formData,
-          _id: String(supplierList.length + 1),
-        };
-        setSupplierList([...supplierList, newSupplier]);
-        toast.success("✅ Supplier added successfully");
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/suppliers`,
+          formData,
+          { headers }
+        );
+        toast.success("Suppliers Added successfully");
       }
 
       setSupplierName("");
@@ -135,6 +137,7 @@ const SupplierList = () => {
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
+      fetchData()
     } catch (error) {
       console.error(error);
       toast.error(`❌ ${isEdit ? "Update" : "Add"} supplier failed`);
@@ -151,6 +154,7 @@ const SupplierList = () => {
     setAddress(supplier.address);
     setPhoneNumber(supplier.phoneNumber || "");
     setDesignation(supplier.designation || "");
+    setMobileNumber(supplier.mobileNumber || "");
     setNtn(supplier.ntn || "");
     setGst(supplier.gst || "");
     setPaymentTerms(supplier.paymentTerms || "");
@@ -185,6 +189,14 @@ const SupplierList = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/suppliers/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
+                }
+              }
+            );
             setSupplierList(supplierList.filter((s) => s._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -267,7 +279,7 @@ const SupplierList = () => {
                   <div className="text-sm text-gray-500 truncate">{supplier.phoneNumber}</div>
                   <div className="text-sm text-gray-500 truncate">
                     {supplier.paymentTerms}
-                    {supplier.paymentTerms === "CreditCard" && supplier.creditLimit ? ` (${supplier.creditLimit})` : ""}
+                    {supplier.paymentTerms === "Credit" && supplier.creditLimit ? ` (${supplier.creditLimit})` : ""}
                   </div>
                   <div className="text-sm font-semibold text-center">
                     {supplier.status ? (
@@ -391,10 +403,10 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              
+
 
               {/* Mobile Number */}
-              
+
               <div>
                 <label className="block text-gray-700 font-medium">
                   Mobile Number <span className="text-newPrimary">*</span>
@@ -407,8 +419,8 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              
-                {/* Address */}
+
+              {/* Address */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Address <span className="text-newPrimary">*</span>
@@ -468,8 +480,8 @@ const SupplierList = () => {
                   <label className="flex items-center gap-2">
                     <input
                       type="radio"
-                      value="CreditCard"
-                      checked={paymentTerms === "CreditCard"}
+                      value="Credit"
+                      checked={paymentTerms === "Credit"}
                       onChange={(e) => setPaymentTerms(e.target.value)}
                       className="form-radio"
                     />
@@ -487,7 +499,7 @@ const SupplierList = () => {
                   </label>
                 </div>
               </div>
-              {paymentTerms === "CreditCard" && status && (
+              {paymentTerms === "Credit" && status && (
                 <div>
                   <label className="block text-gray-700 font-medium">
                     Credit Limit (Max 50 Lac) <span className="text-newPrimary">*</span>
@@ -508,14 +520,12 @@ const SupplierList = () => {
                 <button
                   type="button"
                   onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    status ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      status ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
                 <span>{status ? "Active" : "Inactive"}</span>
@@ -524,7 +534,11 @@ const SupplierList = () => {
                 className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
                 onClick={handleSave}
               >
-                Save Supplier
+                {loading
+                  ? "Saving..."
+                  : isEdit
+                    ? "Update Supplier"
+                    : "Save Supplier"}
               </button>
             </div>
           </div>

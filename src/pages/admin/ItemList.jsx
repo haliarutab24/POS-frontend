@@ -409,84 +409,87 @@ const ItemList = () => {
       </div>
 
       {/* Item Table */}
-      <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
-        <div className="overflow-x-auto scrollbar-hide">
-          <div className="w-full">
-            {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-8 gap-12 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-              <div>Item Category</div>
-              <div>Item Name</div>
-              <div>Purchase</div>
-              <div>Sales</div>
-              <div>Stock</div>
-              <div>Price</div>
-              <div>Barcode</div>
-              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
-            </div>
-
-            {/* Items in Table */}
-            <div className="mt-4 flex flex-col gap-[6px] mb-14">
-              {itemList.map((item) => (
-                <div
-                  key={item._id}
-                  className="grid grid-cols-8 items-center gap-12 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
-                >
-                  {/* Item Category */}
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={item.itemImage.url}
-                      alt="Product Icon"
-                      className="w-7 h-7 object-cover rounded-full"
-                    />
-                    <span className="text-sm font-medium text-gray-900">
-                      {capitalizeFirstLetter(item.itemCategory.categoryName)}
-                    </span>
-                  </div>
-
-                  {/* Item Name */}
-                  <div className="text-sm text-gray-500">{item.itemName}</div>
-
-                  {/* Purchase */}
-                  <div className="text-sm font-semibold text-gray-500">{item.purchase}</div>
-
-                  {/* Sales */}
-                  <div className="text-sm font-semibold text-gray-500">{item.sales}</div>
-
-                  {/* Stock */}
-                  <div className="text-sm font-semibold text-gray-500">{item.stock}</div>
-
-                  {/* Price */}
-                  <div className="text-sm font-semibold text-gray-500">{item.price}</div>
-
-                  {/* Barcode */}
-                  <div className="text-sm font-semibold text-gray-500">{item.labelBarcode.slice(0, 12)}</div>
-
-                  {/* Actions */}
-                  {userInfo?.isAdmin && (
-                    <div className="text-right relative group">
-                      <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                      <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col justify-between">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item._id)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+<div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
+  <div className="overflow-x-auto scrollbar-hide">
+    {/* Table wrapper with minimum width */}
+    <div className="min-w-[1000px]">
+      {/* Table Headers */}
+      <div className="grid grid-cols-8 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+        <div className="min-w-[120px]">Item Category</div>
+        <div className="min-w-[150px]">Item Name</div>
+        <div className="min-w-[80px]">Purchase</div>
+        <div className="min-w-[80px]">Sales</div>
+        <div className="min-w-[80px]">Stock</div>
+        <div className="min-w-[80px]">Price</div>
+        <div className="min-w-[100px]">Barcode</div>
+        {userInfo?.isAdmin && <div className="min-w-[80px] text-right">Actions</div>}
       </div>
+
+      {/* Items in Table */}
+      <div className="mt-4 flex flex-col gap-[6px] mb-14">
+        {itemList.map((item) => (
+          <div
+            key={item._id}
+            className="grid grid-cols-8 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+          >
+            {/* Item Category */}
+            <div className="min-w-[120px] flex items-center gap-3">
+              <img
+                src={item.itemImage.url}
+                alt="Product Icon"
+                className="w-7 h-7 object-cover rounded-full"
+              />
+              <span className="text-sm font-medium text-gray-900">
+                {capitalizeFirstLetter(item.itemCategory.categoryName)}
+              </span>
+            </div>
+
+            {/* Item Name */}
+            <div className="min-w-[150px] text-sm text-gray-500">{item.itemName}</div>
+
+            {/* Purchase */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.purchase}</div>
+
+            {/* Sales */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.sales}</div>
+
+            {/* Stock */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.stock}</div>
+
+            {/* Price */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.price}</div>
+
+            {/* Barcode */}
+            <div className="min-w-[100px] text-sm font-semibold text-gray-500">
+              {item.labelBarcode.slice(0, 12)}
+            </div>
+
+            {/* Actions */}
+            {userInfo?.isAdmin && (
+              <div className="min-w-[80px] text-right relative group">
+                <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col justify-between">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item._id)}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Slider */}
       {isSliderOpen && (

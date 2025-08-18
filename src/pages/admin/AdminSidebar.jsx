@@ -1,31 +1,45 @@
 import React, { useState } from "react";
-import { FaChevronDown,FaChevronUp  } from "react-icons/fa";
-
-
+import {
+  FaChevronDown,
+  FaChevronUp,
+  FaBox,
+  FaShoppingCart,
+  FaReceipt,
+  FaUsers,
+  FaBarcode,
+  FaChartBar,
+  FaUserShield,
+  FaCogs,
+  FaTags,
+  FaIndustry,
+  FaTruck,
+  FaWarehouse,
+  FaBalanceScale,
+} from "react-icons/fa";
+import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
 import { NavLink, useNavigate } from "react-router-dom";
 
 const links = [
-  { to: "/admin", label: "Dashboard" },
-  
-  { to: "/admin/item-details", label: "Item Details" },
-  { to: "/admin/item-purchase", label: "Purchase" },
-  { to: "/admin/sales-invoice", label: "Sales" },
-  { to: "/admin/customers-booking", label: "Booking Customer" },
-  { to: "/admin/item-barcode", label: "Item Barcode" },
-  { to: "/admin/expiry-tags", label: "Expiry Tags" },
-  { to: "/admin/report", label: "Report" },
+  { to: "/admin", label: "Dashboard", icon: <RiDashboardFill /> },
+  { to: "/admin/item-details", label: "Item Details", icon: <FaBox /> },
+  { to: "/admin/item-purchase", label: "Purchase", icon: <FaShoppingCart /> },
+  { to: "/admin/sales-invoice", label: "Sales", icon: <FaReceipt /> },
+  { to: "/admin/customers-booking", label: "Booking Customer", icon: <FaUsers /> },
+  { to: "/admin/item-barcode", label: "Item Barcode", icon: <FaBarcode /> },
+  { to: "/admin/expiry-tags", label: "Expiry Tags", icon: <FaTags /> },
+  { to: "/admin/report", label: "Report", icon: <FaChartBar /> },
   {
     label: "Setup",
+    icon: <FaCogs />,
     children: [
-      { to: "/admin/category-item", label: "Item Categories" },
-      { to: "/admin/manufacture", label: "Manufacturer" },
-      { to: "/admin/supplier", label: "Supplier" },
-      { to: "/admin/shelve-location", label: "Shelve Location" },
-       { to: "/admin/item-unit", label: "Item Unit" },
+      { to: "/admin/category-item", label: "Item Categories", icon: <FaTags /> },
+      { to: "/admin/manufacture", label: "Manufacturer", icon: <FaIndustry /> },
+      { to: "/admin/supplier", label: "Supplier", icon: <FaTruck /> },
+      { to: "/admin/shelve-location", label: "Shelve Location", icon: <FaWarehouse /> },
+      { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
     ],
   },
-
-  { to: "/admin/settings", label: "Security" },
+  { to: "/admin/settings", label: "Security", icon: <FaUserShield /> },
 ];
 
 const AdminSidebar = () => {
@@ -42,10 +56,10 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="bg-white shadow min-h-screen w-68 flex flex-col py-8 px-4 justify-between">
+    <aside className="bg-white shadow min-h-screen w-52 sm:w-72 flex flex-col py-8 px-2 sm:px-4 justify-between transition-all">
       <div>
         {/* Logo + Title */}
-        <div className="flex items-center justify-center mb-12 space-x-4">
+        <div className="flex items-center justify-center sm:justify-start mb-12 space-x-2 sm:space-x-4">
           <div className="relative">
             <svg
               className="w-10 h-10 text-newPrimary"
@@ -62,11 +76,9 @@ const AdminSidebar = () => {
             </svg>
             <div className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-newPrimary to-primaryDark bg-clip-text text-transparent">
-              Point of Sales
-            </h1>
-          </div>
+          <h1 className="hidden sm:block text-2xl font-bold bg-gradient-to-r from-newPrimary to-primaryDark bg-clip-text text-transparent">
+            Point of Sales
+          </h1>
         </div>
 
         {/* Sidebar Links */}
@@ -77,37 +89,40 @@ const AdminSidebar = () => {
                 <div key={link.label}>
                   <button
                     onClick={() => toggleMenu(link.label)}
-                    className={`w-full flex justify-between items-center px-4 py-2 rounded-lg font-medium transition ${openMenu === link.label
-                        ? "hover:bg-newPrimary/80 hover:text-white"
-                        : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
-                      }`}
+                    className="w-full flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
                   >
-                    {link.label}
+                    {link.icon}
+                    <span className="hidden sm:inline">{link.label}</span>
                     {openMenu === link.label ? (
-                      <FaChevronUp  className="w-4 h-4" />
+                      <FaChevronUp className="ml-auto w-4 h-4 hidden sm:block" />
                     ) : (
-                      <FaChevronDown className="w-4 h-4" />
+                      <FaChevronDown className="ml-auto w-4 h-4 hidden sm:block" />
                     )}
                   </button>
 
                   {openMenu === link.label && (
-                    <div className="ml-4 mt-1 flex flex-col gap-1">
+                    <div className="ml-2 sm:ml-4 mt-1 flex flex-col gap-1">
                       {link.children.map((sub) => (
                         <NavLink
                           key={sub.to}
                           to={sub.to}
                           className={({ isActive }) =>
-                            `block px-4 py-2 rounded-lg font-medium transition ${isActive
+                            `flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition ${isActive
                               ? "bg-newPrimary/80 text-white"
                               : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
                             }`
                           }
                         >
-                          {sub.label}
+                          {/* Icon (always visible) */}
+                          {sub.icon && <span className="text-lg">{sub.icon}</span>}
+
+                          {/* Text (hidden on small, shown on sm and larger) */}
+                          <span className="hidden sm:inline">{sub.label}</span>
                         </NavLink>
                       ))}
                     </div>
                   )}
+
                 </div>
               );
             } else {
@@ -116,14 +131,15 @@ const AdminSidebar = () => {
                   key={link.to}
                   to={link.to}
                   className={({ isActive }) =>
-                    `block px-4 py-2 rounded-lg font-medium transition ${isActive
+                    `flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition ${isActive
                       ? "bg-newPrimary/80 text-white"
                       : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
                     }`
                   }
                   end={link.to === "/admin"}
                 >
-                  {link.label}
+                  {link.icon}
+                  <span className="hidden sm:inline">{link.label}</span>
                 </NavLink>
               );
             }
@@ -134,9 +150,10 @@ const AdminSidebar = () => {
       {/* Logout */}
       <button
         onClick={handleLogout}
-        className="hover:bg-red-600 flex items-start pl-4 text-gray-700 hover:text-white font-semibold py-2 rounded transition"
+        className="flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-4 py-2 rounded font-semibold text-gray-700 hover:bg-red-600 hover:text-white transition"
       >
-        Logout
+        <RiLogoutBoxRLine />
+        <span className="hidden sm:inline">Logout</span>
       </button>
     </aside>
   );

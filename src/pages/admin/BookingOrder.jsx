@@ -14,9 +14,23 @@ const BookingOrder = () => {
     const [date, setDate] = useState("");
     const [time, setTimne] = useState("");
 
-    const [formState, setEditFormState] = useState({
-        name: "",
+    const [suggestions, setSuggestions] = useState([]);
+    const [searchValue, setSearchValue] = useState("");
+    const [searchIndex, setSearchIndex] = useState(null);
+    const [formData, setFormData] = useState({
+        customerName: "",
+        mobileNo: "",
+        date: "",
+        time: "",
+        bookingDate: "",
+        items: [{ itemName: "", price: 0, qty: 1, total: 0 }],
+        discount: 0,
+        payable: 0,
+        paid: 0,
+        balance: 0,
+        paymentMethod: "",
     });
+
     const [isEdit, setIsEdit] = useState(false);
     const [editId, setEditId] = useState(null);
 
@@ -29,7 +43,7 @@ const BookingOrder = () => {
     const [returnAmount, setReturnAmount] = useState(0);
 
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-    console.log("Admin", userInfo.isAdmin);
+    // console.log("Admin", userInfo.isAdmin);
 
     // slider styling
     useEffect(() => {
@@ -47,68 +61,116 @@ const BookingOrder = () => {
         }
     }, [isSliderOpen]);
 
+    // search suggestion with debouncing
+    useEffect(() => {
+        // ✅ Run only if searchValue is not empty and has more than 1 character
+        if (!searchValue || searchValue.length <= 1) {
+            setSuggestions([]);
+            return;
+        }
+
+        const delay = setTimeout(() => {
+            const fetchData = async () => {
+                try {
+                    const res = await axios.get(
+                        `${import.meta.env.VITE_API_BASE_URL}/item-details/search?q=${searchValue}`
+                    );
+                    setSuggestions(res.data);
+                    console.log("Suggestion Item", res.data);
+                } catch (error) {
+                    console.error("Error fetching items", error);
+                }
+            };
+
+            fetchData();
+        }, 50); // 👈 debounce (increase to 50ms for smoother API calls)
+
+        return () => clearTimeout(delay);
+    }, [searchValue]);
+
+
+    const handleSearch = (selectedItem, index) => {
+        handleItemChange(index, "itemName", selectedItem.itemName);
+        handleItemChange(index, "price", selectedItem.price); // auto-fill price
+        setSearchValue(""); // clear searchValue after selection
+        setSuggestions([]); // close dropdown
+    };
+
+    const handleInputChange = (value, index) => {
+        handleItemChange(index, "itemName", value); // update input field
+        setSearchValue(value); // trigger useEffect
+        setSearchIndex(index); // track row for suggestions
+    }
+
+
 
     // Handlers
     const handleAddStaff = () => {
         setIsSliderOpen(true);
     };
 
-    //  Item saved
+    //  Booking customer  saved
     const handleSave = async () => {
-        const formData = new FormData();
-        formData.append("username", staffName);
-        formData.append("department", department);
-        formData.append("designation", designation);
-        formData.append("address", address);
-        formData.append("number", number);
-        formData.append("email", email);
-        formData.append("password", password);
 
+        const bookingData = {
+            customerName: formData.customerName,
+            mobileNo: formData.mobileNo,
+            address: formData.address,
+            date: formData.date,
+            time: formData.time,
+            items: formData.items,
+            discount: formData.discount,
+            payable: formData.payable,
+            paid: formData.paid,
+            balance: formData.balance,
+            paymentMethod: formData.paymentMethod,
+        };
 
-        console.log("Form Data", formData);
+        console.log("Booking Data", bookingData);
 
         try {
             const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
             const headers = {
                 Authorization: `Bearer ${token}`,
-                "Content-Type": "multipart/form-data",
+                "Content-Type": "application/json",
             };
-
             if (isEdit && editId) {
                 await axios.put(
-                    `${import.meta.env.VITE_API_BASE_URL}/staff/${editId}`,
-                    formData,
+                    `${import.meta.env.VITE_API_BASE_URL}/bookings/${editId}`,
+                    bookingData,
                     { headers }
                 );
-                toast.success("✅ Staff updated successfully");
+                toast.success("✅ Booking updated successfully");
             } else {
                 await axios.post(
-                    `${import.meta.env.VITE_API_BASE_URL}/staff`,
-                    formData,
+                    `${import.meta.env.VITE_API_BASE_URL}/bookings`,
+                    bookingData,
                     { headers }
                 );
-                toast.success("✅ Staff added successfully");
+                toast.success("✅ Booking created successfully");
             }
 
             // Reset fields
-            setStaffName("");
-            setDepartment("");
-            setDesignation("");
+            setCustomerName("");
+            setMobileNo("");
             setAddress("");
-            setNumber("");
-            setEmail("");
+            setDate("");
+            setTime("");
+            setItems([]);
+            setDiscount(0);
+            setPaid(0);
+            setPaymentMethod("");
             setEditId(null);
             setIsEdit(false);
             setIsSliderOpen(false);
 
             // Refresh list
-            fetchStaff();
+            fetchBookings();
         } catch (error) {
             console.error(error);
-            toast.error(`❌ ${isEdit ? "Update" : "Add"} staff failed`);
+            toast.error(`❌ ${isEdit ? "Update" : "Create"} booking failed`);
         }
     };
-
 
     // Static Data for Customer Orders
     const item = [
@@ -218,14 +280,15 @@ const BookingOrder = () => {
             {/* Table Headers */}
             <div className="hidden lg:grid grid-cols-[1fr_1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-50 py-3 px-4 text-xs font-medium text-gray-500 uppercase rounded-lg">
                 <div>Customer Name</div>
-                <div>Mobile #</div>
+                <div>Mobile No.</div>
                 <div className="pl-4">Address</div> {/* Extra padding */}
-                <div>Date</div>
-                <div>Time</div>
                 <div>Items</div>
                 <div>Near By</div>
-                <div>Total Amount</div>
-                <div>Payment</div>
+                <div>Total</div>
+                <div>Discount</div>
+                <div>Payable</div>
+                <div>Paid</div>
+                <div>Balance</div>
                 {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
 
@@ -249,27 +312,21 @@ const BookingOrder = () => {
                         {/* Address */}
                         <div className="text-sm text-gray-500">{staff.address}</div>
 
-                        {/* Date */}
-                        <div className="text-sm font-semibold text-gray-500">{staff.date}</div>
-
-                        {/* Time */}
-                        <div className="text-sm font-semibold text-gray-500">{staff.time}</div>
-
                         {/* Items */}
                         <div className="text-sm font-semibold text-gray-500">{staff.items}</div>
 
                         {/* Near By */}
                         <div className="text-sm font-semibold text-gray-500">{staff.nearby}</div>
 
-                         {/* Total Amount */}
-                         <div className="text-sm font-semibold text-gray-500">{staff.totalAmount}</div>
+                        {/* Total Amount */}
+                        <div className="text-sm font-semibold text-gray-500">{staff.totalAmount}</div>
 
                         {/* Payment */}
                         <div
-                            className={`text-sm font-semibold ${staff.payment === "Cash"  ? "text-green-400"
-                                  : staff.payment === "Card" ? "text-orange-300" 
-                                  : staff.payment === "Transfer" ? "text-blue-400" 
-                                  : "text-red-500"
+                            className={`text-sm font-semibold ${staff.payment === "Cash" ? "text-green-400"
+                                : staff.payment === "Card" ? "text-orange-300"
+                                    : staff.payment === "Transfer" ? "text-blue-400"
+                                        : "text-red-500"
                                 }`}
                         >
                             {staff.payment}
@@ -312,7 +369,7 @@ const BookingOrder = () => {
                     >
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold text-newPrimary">
-                                {isEdit ? "Update Item" : "Add a New Item"}
+                                {isEdit ? "Update Customer Booking" : "New Customer Booking"}
                             </h2>
                             <button
                                 className="text-gray-500 hover:text-gray-800 text-2xl"
@@ -400,26 +457,28 @@ const BookingOrder = () => {
                             {/* Items */}
                             <h3 className="font-bold mt-4 mb-2">Items</h3>
                             {items.map((item, i) => (
-                                <div key={i} className="flex gap-2 mb-2">
+                                <div key={i} className="relative flex gap-2 mb-2">
                                     <input
                                         placeholder="Item Name"
                                         className="border p-2 flex-1"
                                         value={item.itemName}
-                                        onChange={(e) => handleItemChange(i, "itemName", e.target.value)}
+                                        onChange={(e) => handleInputChange(e.target.value, i)}
                                     />
                                     <input
                                         type="number"
                                         placeholder="Price"
                                         className="border p-2 w-20"
                                         value={item.price}
-                                        onChange={(e) => handleItemChange(i, "price", parseFloat(e.target.value))}
+                                        readOnly
                                     />
                                     <input
                                         type="number"
                                         placeholder="Qty"
                                         className="border p-2 w-16"
                                         value={item.qty}
-                                        onChange={(e) => handleItemChange(i, "qty", parseFloat(e.target.value))}
+                                        onChange={(e) =>
+                                            handleItemChange(i, "qty", parseFloat(e.target.value))
+                                        }
                                     />
                                     <div className="p-2 w-20 text-right">{item.total}</div>
                                     <button
@@ -428,39 +487,74 @@ const BookingOrder = () => {
                                     >
                                         X
                                     </button>
+
+                                    {/* Suggestions dropdown (inside map, so i exists) */}
+                                    {suggestions.length > 0 && searchIndex === i && (
+                                        <ul className="absolute bg-white border w-[12.5rem] mt-10 z-10">
+                                            {suggestions.map((s) => (
+                                                <li
+                                                    key={s._id}
+                                                    className="p-2 hover:bg-gray-200 cursor-pointer"
+                                                    onClick={() => handleSearch(s, i)}
+                                                >
+                                                    {s.itemName}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                             ))}
+
+                            {/* Add Item Button */}
                             <button
                                 onClick={addItemRow}
-                                className="text-green-500 hover:underline mb-4"
+                                className="text-green-600 font-semibold hover:underline mb-4"
                             >
                                 + Add Item
                             </button>
 
                             {/* Totals */}
-                            <input
-                                type="number"
-                                placeholder="Discount"
-                                className="w-full border p-2 mb-2"
-                                value={discount}
-                                onChange={(e) => {
-                                    setDiscount(parseFloat(e.target.value));
-                                    calculateTotals(items, parseFloat(e.target.value), givenAmount);
-                                }}
-                            />
-                            <input
-                                type="number"
-                                placeholder="Given Amount"
-                                className="w-full border p-2 mb-2"
-                                value={givenAmount}
-                                onChange={(e) => {
-                                    setGivenAmount(parseFloat(e.target.value));
-                                    calculateTotals(items, discount, parseFloat(e.target.value));
-                                }}
-                            />
+                            <div className="mt-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
+                                <h3 className="font-bold text-lg mb-3 text-gray-700">Order Summary</h3>
 
-                             {/* payment */}
-                             <div>
+                                {/* Discount */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                        Discount
+                                    </label>
+                                    <input
+                                        type="number"
+                                        placeholder="Discount"
+                                        className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                        value={discount}
+                                        onChange={(e) => {
+                                            setDiscount(parseFloat(e.target.value));
+                                            calculateTotals(items, parseFloat(e.target.value), givenAmount);
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Given Amount */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                                        Given Amount
+                                    </label>
+                                    <input
+                                        type="number"
+                                        placeholder="Given Amount"
+                                        className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                        value={givenAmount}
+                                        onChange={(e) => {
+                                            setGivenAmount(parseFloat(e.target.value));
+                                            calculateTotals(items, discount, parseFloat(e.target.value));
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+
+                            {/* payment */}
+                            <div>
                                 <label className="block text-gray-700 font-bold mb-2">Payment <span className="text-newPrimary">*</span></label>
                                 <select
                                     // value={supplier}

@@ -20,6 +20,7 @@ export default function PurchaseManager() {
         discountPercent: 0,
     });
     const [items, setItems] = useState([]);
+    const [newGrn, setNewGrn] = useState("");
     const [newItem, setNewItem] = useState({
         name: "",
         category: "",
@@ -31,13 +32,12 @@ export default function PurchaseManager() {
 
     const totalPrice = items.reduce((sum, item) => sum + item.purchase * item.qty, 0);
 
-
-    const [isEdit, setIsEdit] = useState(false);
     const [editId, setEditId] = useState(null);
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     const [categoryList, setCategoryList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingPurchase, setEditingPurchase] = useState(null);
+
 
     // Slider animation
     useEffect(() => {
@@ -50,7 +50,7 @@ export default function PurchaseManager() {
         }
     }, [isSliderOpen]);
 
-    // Fetch Sales Invoice Data
+    // Fetch Purchases Data
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
@@ -69,6 +69,31 @@ export default function PurchaseManager() {
 
         fetchData();
     }, [fetchData]);
+
+
+    // Last GRN No.
+    useEffect(() => {
+        const fetchLastGRN = async () => {
+            try {
+                const res = await axios.get(
+                    `${import.meta.env.VITE_API_BASE_URL}/purchases/last`
+                );
+
+                const data = res.data;
+                console.log("Latest GRN:", data.grnNo); // 1002
+
+                const nextGrn = String(parseInt(data.grnNo, 10) + 1).padStart(4, "0");
+                console.log("New GRN:", nextGrn);
+
+                setNewGrn(nextGrn); // ✅ store in state
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchLastGRN();
+    }, [purchases]);
+
 
 
     // Supplier List Fetch 
@@ -111,23 +136,37 @@ export default function PurchaseManager() {
         (acc, item) => acc + item.purchase * item.qty,
         0
     );
+
+
+    // Handle supplier selection
+    const handleSupplierChange = (e) => {
+        const selectedSupplierId = e.target.value;
+        const selectedSupplier = supplierList.find(s => s._id === selectedSupplierId);
+
+        setFormData({
+            ...formData,
+            supplier: selectedSupplierId,
+            invoiceNo: selectedSupplier?.invoiceNo || "", // auto set invoice number
+        });
+    };
+
     const totalQty = items.reduce((acc, item) => acc + Number(item.qty), 0);
     const discountAmount = (totalPurchase * formData.discountPercent) / 100;
     const payable = totalPurchase - discountAmount;
 
     const handleSavePurchase = async () => {
         // Validation
-        if (!formData.grnNo || !formData.grnDate || !formData.supplier || !formData.invoiceNo || items.length === 0) {
+        if (!formData.grnDate || !formData.supplier || !formData.invoiceNo || items.length === 0) {
             toast.error("❌ Please fill all required fields!");
             return;
         }
 
         // Prepare payload matching backend
         const payload = {
-            grnNo: Number(formData.grnNo),
+            grnNo: newGrn,
             grnDate: formData.grnDate,
             supplier: formData.supplier,
-            invoiceNo: Number(formData.invoiceNo),
+            invoiceNo: formData.invoiceNo,
             items: items.map((i) => ({
                 name: i.name,
                 category: i.category,
@@ -406,11 +445,10 @@ export default function PurchaseManager() {
                                         GRN No <span className="text-newPrimary">*</span>
                                     </label>
                                     <input
-                                        type="number"
+                                        readOnly
                                         placeholder="GRN No"
                                         className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                        value={formData.grnNo}
-                                        onChange={(e) => setFormData({ ...formData, grnNo: e.target.value })}
+                                        value={newGrn}
                                     />
                                 </div>
 
@@ -433,7 +471,7 @@ export default function PurchaseManager() {
                                     <select
                                         className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                                         value={formData.supplier}
-                                        onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                                        onChange={handleSupplierChange}
                                     >
                                         <option value="">Select Supplier</option>
                                         {supplierList.map((supplier) => (
@@ -450,11 +488,10 @@ export default function PurchaseManager() {
                                         Invoice No <span className="text-newPrimary">*</span>
                                     </label>
                                     <input
-                                        type="number"
+                                        readOnly
                                         placeholder="Invoice No"
                                         className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
                                         value={formData.invoiceNo}
-                                        onChange={(e) => setFormData({ ...formData, invoiceNo: e.target.value })}
                                     />
                                 </div>
                             </div>
@@ -676,35 +713,36 @@ export default function PurchaseManager() {
 
             </div>
 
-            <style jsx>{`
-                .table-container {
-                    max-width: 100%;
-                }
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #edf2f7;
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #a0aec0;
-                    border-radius: 4px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #718096;
-                }
-                @media (max-width: 1024px) {
-                    .grid-cols-\[60px_100px_120px_100px_150px_200px_120px_100px_100px_100px_60px\] {
-                        grid-template-columns: 50px 80px 100px 80px 120px 150px 100px 80px 80px 80px 50px;
-                    }
-                }
-                @media (max-width: 640px) {
-                    .grid-cols-\[60px_100px_120px_100px_150px_200px_120px_100px_100px_100px_60px\] {
-                        grid-template-columns: 40px 70px 90px 70px 100px 120px 90px 70px 70px 70px 40px;
-                    }
-                }
-            `}</style>
+            <style>{`
+    .table-container {
+        max-width: 100%;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #edf2f7;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #a0aec0;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #718096;
+    }
+    @media (max-width: 1024px) {
+        .grid-cols-\[60px_100px_120px_100px_150px_200px_120px_100px_100px_100px_60px\] {
+            grid-template-columns: 50px 80px 100px 80px 120px 150px 100px 80px 80px 80px 50px;
+        }
+    }
+    @media (max-width: 640px) {
+        .grid-cols-\[60px_100px_120px_100px_150px_200px_120px_100px_100px_100px_60px\] {
+            grid-template-columns: 40px 70px 90px 70px 100px 120px 90px 70px 70px 70px 40px;
+        }
+    }
+`}</style>
+
         </div>
     );
 }

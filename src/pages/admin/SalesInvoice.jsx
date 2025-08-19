@@ -377,13 +377,65 @@ const SalesInvoice = () => {
       </div>
 
 
-      {/* Table */}
-      <div className="rounded-xl shadow p-6 border border-gray-100">
-        {/* Table container with horizontal scrolling */}
-        <div className="overflow-x-auto">
-          {/* Table wrapper to ensure consistent width */}
+      {/* Responsive Table Container */}
+      <div className="rounded-xl shadow p-4 sm:p-6 border border-gray-100">
+        {/* Mobile Cards (show on small screens) */}
+        <div className="lg:hidden space-y-4">
+          {invoices.map((inv, index) => (
+            <div key={index} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-sm font-medium text-gray-500">Receipt No.</div>
+                <div className="text-sm text-gray-900">{inv.receiptNo}</div>
+
+                <div className="text-sm font-medium text-gray-500">Customer Name</div>
+                <div className="text-sm text-gray-900">{inv.customerName}</div>
+
+                <div className="text-sm font-medium text-gray-500">Mobile #</div>
+                <div className="text-sm text-gray-900">{inv.mobile}</div>
+
+                <div className="text-sm font-medium text-gray-500">Payable</div>
+                <div className="text-sm text-gray-900">{inv.payable}</div>
+
+                <div className="text-sm font-medium text-gray-500">Given</div>
+                <div className="text-sm text-gray-900">{inv.givenAmount}</div>
+
+                <div className="text-sm font-medium text-gray-500">Return</div>
+                <div className="text-sm text-gray-900">{inv.returnAmount}</div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <div className="relative group">
+                  <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                  <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+                    <button
+                      onClick={() => handleEdit(inv)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(inv._id)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-red-500 flex items-center gap-2"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => handlePrint(inv)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-blue-700 flex items-center gap-2"
+                    >
+                      Print
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table (show on large screens) */}
+        <div className="hidden lg:block overflow-x-auto">
           <div className="min-w-[800px]">
-            {/* Table header - always visible */}
+            {/* Table header */}
             <div className="grid grid-cols-7 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div className="min-w-[100px]">Receipt No.</div>
               <div className="min-w-[150px]">Customer Name</div>

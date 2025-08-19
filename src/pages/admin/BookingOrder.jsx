@@ -14,16 +14,14 @@ const BookingOrder = () => {
     const [date, setDate] = useState("");
     const [time, setTimne] = useState("");
 
-    const [suggestions, setSuggestions] = useState([]);
-    const [searchValue, setSearchValue] = useState("");
-    const [searchIndex, setSearchIndex] = useState(null);
+    // ===== State =====
     const [formData, setFormData] = useState({
         customerName: "",
         mobileNo: "",
+        address: "",
         date: "",
         time: "",
-        bookingDate: "",
-        items: [{ itemName: "", price: 0, qty: 1, total: 0 }],
+        items: [{ itemName: "", rate: 0, qty: 1, amount: 0 }],
         discount: 0,
         payable: 0,
         paid: 0,
@@ -31,16 +29,154 @@ const BookingOrder = () => {
         paymentMethod: "",
     });
 
+    const [items, setItems] = useState([{ itemName: "", rate: 0, qty: 1, amount: 0 }]);
+
     const [isEdit, setIsEdit] = useState(false);
     const [editId, setEditId] = useState(null);
-
-    const [items, setItems] = useState([{ itemName: "", price: 0, qty: 1, total: 0 }]);
-    const sliderRef = useRef(null);
-    const [loading, setLoading] = useState(true);
-    const [discount, setDiscount] = useState(0);
-    const [givenAmount, setGivenAmount] = useState(0);
     const [payable, setPayable] = useState(0);
     const [returnAmount, setReturnAmount] = useState(0);
+    const [discount, setDiscount] = useState(0);
+    const [givenAmount, setGivenAmount] = useState(0);
+
+    // ===== Handle item changes =====
+    const handleItemChange = (index, field, value) => {
+        const updatedItems = [...items];
+
+        // Standardize field names: always use "rate" and "qty"
+        if (field === "rate" || field === "qty") {
+            updatedItems[index][field] = Number(value) || 0;
+        } else {
+            updatedItems[index][field] = value || "";
+        }
+
+        // Always calculate amount
+        updatedItems[index].amount = (updatedItems[index].rate || 0) * (updatedItems[index].qty || 0);
+
+        setItems(updatedItems);
+
+        // Recalculate totals using numeric values
+        calculateTotals(updatedItems, Number(discount) || 0, Number(givenAmount) || 0);
+    };
+
+
+
+    // ===== Calculate totals =====
+    const calculateTotals = (itemsList, disc = 0, given = 0) => {
+        const totalBill = itemsList.reduce((sum, item) => sum + (item.amount || 0), 0);
+
+        const payableAmt = totalBill - Number(disc || 0);
+        const returnAmt = Number(given || 0) - payableAmt;
+
+        // Update states
+        setPayable(payableAmt);
+        setReturnAmount(returnAmt);
+
+        setFormData((prev) => ({
+            ...prev,
+            total: totalBill,
+            payable: payableAmt,
+            balance: returnAmt,
+            items: itemsList.map((i) => ({
+                itemName: i.itemName || "",
+                rate: Number(i.rate) || 0,
+                qty: Number(i.qty) || 0,
+                amount: Number(i.amount) || 0,
+            })),
+        }));
+
+        console.log("Payable calculated:", payableAmt);
+    };
+
+
+
+
+    // ===== Add / Remove Item =====
+    const addItemRow = () => {
+        const newItem = { itemName: "", rate: 0, qty: 1, amount: 0 };
+        setItems([...items, newItem]);
+    };
+
+    const removeItemRow = (index) => {
+        const updatedItems = items.filter((_, i) => i !== index);
+        setItems(updatedItems);
+        calculateTotals(updatedItems, discount, givenAmount);
+    };
+
+    // ===== Save Booking =====
+    const handleSave = async () => {
+        try {
+            // Ensure all numbers
+            const normalizedItems = items.map((i) => ({
+                itemName: i.itemName || "",
+                rate: parseFloat(i.rate) || 0,
+                qty: parseFloat(i.qty) || 0,
+                amount: parseFloat(i.amount) || 0,
+            }));
+
+            const total = normalizedItems.reduce((sum, i) => sum + i.amount, 0);
+            const payableAmt = total - parseFloat(discount || 0);
+            const balanceAmt = parseFloat(givenAmount || 0) - payableAmt;
+
+            const bookingData = {
+                ...formData,
+                items: normalizedItems,
+                total,
+                payable: payableAmt,
+                balance: balanceAmt,
+                discount: parseFloat(discount || 0),
+                paid: parseFloat(formData.paid || 0),
+                paymentMethod: formData.paymentMethod || "",
+            };
+
+            const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
+            const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+
+            if (isEdit && editId) {
+                await axios.put(`${import.meta.env.VITE_API_BASE_URL}/bookings/${editId}`, bookingData, { headers });
+                toast.success("✅ Booking updated successfully");
+            } else {
+                await axios.post(`${import.meta.env.VITE_API_BASE_URL}/bookings`, bookingData, { headers });
+                toast.success("✅ Booking created successfully");
+            }
+
+            // Reset
+            setFormData({
+                customerName: "",
+                mobileNo: "",
+                address: "",
+                date: "",
+                time: "",
+                items: [{ itemName: "", rate: 0, qty: 1, amount: 0 }],
+                discount: 0,
+                payable: 0,
+                paid: 0,
+                balance: 0,
+                paymentMethod: "",
+            });
+            setItems([{ itemName: "", rate: 0, qty: 1, amount: 0 }]);
+            setDiscount(0);
+            setGivenAmount(0);
+            setPayable(0);
+            setReturnAmount(0);
+            setIsEdit(false);
+            setEditId(null);
+            setIsSliderOpen(false);
+
+            // fetchBookings();
+        } catch (error) {
+            console.error(error);
+            toast.error(`❌ ${isEdit ? "Update" : "Create"} booking failed`);
+        }
+    };
+
+
+
+    const [suggestions, setSuggestions] = useState([]);
+    const [searchValue, setSearchValue] = useState("");
+    const [searchIndex, setSearchIndex] = useState(null);
+    const sliderRef = useRef(null);
+    const [loading, setLoading] = useState(true);
+
 
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     // console.log("Admin", userInfo.isAdmin);
@@ -91,16 +227,19 @@ const BookingOrder = () => {
 
     const handleSearch = (selectedItem, index) => {
         handleItemChange(index, "itemName", selectedItem.itemName);
-        handleItemChange(index, "price", selectedItem.price); // auto-fill price
-        setSearchValue(""); // clear searchValue after selection
-        setSuggestions([]); // close dropdown
+        handleItemChange(index, "rate", selectedItem.price); // fill price
+        setSearchValue("");   // hide suggestions
+        setSuggestions([]);
     };
+
+
 
     const handleInputChange = (value, index) => {
         handleItemChange(index, "itemName", value); // update input field
-        setSearchValue(value); // trigger useEffect
-        setSearchIndex(index); // track row for suggestions
-    }
+        setSearchValue(value); // trigger useEffect for suggestions
+        setSearchIndex(index); // track which row the suggestions belong to
+    };
+
 
 
 
@@ -109,68 +248,7 @@ const BookingOrder = () => {
         setIsSliderOpen(true);
     };
 
-    //  Booking customer  saved
-    const handleSave = async () => {
 
-        const bookingData = {
-            customerName: formData.customerName,
-            mobileNo: formData.mobileNo,
-            address: formData.address,
-            date: formData.date,
-            time: formData.time,
-            items: formData.items,
-            discount: formData.discount,
-            payable: formData.payable,
-            paid: formData.paid,
-            balance: formData.balance,
-            paymentMethod: formData.paymentMethod,
-        };
-
-        console.log("Booking Data", bookingData);
-
-        try {
-            const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
-            const headers = {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            };
-            if (isEdit && editId) {
-                await axios.put(
-                    `${import.meta.env.VITE_API_BASE_URL}/bookings/${editId}`,
-                    bookingData,
-                    { headers }
-                );
-                toast.success("✅ Booking updated successfully");
-            } else {
-                await axios.post(
-                    `${import.meta.env.VITE_API_BASE_URL}/bookings`,
-                    bookingData,
-                    { headers }
-                );
-                toast.success("✅ Booking created successfully");
-            }
-
-            // Reset fields
-            setCustomerName("");
-            setMobileNo("");
-            setAddress("");
-            setDate("");
-            setTime("");
-            setItems([]);
-            setDiscount(0);
-            setPaid(0);
-            setPaymentMethod("");
-            setEditId(null);
-            setIsEdit(false);
-            setIsSliderOpen(false);
-
-            // Refresh list
-            fetchBookings();
-        } catch (error) {
-            console.error(error);
-            toast.error(`❌ ${isEdit ? "Update" : "Create"} booking failed`);
-        }
-    };
 
     // Static Data for Customer Orders
     const item = [
@@ -230,37 +308,6 @@ const BookingOrder = () => {
             totalAmount: 1500
         },
     ];
-
-    // Handle item changes
-    const handleItemChange = (index, field, value) => {
-        const updatedItems = [...items];
-        updatedItems[index][field] = value;
-        updatedItems[index].total =
-            parseFloat(updatedItems[index].price || 0) *
-            parseFloat(updatedItems[index].qty || 0);
-        setItems(updatedItems);
-        calculateTotals(updatedItems, discount, givenAmount);
-    };
-
-    // Add new item row
-    const addItemRow = () => {
-        setItems([...items, { itemName: "", price: 0, qty: 1, total: 0 }]);
-    };
-
-    // Remove item row
-    const removeItemRow = (index) => {
-        const updatedItems = items.filter((_, i) => i !== index);
-        setItems(updatedItems);
-        calculateTotals(updatedItems, discount, givenAmount);
-    };
-
-    // Calculate totals
-    const calculateTotals = (itemsList, disc, given) => {
-        const totalBill = itemsList.reduce((sum, item) => sum + item.total, 0);
-        const payableAmt = totalBill - parseFloat(disc || 0);
-        setPayable(payableAmt);
-        setReturnAmount(parseFloat(given || 0) - payableAmt);
-    };
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -391,8 +438,8 @@ const BookingOrder = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    value={customerName}
-                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    value={formData.customerName}
+                                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                                     className="w-full p-2 border rounded"
                                 />
                             </div>
@@ -404,9 +451,9 @@ const BookingOrder = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    value={customerMobile}
+                                    value={formData.mobileNo}
                                     required
-                                    onChange={(e) => setCustomerMobile(e.target.value)}
+                                    onChange={(e) => setFormData({ ...formData, mobileNo: e.target.value })}
                                     className="w-full p-2 border rounded"
                                 />
                             </div>
@@ -418,9 +465,9 @@ const BookingOrder = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    value={customerAddress}
+                                    value={formData.address}
                                     required
-                                    onChange={(e) => setCustomerAddress(e.target.value)}
+                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     className="w-full p-2 border rounded"
                                 />
                             </div>
@@ -432,9 +479,9 @@ const BookingOrder = () => {
                                 </label>
                                 <input
                                     type="date"
-                                    value={date}
+                                    value={formData.date}
                                     required
-                                    onChange={(e) => setDate(e.target.value)}
+                                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                     className="w-full p-2 border rounded"
                                 />
 
@@ -447,40 +494,44 @@ const BookingOrder = () => {
                                 </label>
                                 <input
                                     type="time"
-                                    value={time}
+                                    value={formData.time}
                                     required
-                                    onChange={(e) => setTimne(e.target.value)}
+                                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                                     className="w-full p-2 border rounded"
                                 />
                             </div>
 
                             {/* Items */}
-                            <h3 className="font-bold mt-4 mb-2">Items</h3>
                             {items.map((item, i) => (
                                 <div key={i} className="relative flex gap-2 mb-2">
                                     <input
                                         placeholder="Item Name"
                                         className="border p-2 flex-1"
-                                        value={item.itemName}
-                                        onChange={(e) => handleInputChange(e.target.value, i)}
+                                        value={searchIndex === i ? searchValue : item.itemName}
+                                        onChange={(e) => {
+                                            setSearchValue(e.target.value); // track typing
+                                            setSearchIndex(i);               // mark active row
+                                        }}
                                     />
+
                                     <input
                                         type="number"
-                                        placeholder="Price"
+                                        placeholder="Rate"
                                         className="border p-2 w-20"
-                                        value={item.price}
-                                        readOnly
+                                        value={item.rate}
+                                        onChange={(e) => handleItemChange(i, "rate", e.target.value)}
                                     />
+
                                     <input
                                         type="number"
                                         placeholder="Qty"
                                         className="border p-2 w-16"
                                         value={item.qty}
-                                        onChange={(e) =>
-                                            handleItemChange(i, "qty", parseFloat(e.target.value))
-                                        }
+                                        onChange={(e) => handleItemChange(i, "qty", e.target.value)}
                                     />
-                                    <div className="p-2 w-20 text-right">{item.total}</div>
+
+                                    <div className="p-2 w-20 text-right">{item.amount}</div>
+
                                     <button
                                         onClick={() => removeItemRow(i)}
                                         className="text-red-500 hover:underline"
@@ -488,7 +539,7 @@ const BookingOrder = () => {
                                         X
                                     </button>
 
-                                    {/* Suggestions dropdown (inside map, so i exists) */}
+                                    {/* Suggestions dropdown */}
                                     {suggestions.length > 0 && searchIndex === i && (
                                         <ul className="absolute bg-white border w-[12.5rem] mt-10 z-10">
                                             {suggestions.map((s) => (
@@ -502,8 +553,11 @@ const BookingOrder = () => {
                                             ))}
                                         </ul>
                                     )}
+
+
                                 </div>
                             ))}
+
 
                             {/* Add Item Button */}
                             <button
@@ -518,56 +572,52 @@ const BookingOrder = () => {
                                 <h3 className="font-bold text-lg mb-3 text-gray-700">Order Summary</h3>
 
                                 {/* Discount */}
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                                        Discount
-                                    </label>
-                                    <input
-                                        type="number"
-                                        placeholder="Discount"
-                                        className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                                        value={discount}
-                                        onChange={(e) => {
-                                            setDiscount(parseFloat(e.target.value));
-                                            calculateTotals(items, parseFloat(e.target.value), givenAmount);
-                                        }}
-                                    />
-                                </div>
+                                <input
+                                    type="number"
+                                    placeholder="Discount"
+                                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                    value={discount || 0}
+                                    onChange={(e) => {
+                                        const val = parseFloat(e.target.value) || 0;
+                                        setDiscount(val);
+                                        calculateTotals(items, val, givenAmount);
+                                    }}
+                                />
 
                                 {/* Given Amount */}
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                                        Given Amount
-                                    </label>
-                                    <input
-                                        type="number"
-                                        placeholder="Given Amount"
-                                        className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                                        value={givenAmount}
-                                        onChange={(e) => {
-                                            setGivenAmount(parseFloat(e.target.value));
-                                            calculateTotals(items, discount, parseFloat(e.target.value));
-                                        }}
-                                    />
-                                </div>
+                                <input
+                                    type="number"
+                                    placeholder="Given Amount"
+                                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                    value={givenAmount || 0}
+                                    onChange={(e) => {
+                                        const val = parseFloat(e.target.value) || 0;
+                                        setGivenAmount(val);
+                                        calculateTotals(items, discount, val);
+                                    }}
+                                />
                             </div>
 
 
                             {/* payment */}
                             <div>
-                                <label className="block text-gray-700 font-bold mb-2">Payment <span className="text-newPrimary">*</span></label>
+                                <label className="block text-gray-700 font-bold mb-2">
+                                    Payment <span className="text-newPrimary">*</span>
+                                </label>
                                 <select
-                                    // value={supplier}
+                                    value={formData.paymentMethod}
                                     required
-                                    // onChange={(e) => setSupplier(e.target.value)}
+                                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
                                     className="w-full p-2 border rounded"
                                 >
                                     <option value="">Select Payment</option>
-                                    <option value="ABC Traders">Cash</option>
-                                    <option value="HomeDeco">Tranfer</option>
-                                    <option value="KitchenPro">Card</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Other">Other</option>
                                 </select>
                             </div>
+
 
 
                             <div className="mb-2 font-bold">Payable Amount: {payable}</div>

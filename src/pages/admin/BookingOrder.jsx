@@ -339,13 +339,13 @@ const BookingOrder = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
-            <div className="flex justify-between items-center mb-6">
+<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-newPrimary">Customer Booking Orders</h1>
-                    <p className="text-gray-500 text-sm">Manage your customer Booking order details</p>
+                   <h1 className="text-xl sm:text-2xl font-bold text-newPrimary">Customer Booking Orders</h1>
+                    {/* <p className="text-gray-500 text-sm">Manage your customer Booking order details</p> */}
                 </div>
                 <button
-                    className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+                    className="bg-newPrimary text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-primaryDark w-full sm:w-auto"
                     onClick={handleAddStaff}
                 >
                     + Booking Order

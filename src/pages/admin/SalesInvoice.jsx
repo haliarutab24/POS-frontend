@@ -1,50 +1,36 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
 import Swal from "sweetalert2";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { PuffLoader } from "react-spinners";
+import { FaEdit, FaTrash, FaPrint } from "react-icons/fa"
 
 const SalesInvoice = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const sliderRef = useRef(null);
   const [isEdit, setIsEdit] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [searchIndex, setSearchIndex] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Static invoice data
-  const [invoices, setInvoices] = useState([
-    {
-      receiptNo: "INV-001",
-      customerName: "Ali Khan",
-      mobile: "03001234567",
-      items: [
-        { itemName: "Smartphone", price: 650, qty: 1, total: 650 },
-        { itemName: "Notebook", price: 5, qty: 10, total: 50 },
-        { itemName: "Men's Jacket", price: 70, qty: 2, total: 140 }
-      ],
-      discount: 0,
-      givenAmount: 1000,
-      payable: 840,
-      returnAmount: 160
-    },
-    {
-      receiptNo: "INV-002",
-      customerName: "Sara Ahmed",
-      mobile: "03009876543",
-      items: [{ itemName: "Microwave Oven", price: 280, qty: 1, total: 280 }],
-      discount: 20,
-      givenAmount: 300,
-      payable: 260,
-      returnAmount: 40
-    }
-  ]);
+  const [invoices, setInvoices] = useState([]);
+
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  // console.log("userInfo", userInfo);
 
   // Form states
-  const [receiptNo, setReceiptNo] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [mobile, setMobile] = useState("");
   const [items, setItems] = useState([{ itemName: "", price: 0, qty: 1, total: 0 }]);
-  const [discount, setDiscount] = useState(0);
-  const [givenAmount, setGivenAmount] = useState(0);
+  const [discount, setDiscount] = useState();
+  const [givenAmount, setGivenAmount] = useState();
   const [payable, setPayable] = useState(0);
   const [returnAmount, setReturnAmount] = useState(0);
+  const [editId, setEditId] = useState(null);
 
   // Animate slider
   useEffect(() => {
@@ -56,6 +42,70 @@ const SalesInvoice = () => {
       );
     }
   }, [isSliderOpen]);
+
+
+  // Fetch Sales Invoice Data
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/saleInvoices`);
+      setInvoices(res.data); // store actual categories array
+      console.log("Sales Invoices", res.data);
+    } catch (error) {
+      console.error("Failed to fetch products or categories", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+
+  // Initialize shelve location list with static data
+  useEffect(() => {
+
+    fetchData();
+  }, [fetchData]);
+
+
+  // search suggestion with debouncing 
+  useEffect(() => {
+    // ✅ Run only if searchValue is not empty and has more than 1 character
+    if (!searchValue || searchValue.length <= 1) {
+      setSuggestions([]);
+      return;
+    }
+
+    const delay = setTimeout(() => {
+      const fetchData = async () => {
+        try {
+          const res = await axios.get(
+            `${import.meta.env.VITE_API_BASE_URL}/item-details/search?q=${searchValue}`
+          );
+          setSuggestions(res.data);
+          console.log("Suggestion Item", res.data);
+        } catch (error) {
+          console.error("Error fetching items", error);
+        }
+      };
+
+      fetchData();
+    }, 50); // 👈 debounce (increase to 50ms for smoother API calls)
+
+    return () => clearTimeout(delay);
+  }, [searchValue]);
+
+
+  const handleSearch = (selectedItem, index) => {
+    handleItemChange(index, "itemName", selectedItem.itemName);
+    handleItemChange(index, "price", selectedItem.price); // auto-fill price
+    setSearchValue(""); // clear searchValue after selection
+    setSuggestions([]); // close dropdown
+  };
+
+  const handleInputChange = (value, index) => {
+    handleItemChange(index, "itemName", value); // update input field
+    setSearchValue(value); // trigger useEffect
+    setSearchIndex(index); // track row for suggestions
+  }
+
 
   // Handle item changes
   const handleItemChange = (index, field, value) => {
@@ -89,35 +139,58 @@ const SalesInvoice = () => {
   };
 
   // Save invoice
-  const handleSaveInvoice = () => {
-    const newInvoice = {
-      receiptNo,
+  const handleSaveInvoice = async () => {
+    const formData = {
       customerName,
       mobile,
       items,
       discount,
       givenAmount,
       payable,
-      returnAmount
+      returnAmount,
     };
+    console.log("Form data ", formData);
 
-    if (isEdit) {
-      const updatedInvoices = [...invoices];
-      updatedInvoices[editIndex] = newInvoice;
-      setInvoices(updatedInvoices);
+    try {
+      const headers = {
+        Authorization: `Bearer ${userInfo.token}`,
+        "Content-Type": "application/json",
+      };
+
+      if (isEdit && editId) {
+        // Update existing invoice
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/saleInvoices/${editId}`,
+          formData,
+          { headers }
+        );
+        toast.success("Invoice updated successfully ✅");
+      } else {
+        // Create new invoice (receiptNo is auto-generated in backend)
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/saleInvoices`,
+          formData,
+          { headers }
+        );
+        toast.success("Invoice created successfully ✅");
+      }
+
+      // reset form
+      resetForm()
+      setIsSliderOpen(false);
       setIsEdit(false);
-      setEditIndex(null);
-    } else {
-      setInvoices([...invoices, newInvoice]);
-    }
+      setEditId(null);
 
-    resetForm();
-    setIsSliderOpen(false);
+      // refresh invoice list if you have one
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      toast.error(`❌ ${isEdit ? "Update" : "Create"} invoice failed`);
+    }
   };
 
   // Reset form
   const resetForm = () => {
-    setReceiptNo("");
     setCustomerName("");
     setMobile("");
     setItems([{ itemName: "", price: 0, qty: 1, total: 0 }]);
@@ -128,34 +201,79 @@ const SalesInvoice = () => {
   };
 
   // Delete invoice
-  const handleDelete = (index) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "This will delete the invoice.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete",
-      cancelButtonText: "Cancel"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setInvoices(invoices.filter((_, i) => i !== index));
-        Swal.fire("Deleted!", "Invoice removed.", "success");
-      }
+  const handleDelete = async (id) => {
+    const swalWithTailwindButtons = Swal.mixin({
+      customClass: {
+        actions: "space-x-2",
+        confirmButton:
+          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+        cancelButton:
+          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+      },
+      buttonsStyling: false,
     });
+
+    swalWithTailwindButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/saleInvoices/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
+                }
+              }
+            );
+            setInvoices(invoices.filter((s) => s._id !== id));
+            swalWithTailwindButtons.fire(
+              "Deleted!",
+              "Sales Invoice deleted successfully.",
+              "success"
+            );
+            fetchData()
+          } catch (error) {
+            console.error("Delete error:", error);
+            swalWithTailwindButtons.fire(
+              "Error!",
+              "Failed to delete sales invoice.",
+              "error"
+            );
+          }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          swalWithTailwindButtons.fire(
+            "Cancelled",
+            "Sales Invoice is safe 🙂",
+            "error"
+          );
+        }
+      });
   };
 
   // Edit invoice
-  const handleEdit = (invoice, index) => {
+  const handleEdit = (invoice) => {
+    console.log(invoice);
+
     setIsEdit(true);
-    setEditIndex(index);
-    setReceiptNo(invoice.receiptNo);
-    setCustomerName(invoice.customerName);
-    setMobile(invoice.mobile);
-    setItems(invoice.items);
-    setDiscount(invoice.discount);
-    setGivenAmount(invoice.givenAmount);
-    setPayable(invoice.payable);
-    setReturnAmount(invoice.returnAmount);
+    setEditId(invoice._id);
+    console.log("Eidit ", editId);
+
+    setCustomerName(invoice.customerName || '');
+    setMobile(invoice.mobile || '');
+    setItems(invoice.items || []); // default to empty array
+    setDiscount(invoice.discount || 0);
+    setGivenAmount(invoice.givenAmount || 0);
+    setPayable(invoice.payable || 0);
+    setReturnAmount(invoice.returnAmount || 0);
     setIsSliderOpen(true);
   };
 
@@ -231,13 +349,25 @@ const SalesInvoice = () => {
     printWindow.document.close();
   };
 
+  // Show loading spinner
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-newPrimary">Sales Invoice List</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-newPrimary">
+          Sales Invoice List
+        </h1>
         <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+          className="bg-newPrimary text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-primaryDark w-full sm:w-auto"
           onClick={() => {
             resetForm();
             setIsSliderOpen(true);
@@ -247,140 +377,219 @@ const SalesInvoice = () => {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl shadow p-6 border border-gray-100">
-        <div className="hidden lg:grid grid-cols-7 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-          <div>Receipt No.</div>
-          <div>Customer Name</div>
-          <div>Mobile #</div>
-          <div>Payable</div>
-          <div>Given</div>
-          <div>Return</div>
-          <div className="text-right">Actions</div>
-        </div>
 
-        <div className="mt-4 flex flex-col gap-[14px]">
+      {/* Responsive Table Container */}
+      <div className="rounded-xl shadow p-4 sm:p-6 border border-gray-100">
+        {/* Mobile Cards (show on small screens) */}
+        <div className="lg:hidden space-y-4">
           {invoices.map((inv, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-7 items-center gap-4 bg-white p-4 rounded-xl shadow-sm"
-            >
-              <div>{inv.receiptNo}</div>
-              <div>{inv.customerName}</div>
-              <div>{inv.mobile}</div>
-              <div>{inv.payable}</div>
-              <div>{inv.givenAmount}</div>
-              <div>{inv.returnAmount}</div>
-             <div className="flex justify-center">
-                        <div className="relative group">
-                <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                            <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
-                <button
-                  onClick={() => handleEdit(inv, index)}
-                  className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(index)}
-                   className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-red-500 flex items-center gap-2"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => handlePrint(inv)}
-                  className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
-                >
-                  Print
-                </button>
+            <div key={index} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-sm font-medium text-gray-500">Receipt No.</div>
+                <div className="text-sm text-gray-900">{inv.receiptNo}</div>
+
+                <div className="text-sm font-medium text-gray-500">Customer Name</div>
+                <div className="text-sm text-gray-900">{inv.customerName}</div>
+
+                <div className="text-sm font-medium text-gray-500">Mobile #</div>
+                <div className="text-sm text-gray-900">{inv.mobile}</div>
+
+                <div className="text-sm font-medium text-gray-500">Payable</div>
+                <div className="text-sm text-gray-900">{inv.payable}</div>
+
+                <div className="text-sm font-medium text-gray-500">Given</div>
+                <div className="text-sm text-gray-900">{inv.givenAmount}</div>
+
+                <div className="text-sm font-medium text-gray-500">Return</div>
+                <div className="text-sm text-gray-900">{inv.returnAmount}</div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <div className="relative group">
+                  <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                  <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+                    <button
+                      onClick={() => handleEdit(inv)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(inv._id)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-red-500 flex items-center gap-2"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => handlePrint(inv)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-blue-700 flex items-center gap-2"
+                    >
+                      Print
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            </div>
-            </div>
           ))}
+        </div>
+
+        {/* Desktop Table (show on large screens) */}
+        <div className="hidden lg:block overflow-x-auto">
+          <div className="min-w-[800px]">
+            {/* Table header */}
+            <div className="grid grid-cols-7 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+              <div className="min-w-[100px]">Receipt No.</div>
+              <div className="min-w-[150px]">Customer Name</div>
+              <div className="min-w-[100px]">Mobile #</div>
+              <div className="min-w-[80px]">Payable</div>
+              <div className="min-w-[80px]">Given</div>
+              <div className="min-w-[80px]">Return</div>
+              <div className="min-w-[80px] text-right">Actions</div>
+            </div>
+
+            {/* Table rows */}
+            <div className="mt-4 flex flex-col gap-[14px]">
+              {invoices.map((inv, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-7 items-center gap-4 bg-white p-4 rounded-xl shadow-sm"
+                >
+                  <div className="min-w-[100px]">{inv.receiptNo}</div>
+                  <div className="min-w-[150px]">{inv.customerName}</div>
+                  <div className="min-w-[100px]">{inv.mobile}</div>
+                  <div className="min-w-[80px]">{inv.payable}</div>
+                  <div className="min-w-[80px]">{inv.givenAmount}</div>
+                  <div className="min-w-[80px]">{inv.returnAmount}</div>
+
+                  <div className="min-w-[80px] flex justify-end gap-2">
+                    <button
+                      onClick={() => handleEdit(inv)}
+                      className="text-green-400 hover:text-green-500 text-xl flex items-center gap-1"
+                      title="Edit"
+                    >
+                      <FaEdit />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(inv._id)}
+                      className="text-red-500 hover:text-red-700 text-xl flex items-center gap-1"
+                      title="Delete"
+                    >
+                      <FaTrash />
+                    </button>
+
+                    <button
+                      onClick={() => handlePrint(inv)}
+                      className="text-blue-600 hover:text-blue-800 text-xl flex items-center gap-1"
+                      title="Print"
+                    >
+                      <FaPrint />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Slider Form */}
       {isSliderOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
-          <div ref={sliderRef} className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold mb-4  text-newPrimary">
-              {isEdit ? "Edit Invoice" : "Add New Invoice"}
-            </h2>
-            <button
-              className="text-gray-500 hover:text-gray-800 text-2xl"
-              onClick={() => {
-                setIsSliderOpen(false);
-
-              }}
-            >
-              ×
-            </button>
+          <div
+            ref={sliderRef}
+            className="w-full sm:w-full md:w-2/3 lg:w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg transition-all duration-300"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold mb-4">
+                {isEdit ? "Edit Invoice" : "Add New Invoice"}
+              </h2>
+              <button
+                className="text-gray-500 hover:text-gray-800 text-2xl"
+                onClick={() => setIsSliderOpen(false)}
+              >
+                ×
+              </button>
             </div>
 
             {/* Customer Info */}
             <input
-              placeholder="Receipt No."
-              className="w-full border p-2 mb-2"
-              value={receiptNo}
-              onChange={(e) => setReceiptNo(e.target.value)}
-            />
-            <input
               placeholder="Customer Name"
               className="w-full border p-2 mb-2"
               value={customerName}
+              required
               onChange={(e) => setCustomerName(e.target.value)}
             />
             <input
               placeholder="Mobile #"
               className="w-full border p-2 mb-2"
               value={mobile}
+              required
               onChange={(e) => setMobile(e.target.value)}
             />
 
             {/* Items */}
-            <h3 className="font-bold mt-4 mb-2">Items</h3>
-            {items.map((item, i) => (
-              <div key={i} className="flex gap-2 mb-2">
-                <input
-                  placeholder="Item Name"
-                  className="border p-2 flex-1"
-                  value={item.itemName}
-                  onChange={(e) => handleItemChange(i, "itemName", e.target.value)}
-                />
-                <input
-                  type="number"
-                  placeholder="Price"
-                  className="border p-2 w-20"
-                  value={item.price}
-                  onChange={(e) => handleItemChange(i, "price", parseFloat(e.target.value))}
-                />
-                <input
-                  type="number"
-                  placeholder="Qty"
-                  className="border p-2 w-16"
-                  value={item.qty}
-                  onChange={(e) => handleItemChange(i, "qty", parseFloat(e.target.value))}
-                />
-                <div className="p-2 w-20 text-right">{item.total}</div>
-                <button
-                  onClick={() => removeItemRow(i)}
-                  className="text-red-500 hover:underline"
-                >
-                  X
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={addItemRow}
-              className="text-green-500 hover:underline mb-4"
-            >
-              + Add Item
-            </button>
+            <div>
+              <h3 className="font-bold mt-4 mb-2">Items</h3>
+              {items.map((item, i) => (
+                <div key={i} className="flex flex-col gap-1 mb-4 relative">
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      placeholder="Item Name"
+                      className="border p-2 flex-1 min-w-[120px]"
+                      value={item.itemName}
+                      onChange={(e) => handleInputChange(e.target.value, i)}
+                    />
+                    <input
+                      readOnly
+                      placeholder="Price"
+                      className="border p-2 w-20"
+                      value={item.price || ""}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Qty"
+                      className="border p-2 w-16"
+                      value={item.qty}
+                      onChange={(e) =>
+                        handleItemChange(i, "qty", parseFloat(e.target.value))
+                      }
+                    />
+                    <div className="p-2 w-20 text-right">{item.total}</div>
+                    <button
+                      onClick={() => removeItemRow(i)}
+                      className="text-red-500 hover:underline"
+                    >
+                      X
+                    </button>
+                  </div>
+
+                  {/* Suggestions */}
+                  {suggestions.length > 0 && searchIndex === i && (
+                    <ul className="absolute bg-white border w-[12.5rem] mt-8 z-10">
+                      {suggestions.map((s) => (
+                        <li
+                          key={s._id}
+                          className="p-2 hover:bg-gray-200 cursor-pointer"
+                          onClick={() => handleSearch(s, i)}
+                        >
+                          {s.itemName}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={addItemRow}
+                className="text-green-500 hover:underline mb-4"
+              >
+                + Add Item
+              </button>
+            </div>
 
             {/* Totals */}
+            <label>Discount Amount</label>
             <input
               type="number"
               placeholder="Discount"
@@ -391,6 +600,7 @@ const SalesInvoice = () => {
                 calculateTotals(items, parseFloat(e.target.value), givenAmount);
               }}
             />
+            <label>Given Amount</label>
             <input
               type="number"
               placeholder="Given Amount"
@@ -409,11 +619,12 @@ const SalesInvoice = () => {
               className="bg-newPrimary text-white px-4 py-2 rounded-lg w-full"
               onClick={handleSaveInvoice}
             >
-              Save Invoice
+              {isEdit ? "Update Invoice" : "Save Invoice"}
             </button>
           </div>
         </div>
       )}
+
     </div>
   );
 };

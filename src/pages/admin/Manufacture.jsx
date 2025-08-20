@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import axios from "axios";
 
 const Manufacture = () => {
   const [manufacturerList, setManufacturerList] = useState([]);
@@ -21,7 +20,6 @@ const Manufacture = () => {
   const [status, setStatus] = useState(true);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
-
   const sliderRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,26 +35,78 @@ const Manufacture = () => {
     }
   }, [isSliderOpen]);
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/manufacturers`);
-      setManufacturerList(res.data); // store actual categories array
-      console.log("Manufacturers", res.data);
-    } catch (error) {
-      console.error("Failed to fetch products or categories", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []);
+  const manufacturers = [
+    {
+      _id: "10001",
+      name: "Samsung",
+      address: "123 Tech Street, Seoul, South Korea",
+      phoneNumber: "+82-2-1234-5678",
+      personName: "John Kim",
+      mobileNumber: "+82-10-9876-5432",
+      designation: "Sales Manager",
+      ntn: "NTN123456789",
+      gstNumber: "27ABCDE1234F1Z5",
+      email: "contact@samsung.com",
+      status: true,
+    },
+    {
+      _id: "10002",
+      name: "Ikea",
+      address: "456 Furniture Ave, Stockholm, Sweden",
+      phoneNumber: "+46-8-2345-6789",
+      personName: "Anna Svensson",
+      mobileNumber: "+46-70-1234-5678",
+      designation: "Regional Director",
+      ntn: "NTN987654321",
+      gstNumber: "29FGHIJ5678K2M9",
+      email: "support@ikea.com",
+      status: true,
+    },
+    {
+      _id: "10003",
+      name: "Haier",
+      address: "789 Appliance Road, Qingdao, China",
+      phoneNumber: "+86-532-1234-5678",
+      personName: "Li Wei",
+      mobileNumber: "+86-138-1234-5678",
+      designation: "Operations Head",
+      ntn: "NTN456789123",
+      gstNumber: "30NOPQR9012S3T4",
+      email: "info@haier.com",
+      status: false,
+    },
+    {
+      _id: "10004",
+      name: "Levis",
+      address: "101 Fashion Blvd, San Francisco, USA",
+      phoneNumber: "+1-415-123-4567",
+      personName: "Sarah Johnson",
+      mobileNumber: "+1-510-987-6543",
+      designation: "Marketing Lead",
+      ntn: "NTN789123456",
+      gstNumber: "06UVWXY3456Z7A8",
+      email: "sales@levis.com",
+      status: true,
+    },
+    {
+      _id: "10005",
+      name: "Oxford",
+      address: "202 Stationery Lane, London, UK",
+      phoneNumber: "+44-20-1234-5678",
+      personName: "James Brown",
+      mobileNumber: "+44-7700-123456",
+      designation: "Procurement Manager",
+      ntn: "NTN321654987",
+      gstNumber: "09BCDEF6789G1H2",
+      email: "contact@oxford.com",
+      status: false,
+    },
+  ];
 
   useEffect(() => {
-
-    fetchData();
-  }, [fetchData]);
-
-
-
+    setManufacturerList(manufacturers);
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
 
   const handleAddManufacturer = () => {
     setIsSliderOpen(true);
@@ -77,8 +127,8 @@ const Manufacture = () => {
 
   const handleSave = async () => {
     const formData = {
-      manufacturerId: manufacturerId,
-      manufacturerName,
+      _id: manufacturerId,
+      name: manufacturerName,
       address,
       phoneNumber,
       personName,
@@ -89,49 +139,55 @@ const Manufacture = () => {
       email,
       status,
     };
-    console.log("Form data", formData);
 
     try {
+      const { token } = userInfo || {};
       const headers = {
-        Authorization: `Bearer ${userInfo.token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/manufacturers/${editId}`,
-          formData,
-          { headers }
+        setManufacturerList(
+          manufacturerList.map((m) =>
+            m._id === editId ? { ...m, ...formData } : m
+          )
         );
-        toast.success("Manufacturers Updated successfully");
+        toast.success("✅ Manufacturer updated successfully");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/manufacturers`,
-          formData,
-          { headers }
-        );
-        toast.success("Manufacturers Added successfully");
+        const newManufacturer = {
+          ...formData,
+          _id: String(10000 + manufacturerList.length + 1),
+        };
+        setManufacturerList([...manufacturerList, newManufacturer]);
+        toast.success("✅ Manufacturer added successfully");
       }
 
-      // Reset fields
-      setEditId(null);
-      setIsEdit(false);
+      setManufacturerId("");
+      setManufacturerName("");
+      setAddress("");
+      setPhoneNumber("");
+      setPersonName("");
+      setMobileNumber("");
+      setDesignation("");
+      setNtn("");
+      setGstNumber("");
+      setEmail("");
+      setStatus(true);
       setIsSliderOpen(false);
-
-      // Refresh list
-      fetchData();
-
+      setIsEdit(false);
+      setEditId(null);
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturers failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
     }
   };
 
   const handleEdit = (manufacturer) => {
     setIsEdit(true);
     setEditId(manufacturer._id);
-    setManufacturerId(manufacturer.manufacturerId);
-    setManufacturerName(manufacturer.manufacturerName);
+    setManufacturerId(manufacturer._id);
+    setManufacturerName(manufacturer.name);
     setAddress(manufacturer.address);
     setPhoneNumber(manufacturer.phoneNumber);
     setPersonName(manufacturer.personName);
@@ -169,16 +225,6 @@ const Manufacture = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/manufacturers/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
-                }
-              }
-            );
-
             setManufacturerList(manufacturerList.filter((m) => m._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -257,7 +303,7 @@ const Manufacture = () => {
                   className="grid grid-cols-[90px_90px_180px_110px_110px_110px_110px_110px_110px_70px_70px] items-center gap-2 bg-white p-2 rounded-lg border-b border-gray-100 hover:bg-gray-50 transition"
                 >
                   <div className="text-sm font-medium text-gray-900 truncate">
-                    {manufacturer.manufacturerId}
+                    {manufacturer._id}
                   </div>
                   <div className="text-sm text-gray-500 truncate">
                     {manufacturer.name}
@@ -486,24 +532,23 @@ const Manufacture = () => {
                 <button
                   type="button"
                   onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
-                    }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                    status ? "bg-green-500" : "bg-gray-300"
+                  }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
-                      }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                      status ? "translate-x-7" : "translate-x-0"
+                    }`}
                   />
                 </button>
                 <span>{status ? "Active" : "Inactive"}</span>
               </div>
               <button
-                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
-              > {loading
-                ? "Saving..."
-                : isEdit
-                  ? "Update Manufacturer"
-                  : "Save Manufacturer"}
+              >
+                Save Manufacturer
               </button>
             </div>
           </div>

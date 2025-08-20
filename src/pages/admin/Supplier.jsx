@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
@@ -16,8 +16,6 @@ const SupplierList = () => {
   const [paymentTerms, setPaymentTerms] = useState("");
   const [status, setStatus] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [mobileNumber, setMobileNumber] = useState("");
-
   const [designation, setDesignation] = useState("");
   const [ntn, setNtn] = useState("");
   const [gst, setGst] = useState("");
@@ -25,7 +23,7 @@ const SupplierList = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
@@ -40,24 +38,82 @@ const SupplierList = () => {
     }
   }, [isSliderOpen]);
 
+  // Static Data for Suppliers
+  const suppliers = [
+    {
+      _id: "1",
+      supplierName: "ABC Traders",
+      contactPerson: "John Doe",
+      email: "john@abctraders.com",
+      address: "123 Commerce St, New York, USA",
+      phoneNumber: "+1-212-555-1234",
+      designation: "Sales Manager",
+      ntn: "NTN123456789",
+      gst: "27ABCDE1234F1Z5",
+      paymentTerms: "Cash",
+      status: true,
+    },
+    {
+      _id: "2",
+      supplierName: "HomeDeco",
+      contactPerson: "Emma Smith",
+      email: "emma@homedeco.com",
+      address: "456 Decor Ave, London, UK",
+      phoneNumber: "+44-20-5555-6789",
+      designation: "Regional Director",
+      ntn: "NTN987654321",
+      gst: "29FGHIJ5678K2M9",
+      paymentTerms: "CreditCard",
+      creditLimit: "4000000",
+      status: true,
+    },
+    {
+      _id: "3",
+      supplierName: "KitchenPro",
+      contactPerson: "Li Wei",
+      email: "wei@kitchenpro.com",
+      address: "789 Kitchen Rd, Shanghai, China",
+      phoneNumber: "+86-21-5555-9876",
+      designation: "Operations Head",
+      ntn: "NTN456789123",
+      gst: "30NOPQR9012S3T4",
+      paymentTerms: "Cash",
+      status: false,
+    },
+    {
+      _id: "4",
+      supplierName: "Fashion Hub",
+      contactPerson: "Sarah Johnson",
+      email: "sarah@fashionhub.com",
+      address: "101 Style Blvd, Paris, France",
+      phoneNumber: "+33-1-5555-4567",
+      designation: "Marketing Lead",
+      ntn: "NTN789123456",
+      gst: "06UVWXY3456Z7A8",
+      paymentTerms: "CreditCard",
+      creditLimit: "4500000",
+      status: true,
+    },
+    {
+      _id: "5",
+      supplierName: "PaperHouse",
+      contactPerson: "Michael Brown",
+      email: "michael@paperhouse.com",
+      address: "202 Stationery Ln, Sydney, Australia",
+      phoneNumber: "+61-2-5555-2345",
+      designation: "Procurement Manager",
+      ntn: "NTN321654987",
+      gst: "09BCDEF6789G1H2",
+      paymentTerms: "Cash",
+      status: false,
+    },
+  ];
+
   // Initialize supplier list with static data
-
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/suppliers`);
-      setSupplierList(res.data); // store actual categories array
-      console.log("Suppliers", res.data);
-    } catch (error) {
-      console.error("Failed to fetch products or categories", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    setSupplierList(suppliers);
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
 
   // Handlers
   const handleAddSupplier = () => {
@@ -80,7 +136,7 @@ const SupplierList = () => {
 
   // Save or Update Supplier
   const handleSave = async () => {
-    if (paymentTerms === "Credit" && status && (!creditLimit || creditLimit > 5000000)) {
+    if (paymentTerms === "CreditCard" && status && (!creditLimit || creditLimit > 5000000)) {
       toast.error("❌ Credit limit is required and must not exceed 50 lac");
       return;
     }
@@ -95,31 +151,31 @@ const SupplierList = () => {
       ntn,
       gst,
       paymentTerms,
-      creditLimit: paymentTerms === "Credit" && status ? creditLimit : undefined,
+      creditLimit: paymentTerms === "CreditCard" && status ? creditLimit : undefined,
       status,
     };
-    console.log("Form Data", formData);
 
     try {
+      const { token } = userInfo || {};
       const headers = {
-        Authorization: `Bearer ${userInfo.token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/suppliers/${editId}`,
-          formData,
-          { headers }
+        setSupplierList(
+          supplierList.map((s) =>
+            s._id === editId ? { ...s, ...formData } : s
+          )
         );
-        toast.success("Suppliers Updated successfully");
+        toast.success("✅ Supplier updated successfully");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/suppliers`,
-          formData,
-          { headers }
-        );
-        toast.success("Suppliers Added successfully");
+        const newSupplier = {
+          ...formData,
+          _id: String(supplierList.length + 1),
+        };
+        setSupplierList([...supplierList, newSupplier]);
+        toast.success("✅ Supplier added successfully");
       }
 
       setSupplierName("");
@@ -137,7 +193,6 @@ const SupplierList = () => {
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
-      fetchData()
     } catch (error) {
       console.error(error);
       toast.error(`❌ ${isEdit ? "Update" : "Add"} supplier failed`);
@@ -154,7 +209,6 @@ const SupplierList = () => {
     setAddress(supplier.address);
     setPhoneNumber(supplier.phoneNumber || "");
     setDesignation(supplier.designation || "");
-    setMobileNumber(supplier.mobileNumber || "");
     setNtn(supplier.ntn || "");
     setGst(supplier.gst || "");
     setPaymentTerms(supplier.paymentTerms || "");
@@ -189,14 +243,6 @@ const SupplierList = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/suppliers/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
-                }
-              }
-            );
             setSupplierList(supplierList.filter((s) => s._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -279,7 +325,7 @@ const SupplierList = () => {
                   <div className="text-sm text-gray-500 truncate">{supplier.phoneNumber}</div>
                   <div className="text-sm text-gray-500 truncate">
                     {supplier.paymentTerms}
-                    {supplier.paymentTerms === "Credit" && supplier.creditLimit ? ` (${supplier.creditLimit})` : ""}
+                    {supplier.paymentTerms === "CreditCard" && supplier.creditLimit ? ` (${supplier.creditLimit})` : ""}
                   </div>
                   <div className="text-sm font-semibold text-center">
                     {supplier.status ? (
@@ -389,8 +435,6 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
-
               <div>
                 <label className="block text-gray-700 font-medium">
                   Contact Person <span className="text-newPrimary">*</span>
@@ -403,24 +447,6 @@ const SupplierList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
-
-              {/* Mobile Number */}
-
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Mobile Number <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={mobileNumber}
-                  required
-                  onChange={(e) => setMobileNumber(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
-              {/* Address */}
               <div>
                 <label className="block text-gray-700 font-medium">
                   Address <span className="text-newPrimary">*</span>
@@ -480,8 +506,8 @@ const SupplierList = () => {
                   <label className="flex items-center gap-2">
                     <input
                       type="radio"
-                      value="Credit"
-                      checked={paymentTerms === "Credit"}
+                      value="CreditCard"
+                      checked={paymentTerms === "CreditCard"}
                       onChange={(e) => setPaymentTerms(e.target.value)}
                       className="form-radio"
                     />
@@ -499,7 +525,7 @@ const SupplierList = () => {
                   </label>
                 </div>
               </div>
-              {paymentTerms === "Credit" && status && (
+              {paymentTerms === "CreditCard" && status && (
                 <div>
                   <label className="block text-gray-700 font-medium">
                     Credit Limit (Max 50 Lac) <span className="text-newPrimary">*</span>
@@ -520,25 +546,23 @@ const SupplierList = () => {
                 <button
                   type="button"
                   onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
-                    }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                    status ? "bg-green-500" : "bg-gray-300"
+                  }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
-                      }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                      status ? "translate-x-7" : "translate-x-0"
+                    }`}
                   />
                 </button>
                 <span>{status ? "Active" : "Inactive"}</span>
               </div>
               <button
-                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                {loading
-                  ? "Saving..."
-                  : isEdit
-                    ? "Update Supplier"
-                    : "Save Supplier"}
+                Save Supplier
               </button>
             </div>
           </div>

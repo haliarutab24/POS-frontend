@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import axios from "axios";
 
 const ShelveLocation = () => {
   const [shelveLocationList, setShelveLocationList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [shelfNameCode, setshelfNameCode] = useState("");
+  const [shelfName, setShelfName] = useState("");
+  const [section, setSection] = useState("");
+  // const [currentStockCount, setCurrentStockCount] = useState("");
   const [description, setDescription] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -28,83 +29,118 @@ const ShelveLocation = () => {
     }
   }, [isSliderOpen]);
 
-
-const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/shelves`);
-      setShelveLocationList(res.data); // store actual categories array
-      console.log("Shelves Location", res.data);
-    } catch (error) {
-      console.error("Failed to fetch products or categories", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []);
+  // Static Data for Shelve Locations
+  const shelveLocations = [
+    {
+      _id: "LOC001",
+      shelfName: "SH-A1",
+      // section: "Electronics",
+      // currentStockCount: 75,
+      description: "Main electronics storage for small gadgets",
+    },
+    {
+      _id: "LOC002",
+      shelfName: "SH-B2",
+      // section: "Books",
+      // currentStockCount: 120,
+      description: "Bookshelf for fiction and non-fiction",
+    },
+    {
+      _id: "LOC003",
+      shelfName: "SH-C3",
+      // section: "Clothing",
+      // currentStockCount: 90,
+      description: "Storage for seasonal clothing items",
+    },
+    {
+      _id: "LOC004",
+      shelfName: "SH-D4",
+      // section: "Groceries",
+      // currentStockCount: 200,
+      description: "Shelf for non-perishable food items",
+    },
+    {
+      _id: "LOC005",
+      shelfName: "SH-E5",
+      // section: "Home Goods",
+      // currentStockCount: 180,
+      description: "Storage for household essentials",
+    },
+  ];
 
   // Initialize shelve location list with static data
   useEffect(() => {
-  
-  fetchData();
-}, [fetchData]);
-
+    setShelveLocationList(shelveLocations);
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
 
   // Handlers
   const handleAddShelveLocation = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
     setEditId(null);
-    setshelfNameCode("");
+    setShelfName("");
+    // setSection("");
+    // setCurrentStockCount("");
     setDescription("");
   };
 
   // Save or Update Shelve Location
   const handleSave = async () => {
     const formData = {
-      shelfNameCode,
+      shelfName,
+      // section,
+      // currentStockCount: parseInt(currentStockCount),
       description,
     };
 
     try {
+      const { token } = userInfo || {};
       const headers = {
-        Authorization: `Bearer ${userInfo.token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/shelves/${editId}`,
-          formData,
-          { headers }
+        // Simulate API update
+        setShelveLocationList(
+          shelveLocationList.map((s) =>
+            s._id === editId ? { ...s, ...formData } : s
+          )
         );
-        toast.success("Shelves Updated successfully");
+        toast.success("✅ Shelve Location updated successfully");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/shelves`,
-          formData,
-          { headers }
-        );
-        toast.success("Shelves Added successfully");
+        // Simulate API create
+        const newShelveLocation = {
+          ...formData,
+          _id: `LOC${String(1000 + shelveLocationList.length + 1).padStart(3, "0")}`,
+        };
+        setShelveLocationList([...shelveLocationList, newShelveLocation]);
+        toast.success("✅ Shelve Location added successfully");
       }
 
-      setshelfNameCode('');
-      setDescription('');
+      // Reset form
+      setShelfName("");
+      // setSection("");
+      // setCurrentStockCount("");
+      setDescription("");
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
-      fetchData()
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} shelves failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} shelve location failed`);
     }
   };
 
   // Edit Shelve Location
   const handleEdit = (shelveLocation) => {
     setIsEdit(true);
-    setEditId(shelveLocation._id || '');
-    setshelfNameCode(shelveLocation.shelfNameCode || '');
-    setDescription(shelveLocation.description || '') ;
+    setEditId(shelveLocation._id);
+    setShelfName(shelveLocation.shelfName);
+    // setSection(shelveLocation.section);
+    // setCurrentStockCount(shelveLocation.currentStockCount.toString());
+    setDescription(shelveLocation.description);
     setIsSliderOpen(true);
   };
 
@@ -133,15 +169,7 @@ const fetchData = useCallback(async () => {
       })
       .then(async (result) => {
         if (result.isConfirmed) {
-             try {
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/shelves/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
-                }
-              }
-            );
+          try {
             setShelveLocationList(shelveLocationList.filter((s) => s._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -199,12 +227,12 @@ const fetchData = useCallback(async () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="flex  gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-              <div  className="flex-[2]">Shelf Name / Code</div>
+            <div className="hidden lg:grid grid-cols-[150px_150px_150px_200px_80px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+              <div>Shelf Name / Code</div>
               {/* <div>Section</div>
               <div>Current Stock Count</div> */}
-              <div  className="flex-[6]">Description</div>
-              {userInfo?.isAdmin && <div className="text-center flex-[1]">Actions</div>}
+              <div>Description</div>
+              {userInfo?.isAdmin && <div className="text-center">Actions</div>}
             </div>
 
             {/* Shelve Locations in Table */}
@@ -212,23 +240,31 @@ const fetchData = useCallback(async () => {
               {shelveLocationList.map((shelveLocation) => (
                 <div
                   key={shelveLocation._id}
-                  className="flex gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-[150px_150px_150px_200px_80px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Shelf Name / Code */}
-                  <div className="text-sm text-gray-500 flex-[2]">
-                    {shelveLocation.shelfNameCode}
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.shelfName}
                   </div>
 
-             
+                  {/* Section
+                  <div className="text-sm text-gray-500">
+                    {shelveLocation.section}
+                  </div>
+
+                  {/* Current Stock Count */}
+                  {/* <div className="text-sm text-gray-500">
+                    {shelveLocation.currentStockCount}
+                  </div> */}
 
                   {/* Description */}
-                  <div className="text-sm text-gray-500 flex-[6]">
+                  <div className="text-sm text-gray-500">
                     {shelveLocation.description}
                   </div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
-                    <div className="flex justify-center flex-[1]">
+                    <div className="flex justify-center">
                       <div className="relative group">
                         <button className="text-gray-400 hover:text-gray-600 text-xl">
                           ⋯
@@ -269,12 +305,14 @@ const fetchData = useCallback(async () => {
                 {isEdit ? "Update Shelve Location" : "Add a New Shelve Location"}
               </h2>
               <button
-                className="text-gray-500 text-2xl hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700"
                 onClick={() => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
                   setEditId(null);
-                  setshelfNameCode("");
+                  setShelfName("");
+                  // setSection("");
+                  // setCurrentStockCount("");
                   setDescription("");
                 }}
               >
@@ -290,12 +328,40 @@ const fetchData = useCallback(async () => {
                 </label>
                 <input
                   type="text"
-                  value={shelfNameCode}
+                  value={shelfName}
                   required
-                  onChange={(e) => setshelfNameCode(e.target.value)}
+                  onChange={(e) => setShelfName(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
+
+              {/* Section */}
+              {/* <div>
+                <label className="block text-gray-700 font-medium">
+                  Section <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={section}
+                  required
+                  onChange={(e) => setSection(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div> */}
+
+              {/* Current Stock Count */}
+              {/* <div>
+                <label className="block text-gray-700 font-medium">
+                  Current Stock Count <span className="text-newPrimary">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={currentStockCount}
+                  required
+                  onChange={(e) => setCurrentStockCount(e.target.value)}
+                  className="w-full p-2 border rounded"
+                />
+              </div> */}
 
               {/* Description */}
               <div>
@@ -313,14 +379,10 @@ const fetchData = useCallback(async () => {
 
               {/* Save Button */}
               <button
-                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                {loading
-                  ? "Saving..."
-                  : isEdit
-                    ? "Update Shelve Location"
-                    : "Save Shelve Location"}
+                Save Shelve Location
               </button>
             </div>
           </div>

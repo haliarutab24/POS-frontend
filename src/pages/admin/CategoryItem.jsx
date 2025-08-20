@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
@@ -14,31 +14,20 @@ const Category = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const sliderRef = useRef(null);
 
-  const [isEdit, setIsEdit] = useState(false);
-  const [editId, setEditId] = useState(null);
-
+  // Static data for categories (for demonstration)
+  const staticCategories = [
+    { _id: "001", name: "Electronics", isEnable: true, createdAt: "2025-01-15T10:00:00Z" },
+    { _id: "002", name: "Clothes", isEnable: true, createdAt: "2025-02-20T12:00:00Z" },
+    { _id: "003", name: "Furniture", isEnable: false, createdAt: "2025-03-10T09:00:00Z" },
+    { _id: "004", name: "Books", isEnable: true, createdAt: "2025-04-05T15:00:00Z" },
+    { _id: "005", name: "Appliances", isEnable: false, createdAt: "2025-05-12T11:00:00Z" },
+  ];
 
   // Initialize categories with static data
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories`);
-      setCategories(res.data); // store actual categories array
-      console.log("Categories", res.data);
-    } catch (error) {
-      console.error("Failed to fetch products or categories", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []);
-
   useEffect(() => {
-
-    fetchData();
-  }, [fetchData]);
-
-  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
-  console.log("userinfo", userInfo);
+    setCategories(staticCategories);
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
 
   // Slider animation
   useEffect(() => {
@@ -61,68 +50,42 @@ const Category = () => {
 
   const handleEditClick = (category) => {
     setEditingCategory(category);
-    setCategoryName(category.categoryName);
+    setCategoryName(category.name);
     setIsEnable(category.isEnable);
-    setEditId(category._id)
-    setIsEdit(true);
-
     setIsSliderOpen(true);
   };
 
-  // Handle Save
-  const handleSave = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("categoryName", categoryName);
-    formData.append("isEnable", isEnable);
-
-
-    console.log("Form Data entries:");
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ":", pair[1]);
+    const trimmedName = categoryName.trim();
+    if (!trimmedName) {
+      toast.error("❌ Category name cannot be empty.");
+      return;
     }
+    setLoading(true);
 
+    const payload = { name: trimmedName, isEnable };
 
     try {
-      const headers = {
-        Authorization: `Bearer ${userInfo.token}`,
-        "Content-Type": "application/json",
-      };
-
-      if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/categories/${editId}`,
-          formData,
-          { headers }
-        );
-        toast.success("Categories Updated successfully");
+      if (editingCategory) {
+        setCategories(categories.map(c => (c._id === editingCategory._id ? { ...c, ...payload } : c)));
+        toast.success("✅ Category updated!");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/categories`,
-          formData,
-          { headers }
-        );
-        toast.success("Categories Added successfully");
+        const newCategory = { ...payload, _id: String(categories.length + 1), createdAt: new Date().toISOString() };
+        setCategories([...categories, newCategory]);
+        toast.success("✅ Category added!");
       }
-
-      // Reset fields
-      setCategoryName("");
-      setIsEnable("");
-      setEditId(null);
-      setIsEdit(false);
       setIsSliderOpen(false);
-
-      // Refresh list
-      fetchData();
-
+      setCategoryName("");
+      setIsEnable(true);
+      setEditingCategory(null);
     } catch (error) {
-      console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} Categories failed`);
+      toast.error(`❌ Failed to ${editingCategory ? "update" : "add"} category.`);
+    } finally {
+      setLoading(false);
     }
   };
 
-
-  // Toggle
   const handleToggleEnable = async (category) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
@@ -163,7 +126,6 @@ const Category = () => {
       });
   };
 
-  // Delete
   const handleDelete = async (categoryId) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
@@ -189,16 +151,6 @@ const Category = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/categories/${categoryId}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
-                }
-              }
-            );
-
             setCategories(categories.filter(c => c._id !== categoryId));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -218,7 +170,6 @@ const Category = () => {
       });
   };
 
-  // Loader
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
@@ -241,22 +192,21 @@ const Category = () => {
             className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
             onClick={handleAddClick}
           >
-            + Add Category
+             + Add Category
           </button>
         </div>
 
-        {/* Table Data */}
         <div className="rounded-xl shadow border border-gray-100 overflow-hidden">
-          <div className="table-container max-w-full mb-24">
+          <div className="table-container max-w-full">
             <div className="w-full">
-              <div className="hidden lg:grid grid-cols-[250px_250px_250px_250px_250px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-[250px_250px_250px_250px_250px] gap-6 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
                 <div>S.No.</div>
                 <div>Name</div>
                 <div>Status</div>
                 <div>Created At</div>
                 <div>Actions</div>
               </div>
-              <div className="flex flex-col divide-y gap-2 divide-gray-100">
+              <div className="flex flex-col divide-y divide-gray-100">
                 {categories.length === 0 ? (
                   <div className="text-center py-4 text-gray-500">
                     No categories found.
@@ -265,10 +215,10 @@ const Category = () => {
                   categories.map((category, index) => (
                     <div
                       key={category._id}
-                      className="grid grid-cols-[250px_250px_250px_250px_250px] pl-8 items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                      className="grid grid-cols-[250px_250px_250px_250px_250px] items-center gap-6 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                     >
                       <div className="text-sm font-medium text-gray-500">{index + 1}</div>
-                      <div className="text-sm text-gray-500 ">{category.categoryName}</div>
+                      <div className="text-sm text-gray-500 ">{category.name}</div>
                       <div className="text-sm font-semibold ">
                         {category.isEnable ? (
                           <span className="text-green-600">Enabled</span>
@@ -279,32 +229,31 @@ const Category = () => {
                       <div className="text-sm text-gray-500 truncate">
                         {new Date(category.createdAt).toLocaleDateString()}
                       </div>
-
-                      {userInfo.isAdmin &&
+                      {/* <div className="flex justify-center"> */}
                         <div className="relative group">
                           <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                          <div className="absolute  top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+                            <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
                             <button
                               onClick={() => handleEditClick(category)}
-                              className="w-full  px-4 py-2 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
+                              className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleToggleEnable(category)}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-500 flex items-center gap-2"
+                              className="w-full text-left px-4 py-4 text-sm hover:bg-gray-50 text-gray-500 flex items-center gap-2"
                             >
                               {category.isEnable ? "Disable" : "Enable"}
                             </button>
                             <button
                               onClick={() => handleDelete(category._id)}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                              className="w-full text-left px-4 py-4 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
                             >
                               Delete
                             </button>
                           </div>
                         </div>
-                      }
+                      {/* </div> */}
                     </div>
                   ))
                 )}
@@ -312,8 +261,6 @@ const Category = () => {
             </div>
           </div>
         </div>
-
-
 
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
@@ -331,14 +278,13 @@ const Category = () => {
                     setIsSliderOpen(false);
                     setCategoryName("");
                     setIsEnable(true);
-                    setIsEdit(false)
                     setEditingCategory(null);
                   }}
                 >
                   ×
                 </button>
               </div>
-              <form onSubmit={handleSave} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-gray-700 font-medium mb-4">
                     Category Name <span className="text-newPrimary">*</span>
@@ -347,7 +293,7 @@ const Category = () => {
                     type="text"
                     value={categoryName}
                     onChange={(e) => setCategoryName(e.target.value)}
-                    className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     placeholder="e.g. Electronics, Clothes"
                     required
                   />
@@ -358,12 +304,14 @@ const Category = () => {
                     <button
                       type="button"
                       onClick={() => setIsEnable(!isEnable)}
-                      className={`w-10 h-5 flex items-center rounded-full p-1 transition-colors duration-300 ${isEnable ? "bg-newPrimary" : "bg-gray-300"
-                        }`}
+                      className={`w-8 h-3 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                        isEnable ? "bg-green-500" : "bg-gray-300"
+                      }`}
                     >
                       <div
-                        className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isEnable ? "translate-x-4" : "translate-x-0"
-                          }`}
+                        className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                          isEnable ? "translate-x-7" : "translate-x-0"
+                        }`}
                       />
                     </button>
                     <span className="text-sm text-gray-600">{isEnable ? "Enabled" : "Disabled"}</span>
@@ -374,11 +322,7 @@ const Category = () => {
                   disabled={loading}
                   className="w-full bg-newPrimary text-white px-4 py-4 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-newPrimary/50"
                 >
-                  {loading
-                    ? "Saving..."
-                    : isEdit
-                      ? "Update Category"
-                      : "Save Category"}
+                  {loading ? "Saving..." : "Save Category"}
                 </button>
               </form>
             </div>

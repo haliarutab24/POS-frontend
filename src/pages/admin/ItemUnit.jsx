@@ -6,10 +6,14 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
 const ItemUnit = () => {
-  const [itemUnit, setItemUnitList] = useState([]);
+  const [manufacturerList, setManufacturerList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [unitName, setUnitName] = useState("");
-  const [description, setDescription] = useState("");
+  const [manufacturerName, setManufacturerName] = useState("");
+  const [address, setAddress] = useState("");
+  const [productsSupplied, setProductsSupplied] = useState("");
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState(true); // true for Active, false for Inactive
+  const [gstNumber, setGstNumber] = useState("");
 
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -29,77 +33,120 @@ const ItemUnit = () => {
     }
   }, [isSliderOpen]);
 
- 
-const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/item-unit`);
-      setItemUnitList(res.data); // store actual categories array
-      console.log("Item Unit ", res.data);
-    } catch (error) {
-      console.error("Failed to fetch products or categories", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []);
+  // Static Data for Manufacturers
+  const itemUnit = [
+    {
+      _id: "10001",
+      name: "Samsung",
+      des: "123 Tech Street, Seoul, South Korea",
+     
+    },
+    {
+      _id: "10002",
+      name: "Ikea",
+      des: "456 Furniture Ave, Stockholm, Sweden",
+    
+    },
+    {
+      _id: "10003",
+      name: "Haier",
+      des: "789 Appliance Road, Qingdao, China",
+    
+    },
+    {
+      _id: "10004",
+      name: "Levis",
+      des: "101 Fashion Blvd, San Francisco, USA",
+     
+    },
+    {
+      _id: "10005",
+      name: "Oxford",
+      des: "202 Stationery Lane, London, UK",
+    },
+  ];
 
-  useEffect(() => {
-  fetchData();
-}, [fetchData]);
+//   // Initialize manufacturer list with static data
+//   useEffect(() => {
+//     setManufacturerList(manufacturers);
+//     setTimeout(() => setLoading(false), 1000);
+//   }, []);
+
   // Handlers
   const handleAddManufacturer = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
     setEditId(null);
-    
+    setManufacturerName("");
+    setAddress("");
+    setProductsSupplied("");
+    setEmail("");
+    setGstNumber("");
+    setStatus(true);
   };
 
   // Save or Update Manufacturer
   const handleSave = async () => {
     const formData = {
-      unitName,
-      description
+      name: manufacturerName,
+      address,
+      productsSupplied,
+      email,
+      gstNumber,
+      status,
     };
-  console.log("Form Data", formData);
 
-   try {
+    try {
+      const { token } = userInfo || {};
       const headers = {
-        Authorization: `Bearer ${userInfo.token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/item-unit/${editId}`,
-          formData,
-          { headers }
+        // Simulate API update
+        setManufacturerList(
+          manufacturerList.map((m) =>
+            m._id === editId ? { ...m, ...formData } : m
+          )
         );
-        toast.success("Item Unit Updated successfully");
+        toast.success("✅ Manufacturer updated successfully");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/item-unit`,
-          formData,
-          { headers }
-        );
-        toast.success("Item Unit Added successfully");
+        // Simulate API create
+        const newManufacturer = {
+          ...formData,
+          _id: String(10000 + manufacturerList.length + 1),
+        };
+        setManufacturerList([...manufacturerList, newManufacturer]);
+        toast.success("✅ Manufacturer added successfully");
       }
-      
+
+      // Reset form
+      setManufacturerName("");
+      setAddress("");
+      setProductsSupplied("");
+      setEmail("");
+      setGstNumber("");
+      setStatus(true);
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
-      fetchData()
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} Item Unit failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
     }
   };
 
   // Edit Manufacturer
-  const handleEdit = (unit) => {
+  const handleEdit = (manufacturer) => {
     setIsEdit(true);
-    setEditId(unit._id);
-    setUnitName(unit.unitName || '');
-    setDescription(unit.description || '');
+    setEditId(manufacturer._id);
+    setManufacturerName(manufacturer.name);
+    setAddress(manufacturer.address);
+    setProductsSupplied(manufacturer.productsSupplied);
+    setEmail(manufacturer.email);
+    setGstNumber(manufacturer.gstNumber);
+    setStatus(manufacturer.status);
     setIsSliderOpen(true);
   };
 
@@ -129,63 +176,55 @@ const fetchData = useCallback(async () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/item-unit/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
-                }
-              }
-            );
-            setItemUnitList(itemUnit.filter((m) => m._id !== id));
+            setManufacturerList(manufacturerList.filter((m) => m._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Item Unit deleted successfully.",
+              "Manufacturer deleted successfully.",
               "success"
             );
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete Item Unit.",
+              "Failed to delete manufacturer.",
               "error"
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
             "Cancelled",
-            "Item Unit is safe 🙂",
+            "Manufacturer is safe 🙂",
             "error"
           );
         }
       });
   };
 
-  // Show loading spinner
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
-        </div>
-      </div>
-    );
-  }
+//   // Show loading spinner
+//   if (loading) {
+//     return (
+//       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+//         <div className="text-center">
+//           <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+//         </div>
+//       </div>
+//     );
+//   }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">
-            Item Unit
+            Manufacturers List
           </h1>
-          <p className="text-gray-500 text-sm">Manage your item unit details</p>
+          <p className="text-gray-500 text-sm">Manage your manufacturer details</p>
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
           onClick={handleAddManufacturer}
         >
-          + Add Item Unit
+          + Add Manufacturer
         </button>
       </div>
 
@@ -204,24 +243,24 @@ const fetchData = useCallback(async () => {
 
             {/* Manufacturers in Table */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
-              {itemUnit.map((unit) => (
+              {itemUnit.map((manufacturer) => (
                 <div
-                  key={unit._id}
+                  key={manufacturer._id}
                   className="px-8 grid grid-cols-4 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Manufacturer ID */}
                   <div className="text-sm font-medium text-gray-900">
-                    {unit._id.slice(0, 4)}
+                    {manufacturer._id}
                   </div>
 
                   {/* Name */}
                   <div className="text-sm text-gray-500">
-                    {unit.unitName}
+                    {manufacturer.name}
                   </div>
 
                   {/* Address */}
                   <div className="text-sm text-gray-500">
-                    {unit.description}
+                    {manufacturer.des}
                   </div>
 
 
@@ -234,13 +273,13 @@ const fetchData = useCallback(async () => {
                         </button>
                         <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
                           <button
-                            onClick={() => handleEdit(unit)}
+                            onClick={() => handleEdit(manufacturer)}
                             className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(unit._id)}
+                            onClick={() => handleDelete(manufacturer._id)}
                             className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
                           >
                             Delete
@@ -268,7 +307,7 @@ const fetchData = useCallback(async () => {
                 {isEdit ? "Update Item Unit" : "Add a New Item Unit"}
               </h2>
               <button
-                className="text-2xl text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700"
                 onClick={() => {
                   setIsSliderOpen(false);
                   setIsEdit(false);
@@ -287,9 +326,9 @@ const fetchData = useCallback(async () => {
                 </label>
                 <input
                   type="text"
-                  value={unitName}
+                  value={manufacturerName}
                   required
-                  onChange={(e) => setUnitName(e.target.value)}
+                  onChange={(e) => setManufacturerName(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
@@ -301,9 +340,9 @@ const fetchData = useCallback(async () => {
                 </label>
                 <input
                   type="text"
-                  value={description}
+                  value={address}
                   required
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => setAddress(e.target.value)}
                   className="w-full p-2 border rounded"
                 />
               </div>
@@ -311,7 +350,7 @@ const fetchData = useCallback(async () => {
 
               {/* Save Button */}
               <button
-                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/70 w-full"
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
                 Save Item Unit

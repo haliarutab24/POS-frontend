@@ -56,7 +56,7 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="bg-white shadow min-h-screen w-52 sm:w-72 flex flex-col py-8 px-2 sm:px-4 justify-between transition-all">
+    <aside className="bg-white shadow min-h-screen w-16 sm:w-20 md:w-60 flex flex-col py-8 px-2 sm:px-4 justify-between transition-all">
       <div>
         {/* Logo + Title */}
         <div className="flex items-center justify-center sm:justify-start mb-12 space-x-2 sm:space-x-4">
@@ -76,7 +76,7 @@ const AdminSidebar = () => {
             </svg>
             <div className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
           </div>
-          <h1 className="hidden sm:block text-2xl font-bold bg-gradient-to-r from-newPrimary to-primaryDark bg-clip-text text-transparent">
+          <h1 className="hidden md:block text-2xl font-bold bg-gradient-to-r from-newPrimary to-primaryDark bg-clip-text text-transparent">
             Point of Sales
           </h1>
         </div>
@@ -84,65 +84,54 @@ const AdminSidebar = () => {
         {/* Sidebar Links */}
         <nav className="flex flex-col gap-2">
           {links.map((link) => {
-            if (link.children) {
-              return (
-                <div key={link.label}>
-                  <button
-                    onClick={() => toggleMenu(link.label)}
-                    className="w-full flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
-                  >
-                    {link.icon}
-                    <span className="hidden sm:inline">{link.label}</span>
-                    {openMenu === link.label ? (
-                      <FaChevronUp className="ml-auto w-4 h-4 hidden sm:block" />
-                    ) : (
-                      <FaChevronDown className="ml-auto w-4 h-4 hidden sm:block" />
-                    )}
-                  </button>
-
-                  {openMenu === link.label && (
-                    <div className="ml-2 sm:ml-4 mt-1 flex flex-col gap-1">
-                      {link.children.map((sub) => (
-                        <NavLink
-                          key={sub.to}
-                          to={sub.to}
-                          className={({ isActive }) =>
-                            `flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition ${isActive
-                              ? "bg-newPrimary/80 text-white"
-                              : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
-                            }`
-                          }
-                        >
-                          {/* Icon (always visible) */}
-                          {sub.icon && <span className="text-lg">{sub.icon}</span>}
-
-                          {/* Text (hidden on small, shown on sm and larger) */}
-                          <span className="hidden sm:inline">{sub.label}</span>
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
-              );
-            } else {
-              return (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition ${isActive
-                      ? "bg-newPrimary/80 text-white"
-                      : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"
-                    }`
-                  }
-                  end={link.to === "/admin"}
+            const isActive = window.location.pathname === link.to;
+            return link.children ? (
+              <div key={link.label}>
+                <button
+                  onClick={() => toggleMenu(link.label)}
+                  className={`w-full flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30 ${openMenu === link.label ? "bg-newPrimary/20" : ""}`}
                 >
                   {link.icon}
                   <span className="hidden sm:inline">{link.label}</span>
-                </NavLink>
-              );
-            }
+                  {openMenu === link.label ? (
+                    <FaChevronUp className="ml-auto w-4 h-4 hidden sm:block" />
+                  ) : (
+                    <FaChevronDown className="ml-auto w-4 h-4 hidden sm:block" />
+                  )}
+                </button>
+
+                {openMenu === link.label && (
+                  <div className="ml-2 sm:ml-4 mt-1 flex flex-col gap-1">
+                    {link.children.map((sub) => (
+                      <NavLink
+                        key={sub.to}
+                        to={sub.to}
+                        className={({ isActive }) =>
+                          `flex items-center gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition ${isActive
+                            ? "bg-newPrimary/80 text-white"
+                            : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"}`
+                        }
+                      >
+                        {sub.icon && <span className="text-lg">{sub.icon}</span>}
+                        <span className="hidden sm:inline">{sub.label}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-4 py-2 rounded-lg font-medium transition ${isActive ? "bg-newPrimary/80 text-white" : "text-gray-700 hover:text-gray-600 hover:bg-newPrimary/30"}`
+                }
+                end={link.to === "/admin"}
+              >
+                {link.icon}
+                <span className="hidden sm:inline">{link.label}</span>
+              </NavLink>
+            );
           })}
         </nav>
       </div>
@@ -156,6 +145,7 @@ const AdminSidebar = () => {
         <span className="hidden sm:inline">Logout</span>
       </button>
     </aside>
+
   );
 };
 

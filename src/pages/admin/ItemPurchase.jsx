@@ -383,6 +383,7 @@ export default function PurchaseManager() {
                                                         <div className="text-sm text-gray-500">{totalQty}</div>
                                                         <div className="text-sm text-gray-500">{p.discountAmount}</div>
                                                         <div className="text-sm text-gray-500">{p.payable}</div>
+                                                        
                                                         <div className="relative group">
                                                             <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
                                                             <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">

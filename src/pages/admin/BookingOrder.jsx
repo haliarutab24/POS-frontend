@@ -8,12 +8,7 @@ import Swal from "sweetalert2";
 const BookingOrder = () => {
 
     const [isSliderOpen, setIsSliderOpen] = useState(false);
-    const [customerName, setCustomerName] = useState("");
-    const [customerMobile, setCustomerMobile] = useState("");
-    const [customerAddress, setCustomerAddress] = useState("");
-    const [date, setDate] = useState("");
-    const [time, setTimne] = useState("");
-
+    const [item, setItem] = useState([]);
     // ===== State =====
     const [formData, setFormData] = useState({
         customerName: "",
@@ -225,6 +220,26 @@ const BookingOrder = () => {
     }, [searchValue]);
 
 
+    // Fetch Booking Data
+    const fetchData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/bookings`);
+            setItem(res.data); // store actual categories array
+            console.log("Booking Data", res.data);
+        } catch (error) {
+            console.error("Failed to fetch booking or categories", error);
+        } finally {
+            setTimeout(() => setLoading(false), 1000);
+        }
+    }, []);
+
+    // Initialize shelve location list with static data
+    useEffect(() => {
+
+        fetchData();
+    }, [fetchData]);
+
     const handleSearch = (selectedItem, index) => {
         handleItemChange(index, "itemName", selectedItem.itemName);
         handleItemChange(index, "rate", selectedItem.price); // fill price
@@ -248,66 +263,79 @@ const BookingOrder = () => {
         setIsSliderOpen(true);
     };
 
+    // Delete invoice
+    const handleDelete = async (id) => {
+        const swalWithTailwindButtons = Swal.mixin({
+            customClass: {
+                actions: "space-x-2",
+                confirmButton:
+                    "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+                cancelButton:
+                    "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+            },
+            buttonsStyling: false,
+        });
+
+        swalWithTailwindButtons
+            .fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true,
+            })
+            .then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await axios.delete(
+                            `${import.meta.env.VITE_API_BASE_URL}/bookings/${id}`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${userInfo.token}` // if you’re using auth
+                                }
+                            }
+                        );
+                        setItem(item.filter((s) => s._id !== id));
+                        swalWithTailwindButtons.fire(
+                            "Deleted!",
+                            "Booking Customer deleted successfully.",
+                            "success"
+                        );
+                        fetchData()
+                    } catch (error) {
+                        console.error("Delete error:", error);
+                        swalWithTailwindButtons.fire(
+                            "Error!",
+                            "Failed to delete booking customer.",
+                            "error"
+                        );
+                    }
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    swalWithTailwindButtons.fire(
+                        "Cancelled",
+                        "Booking Customer is safe 🙂",
+                        "error"
+                    );
+                }
+            });
+    };
 
 
-    // Static Data for Customer Orders
-    const item = [
-        {
-            customerName: "Ali Khan",
-            mobile: "0301-1234567",
-            address: "House #45, Street 10, Lahore",
-            date: "2025-08-10",
-            time: "2:30 PM",
-            items: "2x Biryani, 1x Coke",
-            nearby: "Packages Mall",
-            payment: "Transfer",
-            totalAmount: 9500
-        },
-        {
-            customerName: "Sara Ahmed",
-            mobile: "0321-9876543",
-            address: "Flat #12, Garden Town, Karachi",
-            date: "2025-08-09",
-            time: "7:15 PM",
-            items: "1x Pizza, 2x Garlic Bread",
-            nearby: "Dolmen Mall",
-            totalAmount: 4500,
-            payment: "Card",
-        },
-        {
-            customerName: "Usman Malik",
-            mobile: "0333-4567890",
-            address: "Bahria Town, Islamabad",
-            date: "2025-08-11",
-            time: "12:00 PM",
-            items: "3x Shawarma",
-            nearby: "Safari Mall",
-            payment: "Transfer",
-            totalAmount: 5000
-        },
-        {
-            customerName: "Fatima Noor",
-            mobile: "0300-5551122",
-            address: "F-7 Markaz, Islamabad",
-            date: "2025-08-12",
-            time: "8:45 PM",
-            items: "1x Burger, 1x Fries, 1x Coke",
-            nearby: "Centaurus Mall",
-            payment: "Card",
-            totalAmount: 2500
-        },
-        {
-            customerName: "Hamza Ali",
-            mobile: "0345-6667788",
-            address: "Gulshan-e-Iqbal, Karachi",
-            date: "2025-08-08",
-            time: "1:15 PM",
-            items: "1x Zinger Burger",
-            nearby: "Nipa Chowrangi",
-            payment: "Cash",
-            totalAmount: 1500
-        },
-    ];
+    // Show loading spinner
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+                </div>
+            </div>
+        );
+    }
+
+
+
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen">
@@ -324,85 +352,193 @@ const BookingOrder = () => {
                 </button>
             </div>
 
-            {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-[1fr_1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-50 py-3 px-4 text-xs font-medium text-gray-500 uppercase rounded-lg">
-                <div>Customer Name</div>
-                <div>Mobile No.</div>
-                <div className="pl-4">Address</div> {/* Extra padding */}
-                <div>Items</div>
-                <div>Near By</div>
-                <div>Total</div>
-                <div>Discount</div>
-                <div>Payable</div>
-                <div>Paid</div>
-                <div>Balance</div>
-                {userInfo?.isAdmin && <div className="text-right">Actions</div>}
-            </div>
+            <div className="rounded-xl shadow p-4 sm:p-6 border border-gray-100">
+                {/* Mobile Cards (show on small screens) */}
+                <div className="lg:hidden space-y-4">
+                    {item.map((staff, index) => {
+                        const total = staff.total?.$numberInt || staff.total || 0;
+                        const discount = staff.discount?.$numberInt || staff.discount || 0;
+                        const payable = staff.payable?.$numberInt || staff.payable || 0;
+                        const paid = staff.paid?.$numberInt || staff.paid || 0;
+                        const balance = staff.balance?.$numberInt || staff.balance || 0;
 
-            {/* Table Rows */}
-            <div className="mt-4 flex flex-col gap-[6px]">
-                {item.map((staff, index) => (
-                    <div
-                        key={index}
-                        className="grid grid-cols-[1fr_1fr_2fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] gap-x-8 items-center bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
-                    >
-                        {/* Customer Name */}
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-gray-900">
-                                {staff.customerName}
-                            </span>
-                        </div>
+                        return (
+                            <div key={index} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="text-sm font-medium text-gray-500">Customer Name</div>
+                                    <div className="text-sm text-gray-900">{staff.customerName || "—"}</div>
 
-                        {/* Mobile */}
-                        <div className="text-sm text-gray-500">{staff.mobile}</div>
+                                    <div className="text-sm font-medium text-gray-500">Mobile No.</div>
+                                    <div className="text-sm text-gray-900">{staff.mobileNo || "—"}</div>
 
-                        {/* Address */}
-                        <div className="text-sm text-gray-500">{staff.address}</div>
+                                    <div className="text-sm font-medium text-gray-500">Address</div>
+                                    <div className="text-sm text-gray-900 truncate">{staff.address || "—"}</div>
 
-                        {/* Items */}
-                        <div className="text-sm font-semibold text-gray-500">{staff.items}</div>
+                                    <div className="text-sm font-medium text-gray-500">Items</div>
+                                    <div className="text-sm text-gray-900">
+                                        {Array.isArray(staff.items) && staff.items.length > 0
+                                            ? staff.items
+                                                .map(item => {
+                                                    const qty = item.qty?.$numberInt || item.qty || 0;
+                                                    return `${item.itemName || ""} (${qty}x)`;
+                                                })
+                                                .join(", ")
+                                            : "—"}
+                                    </div>
 
-                        {/* Near By */}
-                        <div className="text-sm font-semibold text-gray-500">{staff.nearby}</div>
+                                    <div className="text-sm font-medium text-gray-500">Total</div>
+                                    <div className="text-sm text-gray-900">{total}</div>
 
-                        {/* Total Amount */}
-                        <div className="text-sm font-semibold text-gray-500">{staff.totalAmount}</div>
+                                    <div className="text-sm font-medium text-gray-500">Discount</div>
+                                    <div className="text-sm text-gray-900">{discount}</div>
 
-                        {/* Payment */}
-                        <div
-                            className={`text-sm font-semibold ${staff.payment === "Cash" ? "text-green-400"
-                                : staff.payment === "Card" ? "text-orange-300"
-                                    : staff.payment === "Transfer" ? "text-blue-400"
-                                        : "text-red-500"
-                                }`}
-                        >
-                            {staff.payment}
-                        </div>
+                                    <div className="text-sm font-medium text-gray-500">Payable</div>
+                                    <div className="text-sm text-gray-900">{payable}</div>
 
-                        {/* Actions */}
-                        {userInfo?.isAdmin && (
-                            <div className="text-right relative group">
-                                <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                                <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg 
-            opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto 
-            transition-opacity duration-300 z-50 flex flex-col justify-between">
-                                    <button
-                                        onClick={() => handleEdit(staff)}
-                                        className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(staff._id)}
-                                        className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
-                                    >
-                                        Delete
-                                    </button>
+                                    <div className="text-sm font-medium text-gray-500">Paid</div>
+                                    <div className="text-sm text-gray-900">{paid}</div>
+
+                                    <div className="text-sm font-medium text-gray-500">Balance</div>
+                                    <div className="text-sm text-gray-900">{balance}</div>
+
+                                    <div className="text-sm font-medium text-gray-500">Payment Method</div>
+                                    <div className={`text-sm font-semibold ${staff.paymentMethod === "Cash" ? "text-green-500" :
+                                            staff.paymentMethod === "Card" ? "text-orange-400" :
+                                                staff.paymentMethod === "Transfer" ? "text-blue-500" :
+                                                    "text-gray-500"
+                                        }`}>
+                                        {staff.paymentMethod || "—"}
+                                    </div>
                                 </div>
+
+                                {userInfo?.isAdmin && (
+                                    <div className="mt-4 flex justify-end">
+                                        <div className="relative group">
+                                            <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                                            <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+                                                <button
+                                                    onClick={() => handleEditClick(staff)}
+                                                    className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(staff._id)}
+                                                    className="w-full text-left px-4 py-4 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        );
+                    })}
+                </div>
+
+                {/* Desktop Table (show on large screens) */}
+                <div className="hidden lg:block overflow-x-auto">
+                    <div className="min-w-[1400px]">
+                        {/* Table header */}
+                        <div className="grid grid-cols-[1.5fr_1fr_2fr_1.5fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] items-center bg-gray-50 py-3 px-4 text-xs font-medium text-gray-500 uppercase rounded-lg gap-x-4">
+                            <div>Customer Name</div>
+                            <div>Mobile No.</div>
+                            <div>Address</div>
+                            <div>Items</div>
+                            <div>Total</div>
+                            <div>Discount</div>
+                            <div>Payable</div>
+                            <div>Paid</div>
+                            <div>Payment Method</div>
+                            <div>Balance</div>
+                            {userInfo?.isAdmin && <div className="text-right">Actions</div>}
+                        </div>
+
+                        {/* Table rows - using the fixed code from above */}
+                        <div className="mt-4 flex flex-col gap-3">
+                            {item.map((staff, index) => {
+                                const total = staff.total?.$numberInt || staff.total || 0;
+                                const discount = staff.discount?.$numberInt || staff.discount || 0;
+                                const payable = staff.payable?.$numberInt || staff.payable || 0;
+                                const paid = staff.paid?.$numberInt || staff.paid || 0;
+                                const balance = staff.balance?.$numberInt || staff.balance || 0;
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className="grid grid-cols-[1.5fr_1fr_2fr_1.5fr_1fr_1fr_1fr_1fr_1fr_1fr_auto] gap-x-4 items-center bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                                    >
+                                        <div className="text-sm font-medium text-gray-900 min-w-[120px]">
+                                            {staff.customerName || "—"}
+                                        </div>
+                                        <div className="text-sm text-gray-500 min-w-[100px]">
+                                            {staff.mobileNo || "—"}
+                                        </div>
+                                        <div className="text-sm text-gray-500 truncate min-w-[150px]">
+                                            {staff.address || "—"}
+                                        </div>
+
+                                        {/* Items */}
+                                        <div className="text-sm font-semibold text-gray-500 min-w-[180px]">
+                                            {Array.isArray(staff.items) && staff.items.length > 0
+                                                ? staff.items
+                                                    .map(item => {
+                                                        const qty = item.qty?.$numberInt || item.qty || 0;
+                                                        return `${item.itemName || ""} (${qty}x)`;
+                                                    })
+                                                    .join(", ")
+                                                : "—"}
+                                        </div>
+
+                                        <div className="text-sm font-semibold text-gray-500 min-w-[80px]">
+                                            {total}
+                                        </div>
+                                        <div className="text-sm font-semibold text-gray-500 min-w-[80px]">
+                                            {discount}
+                                        </div>
+                                        <div className="text-sm font-semibold text-gray-500 min-w-[80px]">
+                                            {payable}
+                                        </div>
+                                        <div className="text-sm font-semibold text-gray-500 min-w-[80px]">
+                                            {paid}
+                                        </div>
+                                        <div className={`text-sm font-semibold min-w-[100px] ${staff.paymentMethod === "Cash" ? "text-green-500" :
+                                                staff.paymentMethod === "Card" ? "text-orange-400" :
+                                                    staff.paymentMethod === "Transfer" ? "text-blue-500" :
+                                                        "text-gray-500"
+                                            }`}>
+                                            {staff.paymentMethod || "—"}
+                                        </div>
+                                        <div className="text-sm font-semibold text-gray-500 min-w-[80px]">
+                                            {balance}
+                                        </div>
+
+                                        {userInfo?.isAdmin && (
+                                            <div className="relative group min-w-[60px]">
+                                                <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                                                <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+                                                    <button
+                                                        onClick={() => handleEditClick(staff)}
+                                                        className="w-full text-left px-4 py-4 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(staff._id)}
+                                                        className="w-full text-left px-4 py-4 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                ))}
+                </div>
             </div>
 
 
@@ -412,8 +548,14 @@ const BookingOrder = () => {
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
                     <div
                         ref={sliderRef}
-                        className="w-1/3 bg-white p-6 h-full overflow-y-auto shadow-lg"
+                        className="
+        bg-white p-6 h-full overflow-y-auto shadow-lg
+        w-full sm:w-4/5 md:w-2/3 lg:w-1/2 xl:w-1/3
+        max-w-[600px]
+        transition-all duration-300
+      "
                     >
+                        {/* Header */}
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold text-newPrimary">
                                 {isEdit ? "Update Customer Booking" : "New Customer Booking"}
@@ -430,8 +572,9 @@ const BookingOrder = () => {
                             </button>
                         </div>
 
+                        {/* Form Container */}
                         <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
-                            {/*  Customer Name */}
+                            {/* Customer Name */}
                             <div>
                                 <label className="block text-gray-700 font-medium">
                                     Customer Name <span className="text-newPrimary">*</span>
@@ -460,9 +603,7 @@ const BookingOrder = () => {
 
                             {/* Address */}
                             <div>
-                                <label className="block text-gray-700 font-medium">
-                                    Address
-                                </label>
+                                <label className="block text-gray-700 font-medium">Address</label>
                                 <input
                                     type="text"
                                     value={formData.address}
@@ -472,66 +613,61 @@ const BookingOrder = () => {
                                 />
                             </div>
 
-                            {/* Date */}
-                            <div>
-                                <label className="block text-gray-700 font-medium">
-                                    Date <span className="text-newPrimary">*</span>
-                                </label>
-                                <input
-                                    type="date"
-                                    value={formData.date}
-                                    required
-                                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                    className="w-full p-2 border rounded"
-                                />
-
-                            </div>
-
-                            {/* Time */}
-                            <div>
-                                <label className="block text-gray-700 font-medium">
-                                    Time <span className="text-newPrimary">*</span>
-                                </label>
-                                <input
-                                    type="time"
-                                    value={formData.time}
-                                    required
-                                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                                    className="w-full p-2 border rounded"
-                                />
+                            {/* Date & Time */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-gray-700 font-medium">
+                                        Date <span className="text-newPrimary">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={formData.date}
+                                        required
+                                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-700 font-medium">
+                                        Time <span className="text-newPrimary">*</span>
+                                    </label>
+                                    <input
+                                        type="time"
+                                        value={formData.time}
+                                        required
+                                        onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
                             </div>
 
                             {/* Items */}
                             {items.map((item, i) => (
-                                <div key={i} className="relative flex gap-2 mb-2">
+                                <div key={i} className="relative flex flex-col sm:flex-row gap-2 mb-2 items-start sm:items-center">
                                     <input
                                         placeholder="Item Name"
                                         className="border p-2 flex-1"
                                         value={searchIndex === i ? searchValue : item.itemName}
                                         onChange={(e) => {
-                                            setSearchValue(e.target.value); // track typing
-                                            setSearchIndex(i);               // mark active row
+                                            setSearchValue(e.target.value);
+                                            setSearchIndex(i);
                                         }}
                                     />
-
                                     <input
                                         type="number"
                                         placeholder="Rate"
-                                        className="border p-2 w-20"
+                                        className="border p-2 w-full sm:w-20"
                                         value={item.rate}
                                         onChange={(e) => handleItemChange(i, "rate", e.target.value)}
                                     />
-
                                     <input
                                         type="number"
                                         placeholder="Qty"
-                                        className="border p-2 w-16"
+                                        className="border p-2 w-full sm:w-16"
                                         value={item.qty}
                                         onChange={(e) => handleItemChange(i, "qty", e.target.value)}
                                     />
-
-                                    <div className="p-2 w-20 text-right">{item.amount}</div>
-
+                                    <div className="p-2 w-full sm:w-20 text-right">{item.amount}</div>
                                     <button
                                         onClick={() => removeItemRow(i)}
                                         className="text-red-500 hover:underline"
@@ -539,9 +675,9 @@ const BookingOrder = () => {
                                         X
                                     </button>
 
-                                    {/* Suggestions dropdown */}
+                                    {/* Suggestions */}
                                     {suggestions.length > 0 && searchIndex === i && (
-                                        <ul className="absolute bg-white border w-[12.5rem] mt-10 z-10">
+                                        <ul className="absolute bg-white border w-full sm:w-[12.5rem] mt-10 z-10">
                                             {suggestions.map((s) => (
                                                 <li
                                                     key={s._id}
@@ -553,13 +689,9 @@ const BookingOrder = () => {
                                             ))}
                                         </ul>
                                     )}
-
-
                                 </div>
                             ))}
 
-
-                            {/* Add Item Button */}
                             <button
                                 onClick={addItemRow}
                                 className="text-green-600 font-semibold hover:underline mb-4"
@@ -568,10 +700,8 @@ const BookingOrder = () => {
                             </button>
 
                             {/* Totals */}
-                            <div className="mt-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
-                                <h3 className="font-bold text-lg mb-3 text-gray-700">Order Summary</h3>
-
-                                {/* Discount */}
+                            <div className="mt-6 p-4 border rounded-lg bg-gray-50 shadow-sm space-y-2">
+                                <h3 className="font-bold text-lg mb-2 text-gray-700">Order Summary</h3>
                                 <input
                                     type="number"
                                     placeholder="Discount"
@@ -583,8 +713,6 @@ const BookingOrder = () => {
                                         calculateTotals(items, val, givenAmount);
                                     }}
                                 />
-
-                                {/* Given Amount */}
                                 <input
                                     type="number"
                                     placeholder="Given Amount"
@@ -598,8 +726,7 @@ const BookingOrder = () => {
                                 />
                             </div>
 
-
-                            {/* payment */}
+                            {/* Payment */}
                             <div>
                                 <label className="block text-gray-700 font-bold mb-2">
                                     Payment <span className="text-newPrimary">*</span>
@@ -618,15 +745,12 @@ const BookingOrder = () => {
                                 </select>
                             </div>
 
-
-
                             <div className="mb-2 font-bold">Payable Amount: {payable}</div>
                             <div className="mb-4 font-bold">Return Amount: {returnAmount}</div>
 
-
                             {/* Save Button */}
                             <button
-                                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
+                                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-green-500 w-full"
                                 onClick={handleSave}
                             >
                                 Save Item
@@ -635,6 +759,7 @@ const BookingOrder = () => {
                     </div>
                 </div>
             )}
+
         </div>
     );
 };

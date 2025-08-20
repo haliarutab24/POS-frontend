@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { PuffLoader } from "react-spinners";
+import { FaEdit, FaTrash, FaPrint } from "react-icons/fa"
 
 const SalesInvoice = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -459,30 +460,31 @@ const SalesInvoice = () => {
                   <div className="min-w-[80px]">{inv.payable}</div>
                   <div className="min-w-[80px]">{inv.givenAmount}</div>
                   <div className="min-w-[80px]">{inv.returnAmount}</div>
-                  <div className="min-w-[80px] flex justify-end">
-                    <div className="relative group">
-                      <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                      <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
-                        <button
-                          onClick={() => handleEdit(inv)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(inv._id)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-red-500 flex items-center gap-2"
-                        >
-                          Delete
-                        </button>
-                        <button
-                          onClick={() => handlePrint(inv)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-blue-700 flex items-center gap-2"
-                        >
-                          Print
-                        </button>
-                      </div>
-                    </div>
+
+                  <div className="min-w-[80px] flex justify-end gap-2">
+                    <button
+                      onClick={() => handleEdit(inv)}
+                      className="text-green-400 hover:text-green-500 text-xl flex items-center gap-1"
+                      title="Edit"
+                    >
+                      <FaEdit />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(inv._id)}
+                      className="text-red-500 hover:text-red-700 text-xl flex items-center gap-1"
+                      title="Delete"
+                    >
+                      <FaTrash />
+                    </button>
+
+                    <button
+                      onClick={() => handlePrint(inv)}
+                      className="text-blue-600 hover:text-blue-800 text-xl flex items-center gap-1"
+                      title="Print"
+                    >
+                      <FaPrint />
+                    </button>
                   </div>
                 </div>
               ))}

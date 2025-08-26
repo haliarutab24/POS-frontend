@@ -4,7 +4,7 @@ import Login from "./pages/admin/Login";
 import Signup from "./pages/admin/Signup";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ItemList from "./pages/admin/ItemList";
+import ItemList from "./pages/admin/ItemList.jsx";
 import CustomerData from "./pages/admin/CustomerData";
 import { ToastContainer } from "react-toastify";
 import ShelveLocation from "./pages/admin/ShelveLocation";

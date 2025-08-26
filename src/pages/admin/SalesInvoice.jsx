@@ -24,13 +24,15 @@ const SalesInvoice = () => {
 
   // Form states
   const [customerName, setCustomerName] = useState("");
-  const [mobile, setMobile] = useState("");
+  const [mobileNo, setMobile] = useState("");
   const [items, setItems] = useState([{ itemName: "", price: 0, qty: 1, total: 0 }]);
   const [discount, setDiscount] = useState();
   const [givenAmount, setGivenAmount] = useState();
   const [payable, setPayable] = useState(0);
   const [returnAmount, setReturnAmount] = useState(0);
   const [editId, setEditId] = useState(null);
+  const [suggestionsNo, setSuggestionsNo] = useState([]);
+
 
   // Animate slider
   useEffect(() => {
@@ -64,6 +66,34 @@ const SalesInvoice = () => {
     fetchData();
   }, [fetchData]);
 
+  // search suggestion with debouncing customer
+  useEffect(() => {
+    if (!mobileNo || mobileNo.length < 4) {
+      setSuggestionsNo([]);
+      return;
+    }
+    const mobileNumber = mobileNo;
+
+    const delay = setTimeout(async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/customers/search/mobile/?q=${mobileNumber}`
+        );
+
+        if (res.data) {
+          setSuggestionsNo(Array.isArray(res.data) ? res.data : [res.data]);
+          console.log("suggestion", suggestionsNo)
+        } else {
+          setSuggestionsNo([]);
+        }
+      } catch (error) {
+        console.error("Error fetching customer", error);
+        setSuggestionsNo([]);
+      }
+    }, 300); // debounce 300ms
+
+    return () => clearTimeout(delay);
+  }, [mobileNo]);
 
   // search suggestion with debouncing 
   useEffect(() => {
@@ -188,6 +218,15 @@ const SalesInvoice = () => {
       toast.error(`❌ ${isEdit ? "Update" : "Create"} invoice failed`);
     }
   };
+
+
+  // ✅ Handle suggestion click
+  const handleCustomerSelect = (customer) => {
+    setCustomerName(customer.customerName);
+    setMobile(customer.mobileNo); // ✅ match API field
+    setSuggestionsNo([]); // ✅ clear suggestions list
+  };
+
 
   // Reset form
   const resetForm = () => {
@@ -513,6 +552,36 @@ const SalesInvoice = () => {
             </div>
 
             {/* Customer Info */}
+
+            {/* Mobile Number */}
+            <label htmlFor="">Mobile Number</label>
+            <input
+              type="text"
+              value={mobileNo}
+              required
+              onChange={(e) =>
+                setMobile(e.target.value)
+              }
+              className="w-full p-2 border rounded"
+            />
+            {/* Suggestions under Mobile No */}
+            {suggestionsNo.length > 0 && (
+              <ul className="absolute bg-white border w-full mt-1 z-10 rounded shadow">
+                {suggestionsNo.map((s) => (
+                  <li
+                    key={s._id}
+                    className="p-2 hover:bg-gray-200 cursor-pointer"
+                    onClick={() => handleCustomerSelect(s)}
+                  >
+                    📱 {s.mobileNumber} — {s.customerName}
+                  </li>
+
+                ))}
+              </ul>
+            )}
+
+            {/* customer name */}
+            <label htmlFor="">Customer Name</label>
             <input
               placeholder="Customer Name"
               className="w-full border p-2 mb-2"
@@ -520,13 +589,10 @@ const SalesInvoice = () => {
               required
               onChange={(e) => setCustomerName(e.target.value)}
             />
-            <input
-              placeholder="Mobile #"
-              className="w-full border p-2 mb-2"
-              value={mobile}
-              required
-              onChange={(e) => setMobile(e.target.value)}
-            />
+
+
+
+
 
             {/* Items */}
             <div>

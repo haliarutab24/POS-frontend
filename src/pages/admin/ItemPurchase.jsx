@@ -280,23 +280,6 @@ export default function PurchaseManager() {
             });
     };
 
-    const handleAddItem = () => {
-        if (!newItem.name || !newItem.category || !newItem.purchase || !newItem.qty) {
-            toast.error("❌ Please fill all required fields!");
-            return;
-        }
-        setItems([...items, newItem]);
-        setNewItem({
-            name: "",
-            category: "",
-            purchase: 0,
-            sale: 0,
-            unit: "",
-            qty: 0,
-        });
-        setIsSliderOpen(false);
-    };
-
     // Show loading spinner
     if (loading) {
         return (

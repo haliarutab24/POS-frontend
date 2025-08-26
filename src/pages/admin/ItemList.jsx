@@ -1,10 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { PuffLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import axios from "axios";
 
 const ItemList = () => {
+  const [categoryList, setCategoryList] = useState([]);
+  const [itemUnitList, setItemUnitList] = useState([]);
+  const [manufacturerList, setManufacturerList] = useState([]);
+  const [supplierList, setSupplierList] = useState([]);
+  const [shelvesList, setShelvesList] = useState([]);
+
   const [itemList, setItemList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [itemCategory, setItemCategory] = useState("");
@@ -42,80 +49,113 @@ const ItemList = () => {
     }
   }, [isSliderOpen]);
 
-  // Static Data
-  const items = [
-    {
-      _id: "ITEM001",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Electronics",
-      itemName: "Smartphone",
-      manufacture: "Samsung",
-      supplier: "ABC Traders",
-      purchase: 500,
-      sales: 650,
-      stock: 120,
-      price: 600,
-      barcode: "BAR1234567890",
-    },
-    {
-      _id: "ITEM002",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Furniture",
-      itemName: "Office Chair",
-      manufacture: "Ikea",
-      supplier: "HomeDeco",
-      purchase: 80,
-      sales: 120,
-      stock: 45,
-      price: 100,
-      barcode: "BAR9876543210",
-    },
-    {
-      _id: "ITEM003",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Appliances",
-      itemName: "Microwave Oven",
-      manufacture: "Haier",
-      supplier: "KitchenPro",
-      purchase: 200,
-      sales: 280,
-      stock: 60,
-      price: 250,
-      barcode: "BAR4567891234",
-    },
-    {
-      _id: "ITEM004",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Clothing",
-      itemName: "Men's Jacket",
-      manufacture: "Levis",
-      supplier: "Fashion Hub",
-      purchase: 40,
-      sales: 70,
-      stock: 150,
-      price: 60,
-      barcode: "BAR7891234567",
-    },
-    {
-      _id: "ITEM005",
-      image: "https://img.freepik.com/free-vector/white-product-podium-with-green-tropical-palm-leaves-golden-round-arch-green-wall_87521-3023.jpg",
-      itemCategory: "Stationery",
-      itemName: "Notebook",
-      manufacture: "Oxford",
-      supplier: "PaperHouse",
-      purchase: 2,
-      sales: 5,
-      stock: 500,
-      price: 4,
-      barcode: "BAR3216549870",
-    },
-  ];
 
-  // Initialize item list with static data
-  useEffect(() => {
-    setItemList(items);
-    setTimeout(() => setLoading(false), 1000);
+
+  // Item Detals Fetch 
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/item-details`);
+      setItemList(res.data); // store actual categories array
+      console.log("Item Details ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch item details", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
   }, []);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // CategoryList Fetch 
+  const fetchCategoryList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/list`);
+      setCategoryList(res.data); // store actual categories array
+      console.log("Categories ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchCategoryList();
+  }, [fetchCategoryList]);
+
+  // Item Unit List Fetch 
+  const fetchItemUnitList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/item-unit`);
+      setItemUnitList(res.data); // store actual categories array
+      console.log("Item Unit ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch item unit", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchItemUnitList();
+  }, [fetchItemUnitList]);
+
+  // Manufacturer List Fetch 
+  const fetchManufacturerList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/manufacturers/list`);
+      setManufacturerList(res.data); // store actual categories array
+      console.log("Manufacturer ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch Manufacturer", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchManufacturerList();
+  }, [fetchManufacturerList]);
+
+  // Supplier List Fetch 
+  const fetchSupplierList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/suppliers/list`);
+      setSupplierList(res.data); // store actual categories array
+      console.log("Supplier ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch Supplier", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchSupplierList();
+  }, [fetchSupplierList]);
+
+  // Shelves List Fetch 
+  const fetchShelvesList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/shelves`);
+      setShelvesList(res.data); // store actual categories array
+      console.log("Shelves ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch Shelves", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchShelvesList();
+  }, [fetchShelvesList]);
+
+
+
+
 
   // Handlers
   const handleAddItem = () => {
@@ -143,97 +183,118 @@ const ItemList = () => {
 
   // Save or Update Item
   const handleSave = async () => {
-    const formData = {
-      itemCategory,
-      itemName,
-      details,
-      manufacture,
-      supplier,
-      shelveLocation,
-      itemUnit,
-      perUnit: parseInt(perUnit) || 0,
-      purchase: parseFloat(purchase) || 0,
-      sales: parseFloat(sales) || 0,
-      stock: parseInt(stock) || 0,
-      price: parseFloat(price) || 0,
-      barcode,
-      reorder: parseInt(reorder) || 0,
-      enabled,
-    };
+    const formData = new FormData();
+
+    formData.append("itemCategory", itemCategory);
+    formData.append("itemName", itemName);
+    formData.append("details", details);
+    formData.append("manufacturer", manufacture);
+    formData.append("supplier", supplier);
+    formData.append("shelveLocation", shelveLocation);
+    formData.append("itemUnit", itemUnit);
+    formData.append("perUnit", parseInt(perUnit) || 0);
+    formData.append("purchase", parseFloat(purchase) || 0);
+    formData.append("sales", parseFloat(sales) || 0);
+    formData.append("stock", parseInt(stock) || 0);
+    formData.append("price", parseFloat(price) || 0);
+    formData.append("labelBarcode", barcode);
+    formData.append("reorder", parseInt(reorder) || 0);
+    formData.append("isEnable", enabled);
 
     if (image) {
-      formData.image = imagePreview; // Simulate image upload using preview URL
+      formData.append("itemImage", image); // ✅ append actual file, not preview
     }
+
+    console.log("Form Data", [...formData.entries()]);
 
     try {
+      const headers = {
+        Authorization: `Bearer ${userInfo.token}`,
+        "Content-Type": "multipart/form-data",
+      };
+
       if (isEdit && editId) {
-        // Simulate API update
-        setItemList(
-          itemList.map((item) =>
-            item._id === editId ? { ...item, ...formData } : item
-          )
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/item-details/${editId}`,
+          formData,
+          { headers }
         );
-        toast.success("✅ Item updated successfully");
+        toast.success("Item Details Updated successfully");
       } else {
-        // Simulate API create
-        const newItem = {
-          ...formData,
-          _id: `ITEM${String(1000 + itemList.length + 1).padStart(3, "0")}`,
-        };
-        setItemList([...itemList, newItem]);
-        toast.success("✅ Item added successfully");
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/item-details`,
+          formData,
+          { headers }
+        );
+        toast.success("Item Details Added successfully");
       }
 
-      // Reset fields
-      setItemCategory("");
-      setItemName("");
-      setDetails("");
-      setManufacture("");
-      setSupplier("");
-      setShelveLocation("");
-      setItemUnit("");
-      setPerUnit("");
-      setPurchase("");
-      setSales("");
-      setStock("");
-      setPrice("");
-      setBarcode("");
-      setReorder("");
-      setEnabled(true);
-      setImage(null);
-      setImagePreview(null);
-      setEditId(null);
-      setIsEdit(false);
-      setIsSliderOpen(false);
+      reState();
+      fetchData();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} item failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} Item Unit failed`);
     }
   };
 
-  // Edit Item
-  const handleEdit = (item) => {
-    setIsEdit(true);
-    setEditId(item._id);
-    setItemCategory(item.itemCategory || "");
-    setItemName(item.itemName || "");
-    setDetails(item.details || "");
-    setManufacture(item.manufacture || "");
-    setSupplier(item.supplier || "");
-    setShelveLocation(item.shelveLocation || "");
-    setItemUnit(item.itemUnit || "");
-    setPerUnit(item.perUnit ? item.perUnit.toString() : "");
-    setPurchase(item.purchase ? item.purchase.toString() : "");
-    setSales(item.sales ? item.sales.toString() : "");
-    setStock(item.stock ? item.stock.toString() : "");
-    setPrice(item.price ? item.price.toString() : "");
-    setBarcode(item.barcode || "");
-    setReorder(item.reorder ? item.reorder.toString() : "");
-    setEnabled(item.enabled !== undefined ? item.enabled : true);
-    setImagePreview(item.image || "");
+
+  // Set All States Null
+  const reState = () => {
+    setIsSliderOpen(false);
+    setIsEdit(false);
+    setEditId(null);
+    setItemCategory('')
+    setManufacture('');
+    setItemName("");
+    setDetails("");
+    setSupplier("");
+    setShelveLocation("");
+    setItemUnit("");
+    setPerUnit("");
+    setPurchase("");
+    setSales("");
+    setStock("");
+    setPrice("");
+    setBarcode("");
+    setReorder("");
+    setEnabled(false);
+    setImagePreview("");
     setImage(null);
-    setIsSliderOpen(true);
-  };
+  }
+  // Edit Item
+ const handleEdit = (item) => {
+  console.log("Item", item);
+
+  setIsEdit(true);
+  setEditId(item._id);
+
+  // Dropdowns ke liye _id set karo
+  setItemCategory(item?.itemCategory?._id || "");
+  setManufacture(item?.manufacturer?._id || "");
+  setSupplier(item?.supplier?._id || "");
+  setShelveLocation(item?.shelveLocation?._id || "");
+  setItemUnit(item?.itemUnit?._id || "");
+
+  // Normal fields
+  setItemName(item.itemName || "");
+  setDetails(item.details || "");
+  setPerUnit(item.perUnit ? item.perUnit.toString() : "");
+  setPurchase(item.purchase ? item.purchase.toString() : "");
+  setSales(item.sales ? item.sales.toString() : "");
+  setStock(item.stock ? item.stock.toString() : "");
+  setPrice(item.price ? item.price.toString() : "");
+  setBarcode(item.labelBarcode || "");
+  setReorder(item.reorder ? item.reorder.toString() : "");
+
+  // Enable/Disable
+  setEnabled(item.isEnable !== undefined ? item.isEnable : true);
+
+  // Image
+  setImagePreview(item?.itemImage?.url || "");
+  setImage(null);
+
+  setIsSliderOpen(true);
+};
 
   // Delete Item
   const handleDelete = async (id) => {
@@ -261,6 +322,15 @@ const ItemList = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
+
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/item-details/${id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${userInfo.token}` // if you’re using auth
+                }
+              }
+            );
             setItemList(itemList.filter((item) => item._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -305,10 +375,12 @@ const ItemList = () => {
   };
 
   // Capitalize First Letter
-  function capitalizeFirstLetter(string) {
-    if (!string) return "";
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  function capitalizeFirstLetter(value) {
+    if (!value) return "";
+    const str = String(value); // ensure it's a string
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
+
 
   // Show loading spinner
   if (loading) {
@@ -337,84 +409,88 @@ const ItemList = () => {
       </div>
 
       {/* Item Table */}
-      <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
-        <div className="overflow-x-auto scrollbar-hide">
-          <div className="w-full">
-            {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-8 gap-12 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-              <div>Item Category</div>
-              <div>Item Name</div>
-              <div>Purchase</div>
-              <div>Sales</div>
-              <div>Stock</div>
-              <div>Price</div>
-              <div>Barcode</div>
-              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
-            </div>
-
-            {/* Items in Table */}
-            <div className="mt-4 flex flex-col gap-[6px]">
-              {itemList.map((item) => (
-                <div
-                  key={item._id}
-                  className="grid grid-cols-8 items-center gap-12 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
-                >
-                  {/* Item Category */}
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={item.image}
-                      alt="Product Icon"
-                      className="w-7 h-7 object-cover rounded-full"
-                    />
-                    <span className="text-sm font-medium text-gray-900">
-                      {capitalizeFirstLetter(item.itemCategory)}
-                    </span>
-                  </div>
-
-                  {/* Item Name */}
-                  <div className="text-sm text-gray-500">{item.itemName}</div>
-
-                  {/* Purchase */}
-                  <div className="text-sm font-semibold text-gray-500">{item.purchase}</div>
-
-                  {/* Sales */}
-                  <div className="text-sm font-semibold text-gray-500">{item.sales}</div>
-
-                  {/* Stock */}
-                  <div className="text-sm font-semibold text-gray-500">{item.stock}</div>
-
-                  {/* Price */}
-                  <div className="text-sm font-semibold text-gray-500">{item.price}</div>
-
-                  {/* Barcode */}
-                  <div className="text-sm font-semibold text-gray-500">{item.barcode}</div>
-
-                  {/* Actions */}
-                  {userInfo?.isAdmin && (
-                    <div className="text-right relative group">
-                      <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                      <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col justify-between">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item._id)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+<div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
+  <div className="overflow-x-auto scrollbar-hide">
+    {/* Table wrapper with minimum width */}
+    <div className="min-w-[1000px]">
+      {/* Table Headers */}
+      <div className="grid grid-cols-8 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+        <div className="min-w-[120px]">Item Category</div>
+        <div className="min-w-[150px]">Item Name</div>
+        <div className="min-w-[80px]">Purchase</div>
+        <div className="min-w-[80px]">Sales</div>
+        <div className="min-w-[80px]">Stock</div>
+        <div className="min-w-[80px]">Price</div>
+        <div className="min-w-[100px]">Barcode</div>
+        {userInfo?.isAdmin && <div className="min-w-[80px] text-right">Actions</div>}
       </div>
+
+      {/* Items in Table */}
+      <div className="mt-4 flex flex-col gap-[6px] mb-14">
+        {itemList.map((item) => (
+          <div
+            key={item._id}
+            className="grid grid-cols-8 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+          >
+            {/* Item Category */}
+            <div className="min-w-[120px] flex items-center gap-3">
+              <img
+                src={item.itemImage.url}
+                alt="Product Icon"
+                className="w-7 h-7 object-cover rounded-full"
+              />
+              <span className="text-sm font-medium text-gray-900">
+                {capitalizeFirstLetter(item.itemCategory.categoryName)}
+              </span>
+            </div>
+
+            {/* Item Name */}
+            <div className="min-w-[150px] text-sm text-gray-500">{item.itemName}</div>
+
+            {/* Purchase */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.purchase}</div>
+
+            {/* Sales */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.sales}</div>
+
+            {/* Stock */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.stock}</div>
+
+            {/* Price */}
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.price}</div>
+
+            {/* Barcode */}
+            <div className="min-w-[100px] text-sm font-semibold text-gray-500">
+              {item.labelBarcode.slice(0, 12)}
+
+            </div>
+
+            {/* Actions */}
+            {userInfo?.isAdmin && (
+              <div className="min-w-[80px] text-right relative group">
+                <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col justify-between">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-newPrimary/10 text-newPrimary flex items-center gap-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item._id)}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-red-50 text-red-500 flex items-center gap-2"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Slider */}
       {isSliderOpen && (
@@ -452,6 +528,7 @@ const ItemList = () => {
             </div>
 
             <div className="p-6 bg-white rounded-xl shadow-md space-y-4">
+
               {/* Item Category */}
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -464,9 +541,11 @@ const ItemList = () => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Furniture">Furniture</option>
-                  <option value="Appliances">Appliances</option>
+                  {categoryList.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.categoryName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -485,7 +564,7 @@ const ItemList = () => {
               </div>
 
               {/* Manufacture */}
-              {/* <div>
+              <div>
                 <label className="block text-gray-700 font-medium">
                   Manufacture <span className="text-newPrimary">*</span>
                 </label>
@@ -496,14 +575,16 @@ const ItemList = () => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Manufacture</option>
-                  <option value="Samsung">Samsung</option>
-                  <option value="Ikea">Ikea</option>
-                  <option value="Haier">Haier</option>
+                  {manufacturerList.map((manufacture) => (
+                    <option key={manufacture._id} value={manufacture._id}>
+                      {manufacture.manufacturerName}
+                    </option>
+                  ))}
                 </select>
-              </div> */}
+              </div>
 
               {/* Supplier */}
-              {/* <div>
+              <div>
                 <label className="block text-gray-700 font-medium">
                   Supplier <span className="text-newPrimary">*</span>
                 </label>
@@ -514,11 +595,13 @@ const ItemList = () => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Supplier</option>
-                  <option value="ABC Traders">ABC Traders</option>
-                  <option value="HomeDeco">HomeDeco</option>
-                  <option value="KitchenPro">KitchenPro</option>
+                  {supplierList.map((supplier) => (
+                    <option key={supplier._id} value={supplier._id}>
+                      {supplier.supplierName}
+                    </option>
+                  ))}
                 </select>
-              </div> */}
+              </div>
 
               {/* Purchase */}
               <div>
@@ -613,9 +696,11 @@ const ItemList = () => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Location</option>
-                  <option value="A1">A1</option>
-                  <option value="B2">B2</option>
-                  <option value="C3">C3</option>
+                  {shelvesList.map((shelves) => (
+                    <option key={shelves._id} value={shelves._id}>
+                      {shelves.shelfNameCode}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -631,9 +716,11 @@ const ItemList = () => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Unit</option>
-                  <option value="kg">Kg</option>
-                  <option value="pcs">Pieces</option>
-                  <option value="ltr">Liters</option>
+                  {itemUnitList.map((item) => (
+                    <option key={item._id} value={item._id}>
+                      {item.unitName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -727,26 +814,25 @@ const ItemList = () => {
                 <button
                   type="button"
                   onClick={() => setEnabled(!enabled)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    enabled ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      enabled ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
               </div>
 
               {/* Save Button */}
               <button
-                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
+                className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-900 w-full"
                 onClick={handleSave}
               >
                 Save Item
               </button>
             </div>
+
           </div>
         </div>
       )}

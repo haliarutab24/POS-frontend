@@ -26,12 +26,17 @@ const SalesInvoice = () => {
   const [customerName, setCustomerName] = useState("");
   const [mobileNo, setMobile] = useState("");
   const [items, setItems] = useState([{ itemName: "", price: 0, qty: 1, total: 0 }]);
-  const [discount, setDiscount] = useState();
-  const [givenAmount, setGivenAmount] = useState();
+  const [discount, setDiscount] = useState("");
+  const [givenAmount, setGivenAmount] = useState("");
+
   const [payable, setPayable] = useState(0);
   const [returnAmount, setReturnAmount] = useState(0);
+  const [balanceAmt, setBalanceAmt] = useState(0);     // ✅ was missing
+
+  const [totalPaid, setTotalPaid] = useState(0); // ✅ tracks cumulative paid
   const [editId, setEditId] = useState(null);
-  const [suggestionsNo, setSuggestionsNo] = useState([]);
+  const [itemCategory, setItemCategory] = useState("");
+  const [categoryList, setCategoryList] = useState([]); const [suggestionsNo, setSuggestionsNo] = useState([]);
 
 
   // Animate slider
@@ -123,6 +128,41 @@ const SalesInvoice = () => {
   }, [searchValue]);
 
 
+  // CategoryList Fetch 
+  const fetchCategoryList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/categories/list`);
+      setCategoryList(res.data); // store actual categories array
+      console.log("Categories ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchCategoryList();
+  }, [fetchCategoryList]);
+
+  // ✅ Fetch items by category
+  const fetchItemsByCategory = async (categoryName) => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/item-details/category/${categoryName}`
+      );
+      setSuggestions(res.data); // store items of this category as suggestions
+      console.log("Suggestion", suggestions);
+
+      console.log("Items by Category:", res.data);
+    } catch (error) {
+      console.error("Failed to fetch items by category", error);
+    }
+  };
+
+
+
+
   const handleSearch = (selectedItem, index) => {
     handleItemChange(index, "itemName", selectedItem.itemName);
     handleItemChange(index, "price", selectedItem.price); // auto-fill price
@@ -160,19 +200,36 @@ const SalesInvoice = () => {
     calculateTotals(updatedItems, discount, givenAmount);
   };
 
-  // Calculate totals
+
+  // 👉 Calculate totals
   const calculateTotals = (itemsList, disc, given) => {
-    const totalBill = itemsList.reduce((sum, item) => sum + item.total, 0);
-    const payableAmt = totalBill - parseFloat(disc || 0);
+    const totalBill = itemsList.reduce((sum, item) => sum + Number(item.total || 0), 0);
+    const payableAmt = totalBill - (parseFloat(disc) || 0);
+
+    const paidValue = parseFloat(given) || 0;
+
+    // Balance = what’s left to pay
+    let newBalance = payableAmt - paidValue;
+    let returnAmt = 0;
+
+    if (paidValue > payableAmt) {
+      returnAmt = paidValue - payableAmt;
+      newBalance = 0;
+    }
+
     setPayable(payableAmt);
-    setReturnAmount(parseFloat(given || 0) - payableAmt);
+    setBalanceAmt(newBalance);
+    setReturnAmount(returnAmt);
   };
+
+
+
 
   // Save invoice
   const handleSaveInvoice = async () => {
     const formData = {
       customerName,
-      mobile,
+      mobileNo,
       items,
       discount,
       givenAmount,
@@ -590,95 +647,151 @@ const SalesInvoice = () => {
               onChange={(e) => setCustomerName(e.target.value)}
             />
 
-
-
-
-
-            {/* Items */}
+            {/* Item Category */}
             <div>
-              <h3 className="font-bold mt-4 mb-2">Items</h3>
-              {items.map((item, i) => (
-                <div key={i} className="flex flex-col gap-1 mb-4 relative">
-                  <div className="flex flex-wrap gap-2">
-                    <input
-                      placeholder="Item Name"
-                      className="border p-2 flex-1 min-w-[120px]"
-                      value={item.itemName}
-                      onChange={(e) => handleInputChange(e.target.value, i)}
-                    />
-                    <input
-                      readOnly
-                      placeholder="Price"
-                      className="border p-2 w-20"
-                      value={item.price || ""}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      className="border p-2 w-16"
-                      value={item.qty}
-                      onChange={(e) =>
-                        handleItemChange(i, "qty", parseFloat(e.target.value))
-                      }
-                    />
-                    <div className="p-2 w-20 text-right">{item.total}</div>
-                    <button
-                      onClick={() => removeItemRow(i)}
-                      className="text-red-500 hover:underline"
-                    >
-                      X
-                    </button>
-                  </div>
-
-                  {/* Suggestions */}
-                  {suggestions.length > 0 && searchIndex === i && (
-                    <ul className="absolute bg-white border w-[12.5rem] mt-8 z-10">
-                      {suggestions.map((s) => (
-                        <li
-                          key={s._id}
-                          className="p-2 hover:bg-gray-200 cursor-pointer"
-                          onClick={() => handleSearch(s, i)}
-                        >
-                          {s.itemName}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-              <button
-                onClick={addItemRow}
-                className="text-green-500 hover:underline mb-4"
+              <label className="block text-gray-700 font-medium">
+                Item Category <span className="text-newPrimary">*</span>
+              </label>
+              <select
+                value={itemCategory}
+                required
+                onChange={(e) => {
+                  const categoryName = e.target.value;
+                  setItemCategory(categoryName);
+                  if (categoryName) fetchItemsByCategory(categoryName);
+                }}
+                className="w-full p-2 border rounded"
               >
-                + Add Item
-              </button>
+                <option value="">Select Category</option>
+                {categoryList.map((category) => (
+                  <option key={category._id} value={category.categoryName}>
+                    {category.categoryName}
+                  </option>
+                ))}
+              </select>
             </div>
 
+            {/* Items */}
+            <div className="mt-2">Items</div>
+            {items.map((item, i) => (
+              <div
+                key={i}
+                className="relative flex flex-col sm:flex-row gap-2 mb-4 items-start sm:items-center"
+              >
+                <input
+                  placeholder="Item Name"
+                  className="border p-2 flex-1"
+                  value={
+                    searchIndex === i && searchValue !== ""
+                      ? searchValue
+                      : item.itemName
+                  }
+                  onChange={(e) => {
+                    setSearchValue(e.target.value);
+                    setSearchIndex(i);
+                    if (e.target.value.length > 0) {
+                      // filter category items by typed value
+                      const filtered = suggestions.filter((s) =>
+                        s.itemName.toLowerCase().includes(e.target.value.toLowerCase())
+                      );
+                      setSuggestions(filtered);
+                    } else {
+                      setSuggestions([]);
+                    }
+                  }}
+                />
+                <input
+                  type="number"
+                  placeholder="Rate"
+                  className="border p-2 w-full sm:w-20"
+                  value={item.price}
+                  onChange={(e) => handleItemChange(i, "rate", e.target.value)}
+                />
+                <input
+                  type="number"
+                  placeholder="Qty"
+                  className="border p-2 w-full sm:w-16"
+                  value={item.qty}
+                  onChange={(e) => handleItemChange(i, "qty", e.target.value)}
+                />
+                <div className="p-2 w-full sm:w-20 text-right">{item.amount}</div>
+                <button
+                  onClick={() => removeItemRow(i)}
+                  className="text-red-500 hover:underline"
+                >
+                  X
+                </button>
+
+                {/* Suggestions */}
+                {suggestions.length > 0 && searchIndex === i && (
+                  <ul className="absolute left-0 right-0 mt-24 w-full sm:w-[13rem] bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
+                    {suggestions.map((s, index) => (
+                      <li
+                        key={s._id}
+                        className={`px-4 py-2 text-sm text-gray-700 cursor-pointer transition-colors duration-200 
+            ${index !== suggestions.length - 1 ? "border-b border-gray-100" : ""} 
+          hover:bg-indigo-50 hover:text-indigo-600`}
+                        onClick={() => handleSearch(s, i)}
+                      >
+                        {s.itemName}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+              </div>
+            ))}
+
             {/* Totals */}
-            <label>Discount Amount</label>
-            <input
-              type="number"
-              placeholder="Discount"
-              className="w-full border p-2 mb-2"
-              value={discount}
-              onChange={(e) => {
-                setDiscount(parseFloat(e.target.value));
-                calculateTotals(items, parseFloat(e.target.value), givenAmount);
-              }}
-            />
-            <label>Given Amount</label>
-            <input
-              type="number"
-              placeholder="Given Amount"
-              className="w-full border p-2 mb-2"
-              value={givenAmount}
-              onChange={(e) => {
-                setGivenAmount(parseFloat(e.target.value));
-                calculateTotals(items, discount, parseFloat(e.target.value));
-              }}
-            />
-            <div className="mb-2 font-bold">Payable: {payable}</div>
-            <div className="mb-4 font-bold">Return: {returnAmount}</div>
+            <div className="mt-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
+              <h3 className="font-bold text-lg mb-4 text-gray-700">Order Summary</h3>
+
+              <div className="flex gap-4">
+                {/* Discount */}
+                <div className="flex flex-col w-1/2">
+                  <label className="text-sm font-medium text-gray-600">Discount</label>
+                  <input
+                    type="number"
+                    placeholder="Discount"
+                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    value={discount}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDiscount(val);
+                      calculateTotals(items, parseFloat(val) || 0, givenAmount ? parseFloat(givenAmount) : 0);
+                    }}
+                  />
+                </div>
+
+                {/* Given Amount */}
+                <div className="flex flex-col w-1/2">
+                  <label className="text-sm font-medium text-gray-600">Given Amount</label>
+                  <input
+                    type="number"
+                    placeholder="Given Amount"
+                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    value={givenAmount}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setGivenAmount(val);
+                      calculateTotals(items, discount ? parseFloat(discount) : 0, parseFloat(val) || 0);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Payable */}
+            <div className="mb-2 font-bold">Payable Amount: {payable}</div>
+
+            {/* Return / Balance */}
+            <div className="mb-2 font-bold text-gray-700">
+              {balanceAmt > 0
+                ? `Balance Due: ${balanceAmt}`
+                : returnAmount > 0
+                  ? `Return Amount: ${returnAmount}`
+                  : 'All Paid'}
+            </div>
+
 
             {/* Save */}
             <button

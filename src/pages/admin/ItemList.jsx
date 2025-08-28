@@ -435,7 +435,7 @@ const ItemList = () => {
             {/* Item Category */}
             <div className="min-w-[120px] flex items-center gap-3">
               <img
-                src={item.itemImage.url}
+                src={item.itemImage?.url}
                 alt="Product Icon"
                 className="w-7 h-7 object-cover rounded-full"
               />

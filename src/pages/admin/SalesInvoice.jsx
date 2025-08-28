@@ -4,12 +4,16 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { PuffLoader } from "react-spinners";
-import { FaEdit, FaTrash, FaPrint } from "react-icons/fa"
+import { FaEdit, FaTrash, FaPrint, } from "react-icons/fa"
+import { TbTruckReturn } from "react-icons/tb";
+
 
 const SalesInvoice = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const sliderRef = useRef(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [isReturn, setIsReturn] = useState(false);
+  const [returnDescription, setReturnDescription] = useState("");
   const [editIndex, setEditIndex] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -148,6 +152,7 @@ const SalesInvoice = () => {
   // ✅ Fetch items by category
   const fetchItemsByCategory = async (categoryName) => {
     try {
+      setItemCategory(categoryName)
       const res = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/item-details/category/${categoryName}`
       );
@@ -170,12 +175,6 @@ const SalesInvoice = () => {
     setSuggestions([]); // close dropdown
   };
 
-  const handleInputChange = (value, index) => {
-    handleItemChange(index, "itemName", value); // update input field
-    setSearchValue(value); // trigger useEffect
-    setSearchIndex(index); // track row for suggestions
-  }
-
 
   // Handle item changes
   const handleItemChange = (index, field, value) => {
@@ -186,11 +185,6 @@ const SalesInvoice = () => {
       parseFloat(updatedItems[index].qty || 0);
     setItems(updatedItems);
     calculateTotals(updatedItems, discount, givenAmount);
-  };
-
-  // Add new item row
-  const addItemRow = () => {
-    setItems([...items, { itemName: "", price: 0, qty: 1, total: 0 }]);
   };
 
   // Remove item row
@@ -222,9 +216,6 @@ const SalesInvoice = () => {
     setReturnAmount(returnAmt);
   };
 
-
-
-
   // Save invoice
   const handleSaveInvoice = async () => {
     const formData = {
@@ -233,8 +224,10 @@ const SalesInvoice = () => {
       items,
       discount,
       givenAmount,
+      returnDescription,
       payable,
       returnAmount,
+      itemCategory
     };
     console.log("Form data ", formData);
 
@@ -280,8 +273,8 @@ const SalesInvoice = () => {
   // ✅ Handle suggestion click
   const handleCustomerSelect = (customer) => {
     setCustomerName(customer.customerName);
-    setMobile(customer.mobileNo); // ✅ match API field
-    setSuggestionsNo([]); // ✅ clear suggestions list
+    setMobile(customer.mobileNumber); // use mobileNumber to match your API
+    setSuggestionsNo([]);
   };
 
 
@@ -357,9 +350,29 @@ const SalesInvoice = () => {
 
   // Edit invoice
   const handleEdit = (invoice) => {
+    setIsEdit(true);
+    setEditId(invoice._id);
+
+    // ✅ now itemCategory is a string, not object
+    setItemCategory(invoice.itemCategory || "");
+
+    setCustomerName(invoice.customerName || '');
+    setMobile(invoice.mobile || '');
+    setItems(invoice.items || []);
+    setDiscount(invoice.discount || 0);
+    setGivenAmount(invoice.givenAmount || 0);
+    setPayable(invoice.payable || 0);
+    setReturnAmount(invoice.returnAmount || 0);
+    setIsSliderOpen(true);
+  };
+
+
+  // Retrun invoice
+  const handleReturn = (invoice) => {
     console.log(invoice);
 
     setIsEdit(true);
+    setIsReturn(true)
     setEditId(invoice._id);
     console.log("Eidit ", editId);
 
@@ -504,27 +517,39 @@ const SalesInvoice = () => {
                 <div className="relative group">
                   <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
                   <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col">
+
                     <button
                       onClick={() => handleEdit(inv)}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-newPrimary flex items-center gap-2"
                     >
-                      Edit
+                      ✏️ Edit
                     </button>
+
                     <button
                       onClick={() => handleDelete(inv._id)}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-red-500 flex items-center gap-2"
                     >
-                      Delete
+                      🗑️ Delete
                     </button>
+
                     <button
                       onClick={() => handlePrint(inv)}
                       className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-blue-700 flex items-center gap-2"
                     >
-                      Print
+                      🖨️ Print
+                    </button>
+
+                    {/* ✅ Return to Sales */}
+                    <button
+                      onClick={() => handleReturn(inv)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-blue-600/10 text-green-600 flex items-center gap-2"
+                    >
+                      ↩ Return
                     </button>
                   </div>
                 </div>
               </div>
+
             </div>
           ))}
         </div>
@@ -557,7 +582,7 @@ const SalesInvoice = () => {
                   <div className="min-w-[80px]">{inv.givenAmount}</div>
                   <div className="min-w-[80px]">{inv.returnAmount}</div>
 
-                  <div className="min-w-[80px] flex justify-end gap-2">
+                  <div className="min-w-[100px] flex justify-end items-center gap-3">
                     <button
                       onClick={() => handleEdit(inv)}
                       className="text-green-400 hover:text-green-500 text-xl flex items-center gap-1"
@@ -581,7 +606,17 @@ const SalesInvoice = () => {
                     >
                       <FaPrint />
                     </button>
+
+                    {/* ✅ Return Sales */}
+                    <button
+                      onClick={() => handleReturn(inv)}
+                      className="text-green-600 hover:text-green-800 text-2xl flex items-center gap-1"
+                      title="Return Sales"
+                    >
+                      <TbTruckReturn />
+                    </button>
                   </div>
+
                 </div>
               ))}
             </div>
@@ -616,13 +651,12 @@ const SalesInvoice = () => {
               type="text"
               value={mobileNo}
               required
-              onChange={(e) =>
-                setMobile(e.target.value)
-              }
+              onChange={(e) => !isReturn && setMobile(e.target.value)} // ❌ disable typing if return
               className="w-full p-2 border rounded"
+              readOnly={isReturn} // ✅ make it readonly
             />
-            {/* Suggestions under Mobile No */}
-            {suggestionsNo.length > 0 && (
+
+            {!isReturn && suggestionsNo.length > 0 && ( // ❌ hide suggestions if return
               <ul className="absolute bg-white border w-full mt-1 z-10 rounded shadow">
                 {suggestionsNo.map((s) => (
                   <li
@@ -632,19 +666,19 @@ const SalesInvoice = () => {
                   >
                     📱 {s.mobileNumber} — {s.customerName}
                   </li>
-
                 ))}
               </ul>
             )}
 
-            {/* customer name */}
+            {/* Customer name */}
             <label htmlFor="">Customer Name</label>
             <input
               placeholder="Customer Name"
               className="w-full border p-2 mb-2"
               value={customerName}
               required
-              onChange={(e) => setCustomerName(e.target.value)}
+              onChange={(e) => !isReturn && setCustomerName(e.target.value)} // ❌ disable if return
+              readOnly={isReturn}
             />
 
             {/* Item Category */}
@@ -656,11 +690,14 @@ const SalesInvoice = () => {
                 value={itemCategory}
                 required
                 onChange={(e) => {
-                  const categoryName = e.target.value;
-                  setItemCategory(categoryName);
-                  if (categoryName) fetchItemsByCategory(categoryName);
+                  if (!isReturn) { // ❌ block changes if return
+                    const categoryName = e.target.value;
+                    setItemCategory(categoryName);
+                    if (categoryName) fetchItemsByCategory(categoryName);
+                  }
                 }}
                 className="w-full p-2 border rounded"
+                disabled={isReturn} // ✅ disable dropdown
               >
                 <option value="">Select Category</option>
                 {categoryList.map((category) => (
@@ -670,6 +707,7 @@ const SalesInvoice = () => {
                 ))}
               </select>
             </div>
+
 
             {/* Items */}
             <div className="mt-2">Items</div>
@@ -742,26 +780,32 @@ const SalesInvoice = () => {
               </div>
             ))}
 
+
+            {/* Return Des */}
+            {isReturn && (
+              <div className="mb-4">
+                <label htmlFor="returnReason" className="block font-medium mb-1">
+                  Why are we returning the product?
+                </label>
+                <input
+                  id="returnReason"
+                  type="text"
+                  placeholder="Write some words..."
+                  className="w-full border p-2 rounded"
+                  value={returnDescription}
+                  onChange={(e) => setReturnDescription(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+
             {/* Totals */}
             <div className="mt-6 p-4 border rounded-lg bg-gray-50 shadow-sm">
               <h3 className="font-bold text-lg mb-4 text-gray-700">Order Summary</h3>
 
               <div className="flex gap-4">
-                {/* Discount */}
-                <div className="flex flex-col w-1/2">
-                  <label className="text-sm font-medium text-gray-600">Discount</label>
-                  <input
-                    type="number"
-                    placeholder="Discount"
-                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                    value={discount}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setDiscount(val);
-                      calculateTotals(items, parseFloat(val) || 0, givenAmount ? parseFloat(givenAmount) : 0);
-                    }}
-                  />
-                </div>
+
 
                 {/* Given Amount */}
                 <div className="flex flex-col w-1/2">
@@ -778,6 +822,24 @@ const SalesInvoice = () => {
                     }}
                   />
                 </div>
+
+                {/* Discount */}
+                <div className="flex flex-col w-1/2">
+                  <label className="text-sm font-medium text-gray-600">Discount</label>
+                  <input
+                    type="number"
+                    placeholder="Discount"
+                    className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    value={discount}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDiscount(val);
+                      calculateTotals(items, parseFloat(val) || 0, givenAmount ? parseFloat(givenAmount) : 0);
+                    }}
+                  />
+                </div>
+
+
               </div>
             </div>
             {/* Payable */}

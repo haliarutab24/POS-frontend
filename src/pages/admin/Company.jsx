@@ -5,23 +5,18 @@ import axios from 'axios';
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
 
-const CustomerData = () => {
-  const [customerList, setCustomerData] = useState([]);
-  const [staffMembers, setStaffMember] = useState([]);
-  const [productList, setProductList] = useState([]);
+const Company = () => {
+  const [companyList, setCompanyList] = useState([]);
+  const [userList, setUserList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
-  const [customerMobile, setCustomerMobile] = useState("");
-  const [previousBalance, setPreviousBalance] = useState("");
-  const [nearby, setNearby] = useState("");
-  const [paymentTerms, setPaymentTerms] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [users, setUsers] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(true);
   const sliderRef = useRef(null); // Ref for the slider element
 
-  const handleAddCustomer = () => {
+  const handleAddCompany = () => {
     setIsSliderOpen(true);
   };
 
@@ -40,7 +35,6 @@ const CustomerData = () => {
         duration: 0.5,
         ease: "power2.in",
         onComplete: () => {
-          // Ensure slider is hidden after animation
           sliderRef.current.style.display = "none";
         },
       });
@@ -51,57 +45,51 @@ const CustomerData = () => {
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   console.log("Admin", userInfo.isAdmin);
 
-  // Fetch Customer Data
-  const fetchCustomerData = useCallback(async () => {
+  // Fetch Company Data
+  const fetchCompanyData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/clients`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/companies`);
       const result = await response.json();
-      console.log("Clients ", result);
-      setCustomerData(result);
+      console.log("Companies ", result);
+      setCompanyList(result);
     } catch (error) {
-      console.error("Error fetching customer data:", error);
+      console.error("Error fetching company data:", error);
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
   }, []);
 
   useEffect(() => {
-    fetchCustomerData();
-  }, [fetchCustomerData]);
+    fetchCompanyData();
+  }, [fetchCompanyData]);
 
-  console.log("Customer Data", customerList);
-
-  // Fetch Staff and Product Data
-  const fetchAssignedData = useCallback(async () => {
+  // Fetch User Data for Dropdown
+  const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
-      const staffRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/staff`);
-      const productRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products`);
-      const staff = await staffRes.json();
-      const product = await productRes.json();
-      setStaffMember(staff.data);
-      setProductList(product.data);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users`);
+      const result = await response.json();
+      console.log("Users ", result);
+      setUserList(result.data || []);
     } catch (error) {
-      console.error("Error fetching staff/product data:", error);
+      console.error("Error fetching user data:", error);
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
   }, []);
 
   useEffect(() => {
-    fetchAssignedData();
-  }, [fetchAssignedData]);
+    fetchUserData();
+  }, [fetchUserData]);
 
-  // Save Customer Data
+  console.log("Company Data", companyList);
+
+  // Save Company Data
   const handleSave = async () => {
     const formData = new FormData();
-    formData.append("name", customerName);
-    formData.append("address", customerAddress);
-    formData.append("mobileNumber", customerMobile);
-    formData.append("previousBalance", previousBalance);
-    formData.append("nearby", nearby);
-    formData.append("paymentTerms", paymentTerms);
+    formData.append("name", companyName);
+    formData.append("users", users);
 
     console.log("Form Data", formData);
 
@@ -114,54 +102,46 @@ const CustomerData = () => {
 
       if (isEdit && editId) {
         await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/clients/${editId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/companies/${editId}`,
           formData,
           { headers }
         );
-        toast.success("✅ Customer updated successfully");
+        toast.success("✅ Company updated successfully");
       } else {
         await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/clients`,
+          `${import.meta.env.VITE_API_BASE_URL}/companies`,
           formData,
           { headers }
         );
-        toast.success("✅ Customer added successfully");
+        toast.success("✅ Company added successfully");
       }
 
       // Reset fields
       setEditId(null);
       setIsEdit(false);
       setIsSliderOpen(false);
-      setCustomerName("");
-      setCustomerAddress("");
-      setCustomerMobile("");
-      setPreviousBalance("");
-      setNearby("");
-      setPaymentTerms("");
+      setCompanyName("");
+      setUsers("");
 
       // Refresh list
-      fetchCustomerData();
+      fetchCompanyData();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} customer failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} company failed`);
     }
   };
 
-  // Edit Customer
-  const handleEdit = (client) => {
+  // Edit Company
+  const handleEdit = (company) => {
     setIsEdit(true);
-    setEditId(client._id);
-    setCustomerName(client.name || "");
-    setCustomerAddress(client.address || "");
-    setCustomerMobile(client.mobileNumber || "");
-    setPreviousBalance(client.previousBalance || "");
-    setNearby(client.nearby || "");
-    setPaymentTerms(client.paymentTerms || "");
+    setEditId(company._id);
+    setCompanyName(company.name || "");
+    setUsers(company.users || "");
     setIsSliderOpen(true);
-    console.log("Editing Client Data", client);
+    console.log("Editing Company Data", company);
   };
 
-  // Delete Customer
+  // Delete Company
   const handleDelete = async (id) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
@@ -194,7 +174,7 @@ const CustomerData = () => {
             }
 
             await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/clients/${id}`,
+              `${import.meta.env.VITE_API_BASE_URL}/companies/${id}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -202,24 +182,24 @@ const CustomerData = () => {
               }
             );
 
-            setCustomerData(customerList.filter((p) => p._id !== id));
+            setCompanyList(companyList.filter((p) => p._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Customer deleted successfully.",
+              "Company deleted successfully.",
               "success"
             );
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete Customer.",
+              "Failed to delete Company.",
               "error"
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
             "Cancelled",
-            "Customer is safe 🙂",
+            "Company is safe 🙂",
             "error"
           );
         }
@@ -246,58 +226,42 @@ const CustomerData = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-newPrimary">Customer List</h1>
-          <p className="text-gray-500 text-sm">Customer Management Dashboard</p>
+          <h1 className="text-2xl font-bold text-newPrimary">Company List</h1>
+          <p className="text-gray-500 text-sm">Company Management Dashboard</p>
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark transition-colors duration-200"
-          onClick={handleAddCustomer}
+          onClick={handleAddCompany}
         >
-          + Add Customer
+          + Add Company
         </button>
       </div>
 
-      {/* Customer Table */}
+      {/* Company Table */}
       <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-7 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-              <div>Name</div>
-              <div>Address</div>
-              <div>Mobile No./WhatsApp</div>
-              <div>Previous Balance</div>
-              <div>Nearby</div>
-              <div>Payment Terms</div>
+            <div className="hidden lg:grid grid-cols-3 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+              <div>Company Name</div>
+              <div>Users</div>
               {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
 
-            {/* Customer Table */}
+            {/* Company Table */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
-              {customerList.map((client, index) => (
+              {companyList.map((company, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-7 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-3 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {/* Name */}
+                  {/* Company Name */}
                   <div className="text-sm font-medium text-gray-900">
-                    {client.name}
+                    {company.name}
                   </div>
 
-                  {/* Address */}
-                  <div className="text-sm font-semibold text-green-600">{client.address}</div>
-
-                  {/* Mobile No./WhatsApp */}
-                  <div className="text-sm text-gray-500">{client.mobileNumber}</div>
-
-                  {/* Previous Balance */}
-                  <div className="text-sm text-gray-500">{client.previousBalance}</div>
-
-                  {/* Nearby */}
-                  <div className="text-sm text-gray-500">{client.nearby}</div>
-
-                  {/* Payment Terms */}
-                  <div className="text-sm text-gray-500">{client.paymentTerms}</div>
+                  {/* Users */}
+                  <div className="text-sm text-gray-500">{company.users}</div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
@@ -307,13 +271,13 @@ const CustomerData = () => {
                         opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto 
                         transition-opacity duration-300 z-50 flex flex-col justify-between">
                         <button
-                          onClick={() => handleEdit(client)}
+                          onClick={() => handleEdit(company)}
                           className="w-full text-left px-4 py-2 text-sm hover:bg-blue-100 text-blue-600 flex items-center gap-2"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(client._id)}
+                          onClick={() => handleDelete(company._id)}
                           className="w-full text-left px-4 py-2 text-sm hover:bg-red-100 text-red-500 flex items-center gap-2"
                         >
                           Delete
@@ -337,7 +301,7 @@ const CustomerData = () => {
             style={{ display: "block" }}
           >
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Edit Customer" : "Add Customer"}</h2>
+              <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Edit Company" : "Add Company"}</h2>
               <button
                 className="w-6 h-6 text-white rounded-full flex justify-center items-center hover:text-gray-400 text-xl bg-newPrimary"
                 onClick={() => setIsSliderOpen(false)}
@@ -346,70 +310,32 @@ const CustomerData = () => {
               </button>
             </div>
             <div className="p-6 space-y-6">
-              {/* Customer Section */}
+              {/* Company Section */}
               <div className="border rounded-lg p-4">
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="block text-gray-700 mb-1">Name</label>
+                    <label className="block text-gray-700 mb-1">Company Name</label>
                     <input
                       type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
-                      placeholder="Enter name"
+                      placeholder="Enter company name"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 mb-1">Address</label>
-                    <input
-                      type="text"
-                      value={customerAddress}
-                      onChange={(e) => setCustomerAddress(e.target.value)}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
-                      placeholder="Enter address"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 mb-1">Mobile No./WhatsApp</label>
-                    <input
-                      type="text"
-                      value={customerMobile}
-                      onChange={(e) => setCustomerMobile(e.target.value)}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
-                      placeholder="Enter mobile number"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 mb-1">Previous Balance</label>
-                    <input
-                      type="text"
-                      value={previousBalance}
-                      onChange={(e) => setPreviousBalance(e.target.value)}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
-                      placeholder="Enter previous balance"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 mb-1">Nearby</label>
-                    <input
-                      type="text"
-                      value={nearby}
-                      onChange={(e) => setNearby(e.target.value)}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
-                      placeholder="Enter nearby location"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 mb-1">Payment Terms</label>
+                    <label className="block text-gray-700 mb-1">Users</label>
                     <select
-                      value={paymentTerms}
-                      onChange={(e) => setPaymentTerms(e.target.value)}
+                      value={users}
+                      onChange={(e) => setUsers(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
-                      <option value="">Select Payment Terms</option>
-                      <option value="Credit">Credit</option>
-                      <option value="Cash">Cash</option>
-                      <option value="Cash on Delivery">Cash on Delivery</option>
+                      <option value="">Select User</option>
+                      {userList.map((user) => (
+                        <option key={user._id} value={user._id}>
+                          {user.name || user._id}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -426,7 +352,7 @@ const CustomerData = () => {
                   className="bg-newPrimary text-white px-6 py-2 rounded-lg hover:bg-primaryDark transition-colors duration-200"
                   onClick={handleSave}
                 >
-                  {isEdit ? "Update Customer" : "Save Customer"}
+                  {isEdit ? "Update Company" : "Save Company"}
                 </button>
               </div>
             </div>
@@ -437,4 +363,4 @@ const CustomerData = () => {
   );
 };
 
-export default CustomerData;
+export default Company;

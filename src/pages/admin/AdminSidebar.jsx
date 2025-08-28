@@ -15,6 +15,10 @@ import {
   FaTruck,
   FaWarehouse,
   FaBalanceScale,
+   FaInfoCircle,   // About
+  FaUserCog,      // Software User
+  FaKey,          // Password
+
 } from "react-icons/fa";
 import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -24,6 +28,7 @@ const links = [
   { to: "/admin/item-details", label: "Item Details", icon: <FaBox /> },
   { to: "/admin/item-purchase", label: "Purchase", icon: <FaShoppingCart /> },
   { to: "/admin/sales-invoice", label: "Sales", icon: <FaReceipt /> },
+  { to: "/admin/customers", label: "Customers", icon: <FaUsers /> },
   { to: "/admin/customers-booking", label: "Booking Customer", icon: <FaUsers /> },
   { to: "/admin/item-barcode", label: "Item Barcode", icon: <FaBarcode /> },
   { to: "/admin/expiry-tags", label: "Expiry Tags", icon: <FaTags /> },
@@ -39,7 +44,17 @@ const links = [
       { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
     ],
   },
-  { to: "/admin/settings", label: "Security", icon: <FaUserShield /> },
+   {
+    label: "Security",
+    icon: <FaUserShield />,
+    children: [
+   { to: "/admin/company", label: "Company", icon: <FaInfoCircle /> },
+  { to: "/admin/users", label: "Users", icon: <FaUserCog /> },
+  { to: "/admin/groups", label: "Group Management", icon: <FaUsers /> },
+  { to: "/admin/access-control", label: "Access Control", icon: <FaUserShield /> },
+    ],
+  },
+ 
 ];
 
 const AdminSidebar = () => {

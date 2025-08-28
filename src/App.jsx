@@ -18,8 +18,11 @@ import ItemPurchase from "./pages/admin/ItemPurchase";
 import  SalesInvoice from './pages/admin/SalesInvoice';
 import ExpiryTags from "./pages/admin/ExpiryTags";
 import BookingOrder from "./pages/admin/BookingOrder";
-import ItemUnit from './pages/admin/ItemUnit'
-
+import ItemUnit from './pages/admin/ItemUnit';
+import Company from "./pages/admin/Company";
+import Users from "./pages/admin/Users";
+import GroupManagement from "./pages/admin/GroupManagement";
+import AccessControl from "./pages/admin/AccessControl";
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -52,7 +55,10 @@ function AppContent() {
             <Route path="expiry-tags" element={<ExpiryTags />} />
              <Route path="item-unit" element={<ItemUnit />} />
             <Route path="customers-booking" element={<BookingOrder />} />
-
+            <Route path="company" element={<Company />} />
+            <Route path="users" element={<Users />} />
+            <Route path="groups" element={<GroupManagement />} />
+            <Route path="access-control" element={<AccessControl />} />
           </Route>
         </Routes>
       </main>

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import {
   FaChevronDown,
-  FaChevronUp,
+  FaChevronUp, FaWallet,
+  FaFileInvoiceDollar,
+  FaBookOpen,
   FaBox,
   FaShoppingCart,
   FaReceipt,
@@ -13,11 +15,13 @@ import {
   FaTags,
   FaIndustry,
   FaTruck,
+  FaTasks,
   FaWarehouse,
+  FaCubes,
   FaBalanceScale,
-   FaInfoCircle,   // About
+  FaInfoCircle,   // About
   FaUserCog,      // Software User
-  FaKey,          // Password
+  FaKey,        // Password
 
 } from "react-icons/fa";
 import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
@@ -44,17 +48,29 @@ const links = [
       { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
     ],
   },
-   {
+  {
     label: "Security",
     icon: <FaUserShield />,
     children: [
-   { to: "/admin/company", label: "Company", icon: <FaInfoCircle /> },
-  { to: "/admin/users", label: "Users", icon: <FaUserCog /> },
-  { to: "/admin/groups", label: "Group Management", icon: <FaUsers /> },
-  { to: "/admin/access-control", label: "Access Control", icon: <FaUserShield /> },
+      { to: "/admin/company", label: "Company", icon: <FaInfoCircle /> },
+      { to: "/admin/users", label: "Users", icon: <FaUserCog /> },
+
+      { to: "/admin/modules", label: "Modules", icon: <FaCubes /> },
+      { to: "/admin/modules-functionalities", label: "Modules Functionalities", icon: <FaTasks /> },
+      { to: "/admin/groups", label: "Group Management", icon: <FaUsers /> },
+      { to: "/admin/access-rights", label: "Access Control", icon: <FaUserShield /> },
     ],
   },
- 
+  {
+    label: "Accounts",
+    icon: <FaUserShield />,
+    children: [
+      { to: "/admin/expense-head", label: "Expense Head", icon: <FaWallet /> },
+      { to: "/admin/expense-voucher", label: "Expense Voucher", icon: <FaFileInvoiceDollar /> },
+      { to: "/admin/day-book", label: "Day Book", icon: <FaBookOpen /> },
+    ],
+  },
+
 ];
 
 const AdminSidebar = () => {

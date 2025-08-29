@@ -4,60 +4,75 @@ import { toast } from "react-toastify";
 import axios from 'axios';
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
+import { FaEdit, FaTrash, FaCog, FaTimes } from 'react-icons/fa';
 
-const AccessControl = () => {
-  const [accessControlList, setAccessControlList] = useState([
-    {
-      _id: "1",
-      roleName: "Admin",
-      permissions: JSON.stringify([
-        "View Dashboard",
-        "Manage Users",
-        "Manage Groups",
-        "Manage Companies",
-        "Manage Access Control",
-        "View Reports",
-        "Edit Settings"
-      ])
-    },
-    {
-      _id: "2",
-      roleName: "Manager",
-      permissions: JSON.stringify([
-        "View Dashboard",
-        "Manage Users",
-        "View Reports"
-      ])
-    },
-    {
-      _id: "3",
-      roleName: "Viewer",
-      permissions: JSON.stringify([
-        "View Dashboard",
-        "View Reports"
-      ])
-    }
-  ]);
+// Static data for groups
+const staticGroupData = [
+  { _id: "g1", name: "Admin" },
+  { _id: "g2", name: "Manager" },
+  { _id: "g3", name: "Viewer" },
+];
+
+// Static data for modules
+const staticModuleData = [
+  { _id: "1", name: "User Management" },
+  { _id: "2", name: "Inventory System" },
+  { _id: "3", name: "Payment Processing" },
+];
+
+// Static data for functionalities (independent of modules)
+const staticFunctionalityData = [
+  { _id: "f1", functionality: "User Login and Authentication" },
+  { _id: "f2", functionality: "Profile Editing" },
+  { _id: "f3", functionality: "Stock Update" },
+  { _id: "f4", functionality: "Process Credit Card Payments" },
+  { _id: "f5", functionality: "View Reports" },
+  { _id: "f6", functionality: "Manage Settings" },
+];
+
+// Static data for assign rights
+const staticAssignRightsData = [
+  {
+    _id: "r1",
+    groupId: "g1",
+    groupName: "Admin",
+    moduleId: "1",
+    moduleName: "User Management",
+    functionalities: JSON.stringify(["User Login and Authentication", "Profile Editing"]),
+  },
+  {
+    _id: "r2",
+    groupId: "g2",
+    groupName: "Manager",
+    moduleId: "2",
+    moduleName: "Inventory System",
+    functionalities: JSON.stringify(["Stock Update"]),
+  },
+  {
+    _id: "r3",
+    groupId: "g3",
+    groupName: "Viewer",
+    moduleId: "3",
+    moduleName: "Payment Processing",
+    functionalities: JSON.stringify(["Process Credit Card Payments"]),
+  },
+];
+
+const AssignRights = () => {
+  const [assignRightsList, setAssignRightsList] = useState(staticAssignRightsData);
+  const [groups, setGroups] = useState(staticGroupData);
+  const [modules, setModules] = useState(staticModuleData);
+  const [functionalities, setFunctionalities] = useState(staticFunctionalityData);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [roleName, setRoleName] = useState("");
-  const [permissions, setPermissions] = useState([]);
+  const [groupId, setGroupId] = useState("");
+  const [moduleId, setModuleId] = useState("");
+  const [selectedFunctionalities, setSelectedFunctionalities] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const sliderRef = useRef(null); // Ref for the slider element
+  const [loading, setLoading] = useState(true);
+  const sliderRef = useRef(null);
 
-  // Static list of available permissions
-  const availablePermissions = [
-    "View Dashboard",
-    "Manage Users",
-    "Manage Groups",
-    "Manage Companies",
-    "Manage Access Control",
-    "View Reports",
-    "Edit Settings"
-  ];
-
-  const handleAddAccessControl = () => {
+  const handleAddAssignRights = () => {
     setIsSliderOpen(true);
   };
 
@@ -84,36 +99,90 @@ const AccessControl = () => {
 
   // Token
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-  console.log("Admin", userInfo.isAdmin);
+  console.log("Admin", userInfo?.isAdmin);
 
-  // Fetch Access Control Data
-  const fetchAccessControlData = useCallback(async () => {
+  // Fetch Assign Rights Data
+  const fetchAssignRightsData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/access-controls`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/assignRights`);
       const result = await response.json();
-      console.log("Access Controls ", result);
-      setAccessControlList(result);
+      console.log("Assign Rights ", result);
+      setAssignRightsList(result.length > 0 ? result : staticAssignRightsData);
     } catch (error) {
-      console.error("Error fetching access control data:", error);
+      console.error("Error fetching assign rights data:", error);
+      setAssignRightsList(staticAssignRightsData);
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
   }, []);
 
   useEffect(() => {
-    fetchAccessControlData();
-  }, [fetchAccessControlData]);
+    fetchAssignRightsData();
+  }, [fetchAssignRightsData]);
 
-  console.log("Access Control Data", accessControlList);
+  console.log("Assign Rights Data", assignRightsList);
 
-  // Save Access Control Data
+  // Fetch Group Data
+  const fetchGroupData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/groups`);
+      const result = await response.json();
+      console.log("Groups ", result);
+      setGroups(result.length > 0 ? result : staticGroupData);
+    } catch (error) {
+      console.error("Error fetching group data:", error);
+      setGroups(staticGroupData);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+
+  // Fetch Module Data
+  const fetchModuleData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/modules`);
+      const result = await response.json();
+      console.log("Modules ", result);
+      setModules(result.length > 0 ? result : staticModuleData);
+    } catch (error) {
+      console.error("Error fetching module data:", error);
+      setModules(staticModuleData);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+
+  // Fetch Functionality Data
+  const fetchFunctionalityData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/functionalities`);
+      const result = await response.json();
+      console.log("Functionalities ", result);
+      setFunctionalities(result.length > 0 ? result : staticFunctionalityData);
+    } catch (error) {
+      console.error("Error fetching functionality data:", error);
+      setFunctionalities(staticFunctionalityData);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGroupData();
+    fetchModuleData();
+    fetchFunctionalityData();
+  }, [fetchGroupData, fetchModuleData, fetchFunctionalityData]);
+
+  // Save Assign Rights Data
   const handleSave = async () => {
     const formData = new FormData();
-    formData.append("roleName", roleName);
-    formData.append("permissions", JSON.stringify(permissions));
-
-    console.log("Form Data", formData);
+    formData.append("groupId", groupId);
+    formData.append("moduleId", moduleId);
+    formData.append("functionalities", JSON.stringify(selectedFunctionalities));
 
     try {
       const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
@@ -122,50 +191,71 @@ const AccessControl = () => {
         "Content-Type": "multipart/form-data",
       };
 
-      let newRole;
+      const groupName = groups.find((g) => g._id === groupId)?.name || "";
+      const moduleName = modules.find((m) => m._id === moduleId)?.name || "";
+
+      let newRight;
       if (isEdit && editId) {
-        newRole = { _id: editId, roleName, permissions: JSON.stringify(permissions) };
-        setAccessControlList(accessControlList.map((role) => (role._id === editId ? newRole : role)));
+        newRight = {
+          _id: editId,
+          groupId,
+          groupName,
+          moduleId,
+          moduleName,
+          functionalities: JSON.stringify(selectedFunctionalities),
+        };
+        setAssignRightsList(
+          assignRightsList.map((right) => (right._id === editId ? newRight : right))
+        );
         await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/access-controls/${editId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/assignRights/${editId}`,
           formData,
           { headers }
         );
-        toast.success("✅ Role updated successfully");
+        toast.success("✅ Right updated successfully");
       } else {
-        newRole = { _id: `${accessControlList.length + 1}`, roleName, permissions: JSON.stringify(permissions) };
-        setAccessControlList([...accessControlList, newRole]);
+        newRight = {
+          _id: `r${assignRightsList.length + 1}`,
+          groupId,
+          groupName,
+          moduleId,
+          moduleName,
+          functionalities: JSON.stringify(selectedFunctionalities),
+        };
+        setAssignRightsList([...assignRightsList, newRight]);
         await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/access-controls`,
+          `${import.meta.env.VITE_API_BASE_URL}/assignRights`,
           formData,
           { headers }
         );
-        toast.success("✅ Role added successfully");
+        toast.success("✅ Right added successfully");
       }
 
       // Reset fields
       setEditId(null);
       setIsEdit(false);
       setIsSliderOpen(false);
-      setRoleName("");
-      setPermissions([]);
+      setGroupId("");
+      setModuleId("");
+      setSelectedFunctionalities([]);
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} role failed`);
+      toast.error(`❌ ${isEdit ? "Update" : "Add"} right failed`);
     }
   };
 
-  // Edit Access Control
-  const handleEdit = (role) => {
+  // Edit Assign Rights
+  const handleEdit = (right) => {
     setIsEdit(true);
-    setEditId(role._id);
-    setRoleName(role.roleName || "");
-    setPermissions(role.permissions ? JSON.parse(role.permissions) : []);
+    setEditId(right._id);
+    setGroupId(right.groupId || "");
+    setModuleId(right.moduleId || "");
+    setSelectedFunctionalities(right.functionalities ? JSON.parse(right.functionalities) : []);
     setIsSliderOpen(true);
-    console.log("Editing Role Data", role);
+    console.log("Editing Right Data", right);
   };
 
-  // Delete Access Control
+  // Delete Assign Rights
   const handleDelete = async (id) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
@@ -198,7 +288,7 @@ const AccessControl = () => {
             }
 
             await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/access-controls/${id}`,
+              `${import.meta.env.VITE_API_BASE_URL}/assignRights/${id}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -206,34 +296,45 @@ const AccessControl = () => {
               }
             );
 
-            setAccessControlList(accessControlList.filter((p) => p._id !== id));
+            setAssignRightsList(assignRightsList.filter((p) => p._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Role deleted successfully.",
+              "Right deleted successfully.",
               "success"
             );
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete Role.",
+              "Failed to delete Right.",
               "error"
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
             "Cancelled",
-            "Role is safe 🙂",
+            "Right is safe 🙂",
             "error"
           );
         }
       });
   };
 
-  // Handle Permissions Change
-  const handlePermissionsChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
-    setPermissions(selectedOptions);
+  // Handle Functionality Selection
+  const handleFunctionalitySelect = (e) => {
+    const selectedValue = e.target.value;
+    if (selectedValue && !selectedFunctionalities.includes(selectedValue)) {
+      setSelectedFunctionalities([...selectedFunctionalities, selectedValue]);
+    }
+    // Reset the select value
+    e.target.value = "";
+  };
+
+  // Remove a functionality
+  const removeFunctionality = (funcToRemove) => {
+    setSelectedFunctionalities(
+      selectedFunctionalities.filter((func) => func !== funcToRemove)
+    );
   };
 
   // Show loading spinner
@@ -256,43 +357,54 @@ const AccessControl = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-newPrimary">Access Control List</h1>
-          <p className="text-gray-500 text-sm">Access Control Management Dashboard</p>
+          <h1 className="text-2xl font-bold text-newPrimary">Assign Rights List</h1>
+          <p className="text-gray-500 text-sm">Assign Rights Management Dashboard</p>
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark transition-colors duration-200"
-          onClick={handleAddAccessControl}
+          onClick={handleAddAssignRights}
         >
-          + Add Role
+          + Add Right
         </button>
       </div>
 
-      {/* Access Control Table */}
+      {/* Assign Rights Table */}
       <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-3 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
-              <div>Role Name</div>
-              <div>Permissions</div>
-              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
+            <div className="hidden lg:grid grid-cols-4 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+              <div>Group</div>
+              <div>Module</div>
+              <div>Functionalities</div>
+              {userInfo?.isAdmin && (
+                <div className="text-right flex items-center justify-end gap-1">
+                  <FaCog className="text-gray-500" />
+                  <span>Actions</span>
+                </div>
+              )}
             </div>
 
-            {/* Access Control Table */}
+            {/* Assign Rights Table */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
-              {accessControlList.map((role, index) => (
+              {assignRightsList.map((right, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-3 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-4 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {/* Role Name */}
+                  {/* Group */}
                   <div className="text-sm font-medium text-gray-900">
-                    {role.roleName}
+                    {right.groupName}
                   </div>
 
-                  {/* Permissions */}
+                  {/* Module */}
+                  <div className="text-sm font-semibold text-green-600">
+                    {right.moduleName}
+                  </div>
+
+                  {/* Functionalities */}
                   <div className="text-sm text-gray-500">
-                    {role.permissions ? JSON.parse(role.permissions).join(", ") : ""}
+                    {right.functionalities ? JSON.parse(right.functionalities).join(", ") : ""}
                   </div>
 
                   {/* Actions */}
@@ -303,15 +415,17 @@ const AccessControl = () => {
                         opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto 
                         transition-opacity duration-300 z-50 flex flex-col justify-between">
                         <button
-                          onClick={() => handleEdit(role)}
+                          onClick={() => handleEdit(right)}
                           className="w-full text-left px-4 py-2 text-sm hover:bg-blue-100 text-blue-600 flex items-center gap-2"
                         >
+                          <FaEdit />
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(role._id)}
+                          onClick={() => handleDelete(right._id)}
                           className="w-full text-left px-4 py-2 text-sm hover:bg-red-100 text-red-500 flex items-center gap-2"
                         >
+                          <FaTrash />
                           Delete
                         </button>
                       </div>
@@ -333,7 +447,7 @@ const AccessControl = () => {
             style={{ display: "block" }}
           >
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Edit Role" : "Add Role"}</h2>
+              <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Edit Right" : "Add Right"}</h2>
               <button
                 className="w-6 h-6 text-white rounded-full flex justify-center items-center hover:text-gray-400 text-xl bg-newPrimary"
                 onClick={() => setIsSliderOpen(false)}
@@ -342,37 +456,74 @@ const AccessControl = () => {
               </button>
             </div>
             <div className="p-6 space-y-6">
-              {/* Access Control Section */}
+              {/* Assign Rights Section */}
               <div className="border rounded-lg p-4">
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="block text-gray-700 mb-1">Role Name</label>
-                    <input
-                      type="text"
-                      value={roleName}
-                      onChange={(e) => setRoleName(e.target.value)}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
-                      placeholder="Enter role name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 mb-1">Permissions</label>
+                    <label className="block text-gray-700 mb-1">Group</label>
                     <select
-                      multiple
-                      value={permissions}
-                      onChange={handlePermissionsChange}
-                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all h-40"
+                      value={groupId}
+                      onChange={(e) => setGroupId(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
-                      <option value="" disabled>
-                        Select permissions
-                      </option>
-                      {availablePermissions.map((perm, index) => (
-                        <option key={index} value={perm}>
-                          {perm}
+                      <option value="">Select Group</option>
+                      {groups.map((group) => (
+                        <option key={group._id} value={group._id}>
+                          {group.name}
                         </option>
                       ))}
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple permissions</p>
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Module</label>
+                    <select
+                      value={moduleId}
+                      onChange={(e) => setModuleId(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                    >
+                      <option value="">Select Module</option>
+                      {modules.map((module) => (
+                        <option key={module._id} value={module._id}>
+                          {module.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Functionalities</label>
+                    <select
+                      onChange={handleFunctionalitySelect}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                    >
+                      <option value="">Select functionality</option>
+                      {functionalities
+                        .filter(func => !selectedFunctionalities.includes(func.functionality))
+                        .map((func) => (
+                          <option key={func._id} value={func.functionality}>
+                            {func.functionality}
+                          </option>
+                        ))
+                      }
+                    </select>
+                    
+                    {/* Selected Functionalities Tags */}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {selectedFunctionalities.map((func, index) => (
+                        <div
+                          key={index}
+                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center"
+                        >
+                          {func}
+                          <button
+                            type="button"
+                            onClick={() => removeFunctionality(func)}
+                            className="ml-2 text-blue-600 hover:text-blue-800"
+                          >
+                            <FaTimes className="text-xs" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -388,7 +539,7 @@ const AccessControl = () => {
                   className="bg-newPrimary text-white px-6 py-2 rounded-lg hover:bg-primaryDark transition-colors duration-200"
                   onClick={handleSave}
                 >
-                  {isEdit ? "Update Role" : "Save Role"}
+                  {isEdit ? "Update Right" : "Save Right"}
                 </button>
               </div>
             </div>
@@ -399,4 +550,4 @@ const AccessControl = () => {
   );
 };
 
-export default AccessControl;
+export default AssignRights;

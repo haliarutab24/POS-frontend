@@ -414,13 +414,12 @@ const ItemList = () => {
     {/* Table wrapper with minimum width */}
     <div className="min-w-[1000px]">
       {/* Table Headers */}
-      <div className="grid grid-cols-8 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+      <div className="grid grid-cols-7 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
         <div className="min-w-[120px]">Item Category</div>
         <div className="min-w-[150px]">Item Name</div>
         <div className="min-w-[80px]">Purchase</div>
         <div className="min-w-[80px]">Sales</div>
         <div className="min-w-[80px]">Stock</div>
-        <div className="min-w-[80px]">Price</div>
         <div className="min-w-[100px]">Barcode</div>
         {userInfo?.isAdmin && <div className="min-w-[80px] text-right">Actions</div>}
       </div>
@@ -430,7 +429,7 @@ const ItemList = () => {
         {itemList.map((item) => (
           <div
             key={item._id}
-            className="grid grid-cols-8 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+            className="grid grid-cols-7 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
           >
             {/* Item Category */}
             <div className="min-w-[120px] flex items-center gap-3">
@@ -455,9 +454,6 @@ const ItemList = () => {
 
             {/* Stock */}
             <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.stock}</div>
-
-            {/* Price */}
-            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.price}</div>
 
             {/* Barcode */}
             <div className="min-w-[100px] text-sm font-semibold text-gray-500">

@@ -56,7 +56,7 @@ const ExpenseHead = () => {
   const fetchExpenseHeadData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/expense-heads`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/heads`);
       const result = await response.json();
       console.log("Expense Heads ", result);
       setExpenseHeadList(result.length > 0 ? result : staticExpenseHeadData);
@@ -89,14 +89,14 @@ const ExpenseHead = () => {
 
       if (isEdit && editId) {
         await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/expense-heads/${editId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/heads/${editId}`,
           formData,
           { headers }
         );
         toast.success("✅ Expense head updated successfully");
       } else {
         await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/expense-heads`,
+          `${import.meta.env.VITE_API_BASE_URL}/heads`,
           formData,
           { headers }
         );
@@ -161,7 +161,7 @@ const ExpenseHead = () => {
             }
 
             await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/expense-heads/${id}`,
+              `${import.meta.env.VITE_API_BASE_URL}/heads/${id}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,

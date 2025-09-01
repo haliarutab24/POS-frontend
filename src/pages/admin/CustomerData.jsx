@@ -11,11 +11,11 @@ const CustomerData = () => {
   const [productList, setProductList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
-  const [customerMobile, setCustomerMobile] = useState("");
+  const [address, setCustomerAddress] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [previousBalance, setPreviousBalance] = useState("");
   const [nearby, setNearby] = useState("");
-  const [paymentTerms, setPaymentTerms] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,9 +55,9 @@ const CustomerData = () => {
   const fetchCustomerData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/clients`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/customers`);
       const result = await response.json();
-      console.log("Clients ", result);
+      console.log("Customers ", result);
       setCustomerData(result);
     } catch (error) {
       console.error("Error fetching customer data:", error);
@@ -72,36 +72,16 @@ const CustomerData = () => {
 
   console.log("Customer Data", customerList);
 
-  // Fetch Staff and Product Data
-  const fetchAssignedData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const staffRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/staff`);
-      const productRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products`);
-      const staff = await staffRes.json();
-      const product = await productRes.json();
-      setStaffMember(staff.data);
-      setProductList(product.data);
-    } catch (error) {
-      console.error("Error fetching staff/product data:", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAssignedData();
-  }, [fetchAssignedData]);
 
   // Save Customer Data
   const handleSave = async () => {
     const formData = new FormData();
-    formData.append("name", customerName);
-    formData.append("address", customerAddress);
-    formData.append("mobileNumber", customerMobile);
+    formData.append("customerName", customerName);
+    formData.append("address", address);
+    formData.append("mobileNumber", mobileNumber);
     formData.append("previousBalance", previousBalance);
     formData.append("nearby", nearby);
-    formData.append("paymentTerms", paymentTerms);
+    formData.append("paymentMethod", paymentMethod);
 
     console.log("Form Data", formData);
 
@@ -114,14 +94,14 @@ const CustomerData = () => {
 
       if (isEdit && editId) {
         await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/clients/${editId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/customers/${editId}`,
           formData,
           { headers }
         );
         toast.success("✅ Customer updated successfully");
       } else {
         await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/clients`,
+          `${import.meta.env.VITE_API_BASE_URL}/customers`,
           formData,
           { headers }
         );
@@ -134,10 +114,10 @@ const CustomerData = () => {
       setIsSliderOpen(false);
       setCustomerName("");
       setCustomerAddress("");
-      setCustomerMobile("");
+      setMobileNumber("");
       setPreviousBalance("");
       setNearby("");
-      setPaymentTerms("");
+      setpaymentMethod("");
 
       // Refresh list
       fetchCustomerData();
@@ -151,12 +131,12 @@ const CustomerData = () => {
   const handleEdit = (client) => {
     setIsEdit(true);
     setEditId(client._id);
-    setCustomerName(client.name || "");
+    setCustomerName(client.customerName || "");
     setCustomerAddress(client.address || "");
-    setCustomerMobile(client.mobileNumber || "");
+    setsetMobileNumber(client.mobileNumber || "");
     setPreviousBalance(client.previousBalance || "");
     setNearby(client.nearby || "");
-    setPaymentTerms(client.paymentTerms || "");
+    setpaymentMethod(client.paymentMethod || "");
     setIsSliderOpen(true);
     console.log("Editing Client Data", client);
   };
@@ -194,7 +174,7 @@ const CustomerData = () => {
             }
 
             await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/clients/${id}`,
+              `${import.meta.env.VITE_API_BASE_URL}/customers/${id}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -268,7 +248,7 @@ const CustomerData = () => {
               <div>Mobile No./WhatsApp</div>
               <div>Previous Balance</div>
               <div>Nearby</div>
-              <div>Payment Terms</div>
+              <div>Payment Method</div>
               {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
 
@@ -281,7 +261,8 @@ const CustomerData = () => {
                 >
                   {/* Name */}
                   <div className="text-sm font-medium text-gray-900">
-                    {client.name}
+                    {client.customerName
+                    }
                   </div>
 
                   {/* Address */}
@@ -296,8 +277,8 @@ const CustomerData = () => {
                   {/* Nearby */}
                   <div className="text-sm text-gray-500">{client.nearby}</div>
 
-                  {/* Payment Terms */}
-                  <div className="text-sm text-gray-500">{client.paymentTerms}</div>
+                  {/* Payment Method */}
+                  <div className="text-sm text-gray-500">{client.paymentMethod}</div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (
@@ -363,7 +344,7 @@ const CustomerData = () => {
                     <label className="block text-gray-700 mb-1">Address</label>
                     <input
                       type="text"
-                      value={customerAddress}
+                      value={address}
                       onChange={(e) => setCustomerAddress(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                       placeholder="Enter address"
@@ -373,8 +354,8 @@ const CustomerData = () => {
                     <label className="block text-gray-700 mb-1">Mobile No./WhatsApp</label>
                     <input
                       type="text"
-                      value={customerMobile}
-                      onChange={(e) => setCustomerMobile(e.target.value)}
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                       placeholder="Enter mobile number"
                     />
@@ -402,11 +383,11 @@ const CustomerData = () => {
                   <div>
                     <label className="block text-gray-700 mb-1">Payment Terms</label>
                     <select
-                      value={paymentTerms}
-                      onChange={(e) => setPaymentTerms(e.target.value)}
+                      value={paymentMethod}
+                      onChange={(e) => setpaymentMethod(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
-                      <option value="">Select Payment Terms</option>
+                      <option value="">Select Payment Method</option>
                       <option value="Credit">Credit</option>
                       <option value="Cash">Cash</option>
                       <option value="Cash on Delivery">Cash on Delivery</option>

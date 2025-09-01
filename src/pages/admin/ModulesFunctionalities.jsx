@@ -1,55 +1,28 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { toast } from "react-toastify";
-import axios from 'axios';
+import axios from "axios";
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
 
-// Static data for modules (matching Modules.jsx)
-const staticModuleData = [
-  { _id: "1", name: "User Management" },
-  { _id: "2", name: "Inventory System" },
-  { _id: "3", name: "Payment Processing" },
-];
 
-// Static data for functionalities
-const staticFunctionalityData = [
-  {
-    _id: "f1",
-    moduleId: "1",
-    moduleName: "User Management",
-    functionality: "User Login and Authentication",
-  },
-  {
-    _id: "f2",
-    moduleId: "1",
-    moduleName: "User Management",
-    functionality: "Profile Editing",
-  },
-  {
-    _id: "f3",
-    moduleId: "2",
-    moduleName: "Inventory System",
-    functionality: "Stock Update",
-  },
-  {
-    _id: "f4",
-    moduleId: "3",
-    moduleName: "Payment Processing",
-    functionality: "Process Credit Card Payments",
-  },
-];
 
 const ModulesFunctionalities = () => {
-  const [functionalityList, setFunctionalityList] = useState(staticFunctionalityData);
-  const [modules, setModules] = useState(staticModuleData);
+  const [functionalityList, setFunctionalityList] = useState([]);
+  const [modules, setModules] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [moduleId, setModuleId] = useState("");
-  const [functionality, setFunctionality] = useState("");
+  const [moduleId, setModuleId] = useState(""); // Use moduleId for selection
+  const [name, setName] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const sliderRef = useRef(null); // Ref for the slider element
+  const [loading, setLoading] = useState(false); // Initialize as false
+  const sliderRef = useRef(null);
+
+  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+  const headers = {
+    Authorization: `Bearer ${userInfo?.token || ""}`,
+    "Content-Type": "application/json",
+  };
 
   const handleAddFunctionality = () => {
     setIsSliderOpen(true);
@@ -70,84 +43,91 @@ const ModulesFunctionalities = () => {
         duration: 0.5,
         ease: "power2.in",
         onComplete: () => {
-          // Ensure slider is hidden after animation
-          sliderRef.current.style.display = "none";
+          if (sliderRef.current) {
+            sliderRef.current.style.display = "none";
+          }
         },
       });
     }
   }, [isSliderOpen]);
 
-  // Token
-  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-  console.log("Admin", userInfo?.isAdmin);
-
   // Fetch Functionality Data
   const fetchFunctionalityData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/functionalities`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/functionality`);
+      if (!response.ok) throw new Error("Failed to fetch functionalities");
       const result = await response.json();
-      console.log("Functionalities ", result);
-      setFunctionalityList(result.length > 0 ? result : staticFunctionalityData); // Use API data if available, else static data
+      console.log("Functionalities Response:", result);
+
+      setFunctionalityList(result);
     } catch (error) {
       console.error("Error fetching functionality data:", error);
-      setFunctionalityList(staticFunctionalityData); // Fallback to static data
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    fetchFunctionalityData();
-  }, [fetchFunctionalityData]);
-
-  console.log("Functionality Data", functionalityList);
 
   // Fetch Module Data
   const fetchModuleData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/modules`);
+
+
+      if (!response.ok) throw new Error("Failed to fetch modules");
       const result = await response.json();
-      console.log("Modules ", result);
-      setModules(result.length > 0 ? result : staticModuleData); // Use API data if available, else static data
+      console.log("Modules Response:", result);
+      setModules(result);
     } catch (error) {
       console.error("Error fetching module data:", error);
-      setModules(staticModuleData); // Fallback to static data
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setLoading(false);
     }
   }, []);
 
+  // Fetch data on mount
   useEffect(() => {
     fetchModuleData();
-  }, [fetchModuleData]);
+    fetchFunctionalityData();
+  }, [fetchModuleData, fetchFunctionalityData]);
 
   // Save Functionality Data
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("moduleId", moduleId);
-    formData.append("functionality", functionality);
+
+    console.log("Module Id", moduleId);
+    console.log("Functionality Name", name);
+
+    if (!moduleId || !name) {
+      toast.error("Please select a module and enter a functionality");
+      return;
+    }
+
+    // const formData = new FormData();
+    // formData.append("moduleId", moduleId);
+    // formData.append("name", name);
+
 
     try {
-      const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo?.token || ""}`,
+          // "Content-Type": "multipart/form-data",
+        },
       };
 
       if (isEdit && editId) {
         await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/functionalities/${editId}`,
-          formData,
-          { headers }
+          `${import.meta.env.VITE_API_BASE_URL}/functionality/${editId}`,
+          { moduleId, name },
+          config
         );
         toast.success("✅ Functionality updated successfully");
       } else {
         await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/functionalities`,
-          formData,
-          { headers }
+          `${import.meta.env.VITE_API_BASE_URL}/functionality`,
+          { moduleId, name },
+          config
         );
         toast.success("✅ Functionality added successfully");
       }
@@ -157,10 +137,8 @@ const ModulesFunctionalities = () => {
       setIsEdit(false);
       setIsSliderOpen(false);
       setModuleId("");
-      setFunctionality("");
-
-      // Refresh list
-      fetchFunctionalityData();
+      setName("");
+      fetchFunctionalityData(); // Refresh list
     } catch (error) {
       console.error(error);
       toast.error(`❌ ${isEdit ? "Update" : "Add"} functionality failed`);
@@ -172,20 +150,16 @@ const ModulesFunctionalities = () => {
     setIsEdit(true);
     setEditId(func._id);
     setModuleId(func.moduleId || "");
-    setFunctionality(func.functionality || "");
+    setName(func.name || "");
     setIsSliderOpen(true);
-    console.log("Editing Functionality Data", func);
   };
 
   // Delete Functionality
   const handleDelete = async (id) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
-        actions: "space-x-2",
-        confirmButton:
-          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
-        cancelButton:
-          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+        confirmButton: "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+        cancelButton: "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
       },
       buttonsStyling: false,
     });
@@ -203,41 +177,25 @@ const ModulesFunctionalities = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const token = userInfo?.token;
-            if (!token) {
+            if (!userInfo?.token) {
               toast.error("Authorization token missing!");
               return;
             }
 
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/functionalities/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/functionality/${id}`, {
+              headers: {
+                Authorization: `Bearer ${userInfo.token}`,
+              },
+            });
 
             setFunctionalityList(functionalityList.filter((p) => p._id !== id));
-            swalWithTailwindButtons.fire(
-              "Deleted!",
-              "Functionality deleted successfully.",
-              "success"
-            );
+            swalWithTailwindButtons.fire("Deleted!", "Functionality deleted successfully.", "success");
           } catch (error) {
             console.error("Delete error:", error);
-            swalWithTailwindButtons.fire(
-              "Error!",
-              "Failed to delete Functionality.",
-              "error"
-            );
+            swalWithTailwindButtons.fire("Error!", "Failed to delete Functionality.", "error");
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
-          swalWithTailwindButtons.fire(
-            "Cancelled",
-            "Functionality is safe 🙂",
-            "error"
-          );
+          swalWithTailwindButtons.fire("Cancelled", "Functionality is safe 🙂", "info");
         }
       });
   };
@@ -247,12 +205,7 @@ const ModulesFunctionalities = () => {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader
-            height="150"
-            width="150"
-            radius={1}
-            color="#00809D"
-          />
+          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
         </div>
       </div>
     );
@@ -286,26 +239,17 @@ const ModulesFunctionalities = () => {
 
             {/* Functionality Table */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
-              {functionalityList.map((func, index) => (
+              {functionalityList.map((func) => (
                 <div
-                  key={index}
+                  key={func._id} // Use _id for better key stability
                   className="grid grid-cols-3 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {/* Module */}
-                  <div className="text-sm font-medium text-gray-900">
-                    {func.moduleName}
-                  </div>
-
-                  {/* Functionality */}
-                  <div className="text-sm text-gray-500">{func.functionality}</div>
-
-                  {/* Actions */}
+                  <div className="text-sm font-medium text-gray-900">{func?.moduleId?.moduleName}</div>
+                  <div className="text-sm text-gray-500">{func.name}</div>
                   {userInfo?.isAdmin && (
                     <div className="text-right relative group">
                       <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                      <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg 
-                        opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto 
-                        transition-opacity duration-300 z-50 flex flex-col justify-between">
+                      <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col justify-between">
                         <button
                           onClick={() => handleEdit(func)}
                           className="w-full text-left px-4 py-2 text-sm hover:bg-blue-100 text-blue-600 flex items-center gap-2"
@@ -346,7 +290,6 @@ const ModulesFunctionalities = () => {
               </button>
             </div>
             <div className="p-6 space-y-6">
-              {/* Functionality Section */}
               <div className="border rounded-lg p-4">
                 <div className="grid grid-cols-1 gap-4">
                   <div>
@@ -359,24 +302,23 @@ const ModulesFunctionalities = () => {
                       <option value="">Select Module</option>
                       {modules.map((module) => (
                         <option key={module._id} value={module._id}>
-                          {module.name}
+                          {module.moduleName}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
                     <label className="block text-gray-700 mb-1">Functionality</label>
-                    <textarea
-                      value={functionality}
-                      onChange={(e) => setFunctionality(e.target.value)}
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
-                      placeholder="Enter functionality description"
-                      rows="4"
+                      placeholder="Enter functionality"
                     />
                   </div>
                 </div>
               </div>
-
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200"

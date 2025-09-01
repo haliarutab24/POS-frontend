@@ -5,27 +5,10 @@ import axios from 'axios';
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
 
-// Static data for initial module list
-const staticModuleData = [
-  {
-    _id: "1",
-    name: "User Management",
-    description: "Handles user authentication and profile management",
-  },
-  {
-    _id: "2",
-    name: "Inventory System",
-    description: "Manages stock levels and product tracking",
-  },
-  {
-    _id: "3",
-    name: "Payment Processing",
-    description: "Processes transactions and payment gateways",
-  },
-];
+
 
 const Modules = () => {
-  const [moduleList, setModuleList] = useState(staticModuleData); // Initialize with static data
+  const [moduleList, setModuleList] = useState([]); // Initialize with static data
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [moduleName, setModuleName] = useState("");
   const [description, setDescription] = useState("");
@@ -88,53 +71,62 @@ const Modules = () => {
 
   // Save Module Data
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("name", moduleName);
-    formData.append("description", description);
+  try {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    const token = userInfo?.token;
 
-    try {
-      const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      };
-
-      if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/modules/${editId}`,
-          formData,
-          { headers }
-        );
-        toast.success("✅ Module updated successfully");
-      } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/modules`,
-          formData,
-          { headers }
-        );
-        toast.success("✅ Module added successfully");
-      }
-
-      // Reset fields
-      setEditId(null);
-      setIsEdit(false);
-      setIsSliderOpen(false);
-      setModuleName("");
-      setDescription("");
-
-      // Refresh list
-      fetchModuleData();
-    } catch (error) {
-      console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} module failed`);
+    if (!token) {
+      toast.error("❌ Authorization token missing!");
+      return;
     }
-  };
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json", // important
+    };
+
+    // Build JSON payload (match your API body)
+    const payload = {
+      moduleName,      // make sure backend expects this field
+      description,     // if backend expects it
+    };
+
+    if (isEdit && editId) {
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/modules/${editId}`,
+        payload,
+        { headers }
+      );
+      toast.success("✅ Module updated successfully");
+    } else {
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/modules`,
+        payload,
+        { headers }
+      );
+      toast.success("✅ Module added successfully");
+    }
+
+    // reset states
+    setEditId(null);
+    setIsEdit(false);
+    setIsSliderOpen(false);
+    setModuleName("");
+    setDescription("");
+    fetchModuleData();
+
+  } catch (error) {
+    console.error("Save error:", error.response?.data || error.message);
+    toast.error(`❌ ${isEdit ? "Update" : "Add"} module failed`);
+  }
+};
+
 
   // Edit Module
   const handleEdit = (module) => {
     setIsEdit(true);
     setEditId(module._id);
-    setModuleName(module.name || "");
+    setModuleName(module.moduleName || "");
     setDescription(module.description || "");
     setIsSliderOpen(true);
     console.log("Editing Module Data", module);
@@ -256,7 +248,7 @@ const Modules = () => {
                 >
                   {/* Module Name */}
                   <div className="text-sm font-medium text-gray-900">
-                    {module.name}
+                    {module.moduleName}
                   </div>
 
                   {/* Description */}

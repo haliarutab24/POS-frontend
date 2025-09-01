@@ -5,23 +5,14 @@ import axios from 'axios';
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash, FaCog } from 'react-icons/fa';
+import { format } from "date-fns";
 
-// Static data for expense heads (for the Head dropdown)
-const staticExpenseHeadData = [
-  { _id: "eh1", head: "Office Rent" },
-  { _id: "eh2", head: "Utilities" },
-  { _id: "eh3", head: "Staff Salaries" },
-];
 
-// Static data for expense vouchers
-const staticExpenseVoucherData = [
-  { _id: "ev1", date: "2025-08-01", head: "Office Rent", details: "Rent for August", amount: 5000 },
-  { _id: "ev2", date: "2025-08-15", head: "Utilities", details: "Electricity bill", amount: 1200 },
-  { _id: "ev3", date: "2025-08-25", head: "Staff Salaries", details: "Monthly payroll", amount: 15000 },
-];
 
 const ExpenseVoucher = () => {
-  const [expenseVoucherList, setExpenseVoucherList] = useState(staticExpenseVoucherData);
+  const [expenseVoucherList, setExpenseVoucherList] = useState([]);
+  const [expenseHeadList, setExpenseHeadList] = useState([]);
+
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [date, setDate] = useState("");
   const [head, setHead] = useState("");
@@ -59,19 +50,18 @@ const ExpenseVoucher = () => {
 
   // Token
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-  console.log("Admin", userInfo?.isAdmin);
+  // console.log("Admin", userInfo?.isAdmin);
 
   // Fetch Expense Voucher Data
   const fetchExpenseVoucherData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/expense-vouchers`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/voucher`);
       const result = await response.json();
       console.log("Expense Vouchers ", result);
-      setExpenseVoucherList(result.length > 0 ? result : staticExpenseVoucherData);
+      setExpenseVoucherList(result);
     } catch (error) {
       console.error("Error fetching expense voucher data:", error);
-      setExpenseVoucherList(staticExpenseVoucherData);
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
@@ -81,40 +71,87 @@ const ExpenseVoucher = () => {
     fetchExpenseVoucherData();
   }, [fetchExpenseVoucherData]);
 
-  console.log("Expense Voucher Data", expenseVoucherList);
+  // console.log("Expense Voucher Data", expenseVoucherList);
+
+  // Fetch Expense Head Data
+  const fetchExpenseHeadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/heads`);
+      const result = await response.json();
+      console.log("Expense Heads ", result);
+      setExpenseHeadList(result);
+    } catch (error) {
+      console.error("Error fetching expense head data:", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchExpenseHeadData();
+  }, [fetchExpenseHeadData]);
 
   // Save Expense Voucher Data
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("date", date);
-    formData.append("head", head);
-    formData.append("details", details);
-    formData.append("amount", amount);
-
     try {
-      const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      };
-
-      if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/expense-vouchers/${editId}`,
-          formData,
-          { headers }
-        );
-        toast.success("✅ Expense voucher updated successfully");
-      } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/expense-vouchers`,
-          formData,
-          { headers }
-        );
-        toast.success("✅ Expense voucher added successfully");
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo || !userInfo.token) {
+        toast.error("User not authenticated! Please log in again.");
+        return;
       }
 
-      // Reset fields
+      // Find the _id of the selected head
+      console.log("Current head value:", head); // Debug log
+      console.log("Expense Head List:", expenseHeadList); // Debug log
+      const selectedHead = expenseHeadList.find(headItem => headItem.head === head);
+      const headId = selectedHead ? selectedHead._id : null;
+
+      if (!headId) {
+        toast.error("Invalid expense head selected! Please select a valid head.");
+        return;
+      }
+
+      const payload = {
+        date,
+        head: headId,
+        details,
+        amount: Number(amount),
+      };
+
+      console.log("Saving voucher with payload:", payload);
+
+      let response;
+      if (isEdit && editId) {
+        response = await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/voucher/${editId}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${userInfo.token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        toast.success("Voucher updated successfully!");
+      } else {
+        response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/voucher`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${userInfo.token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        toast.success("Voucher saved successfully!");
+      }
+
+      console.log("API Response:", response.data);
+
+      fetchExpenseVoucherData();
+
       setEditId(null);
       setIsEdit(false);
       setIsSliderOpen(false);
@@ -123,24 +160,28 @@ const ExpenseVoucher = () => {
       setDetails("");
       setAmount("");
 
-      // Refresh list
-      fetchExpenseVoucherData();
     } catch (error) {
-      console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} expense voucher failed`);
+      console.error("Save voucher error:", error.response?.data || error.message);
+      toast.error(`Failed to ${isEdit ? "update" : "save"} voucher: ${error.response?.data?.message || "Unknown error"}`);
     }
   };
 
   // Edit Expense Voucher
   const handleEdit = (voucher) => {
+    // console.log("Voucher ", voucher);
+
     setIsEdit(true);
     setEditId(voucher._id);
-    setDate(voucher.date || "");
-    setHead(voucher.head || "");
+
+    // make sure voucher.createdAt exists before formatting
+    const date = voucher.createdAt ? format(new Date(voucher.createdAt), "yyyy-MM-dd") : "";
+    setDate(date);
+  
+    setHead(voucher?.head?.head || "");
     setDetails(voucher.details || "");
     setAmount(voucher.amount || "");
     setIsSliderOpen(true);
-    console.log("Editing Expense Voucher Data", voucher);
+    // console.log("Editing Expense Voucher Data", voucher);
   };
 
   // Delete Expense Voucher
@@ -266,17 +307,17 @@ const ExpenseVoucher = () => {
                 >
                   {/* Date */}
                   <div className="text-sm font-medium text-gray-900">
-                    {voucher.date}
+                    {voucher?.date}
                   </div>
 
                   {/* Head */}
                   <div className="text-sm font-semibold text-green-600">
-                    {voucher.head}
+                    {voucher?.head?.head}
                   </div>
 
                   {/* Details */}
                   <div className="text-sm text-gray-500">
-                    {voucher.details}
+                    {voucher?.details}
                   </div>
 
                   {/* Amount */}
@@ -351,9 +392,10 @@ const ExpenseVoucher = () => {
                       value={head}
                       onChange={(e) => setHead(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                      required
                     >
-                      <option value="">Select Head</option>
-                      {staticExpenseHeadData.map((headItem) => (
+                      <option value="" disabled>Select a head</option>
+                      {expenseHeadList.map((headItem) => (
                         <option key={headItem._id} value={headItem.head}>
                           {headItem.head}
                         </option>
@@ -393,6 +435,7 @@ const ExpenseVoucher = () => {
                 <button
                   className="bg-newPrimary text-white px-6 py-2 rounded-lg hover:bg-primaryDark transition-colors duration-200"
                   onClick={handleSave}
+                  disabled={!expenseHeadList.length} // Disable if heads not loaded
                 >
                   {isEdit ? "Update Expense Voucher" : "Save Expense Voucher"}
                 </button>

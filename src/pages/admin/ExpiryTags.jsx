@@ -38,31 +38,26 @@ const ExpiryTags = () => {
       gsap.fromTo(
         sliderRef.current,
         { x: "100%", opacity: 0 },
-        { x: "0%", opacity: 1, duration: 1.2, ease: "expo.out" }
+        { x: "0%", opacity: 1, duration: 0.5, ease: "power2.out" }
       );
+    } else if (sliderRef.current) {
+      gsap.to(sliderRef.current, {
+        x: "100%",
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.in",
+        onComplete: () => {
+          sliderRef.current.style.display = "none";
+        },
+      });
     }
   }, [isSliderOpen]);
 
   const handleCloseSlider = () => {
-    if (sliderRef.current) {
-      gsap.to(sliderRef.current, {
-        x: "100%",
-        opacity: 0,
-        duration: 0.8,
-        ease: "expo.in",
-        onComplete: () => {
-          setIsSliderOpen(false);
-          setIsEdit(false);
-          setEditId(null);
-          resetForm();
-        },
-      });
-    } else {
-      setIsSliderOpen(false);
-      setIsEdit(false);
-      setEditId(null);
-      resetForm();
-    }
+    setIsSliderOpen(false);
+    setIsEdit(false);
+    setEditId(null);
+    resetForm();
   };
 
   // Reset form
@@ -202,21 +197,55 @@ const ExpiryTags = () => {
       return;
     }
 
-    Swal.fire({
-      title: "Are you sure?",
-      text: "This will delete the expiry tag.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/expirayTags/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        Swal.fire("Deleted!", "Expiry Tag removed.", "success");
-        fetchExpiryTags();
-      }
+    const swalWithTailwindButtons = Swal.mixin({
+      customClass: {
+        actions: "space-x-2",
+        confirmButton:
+          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+        cancelButton:
+          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+      },
+      buttonsStyling: false,
     });
+
+    swalWithTailwindButtons
+      .fire({
+        title: "Are you sure?",
+        text: "This will delete the expiry tag.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/expirayTags/${id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            swalWithTailwindButtons.fire(
+              "Deleted!",
+              "Expiry Tag removed.",
+              "success"
+            );
+            fetchExpiryTags();
+          } catch (error) {
+            console.error("Delete error:", error);
+            swalWithTailwindButtons.fire(
+              "Error!",
+              "Failed to delete Expiry Tag.",
+              "error"
+            );
+          }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          swalWithTailwindButtons.fire(
+            "Cancelled",
+            "Expiry Tag is safe 🙂",
+            "error"
+          );
+        }
+      });
   };
 
   // Edit expiry tag
@@ -246,79 +275,237 @@ const ExpiryTags = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-newPrimary">Expiry Tags List</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-newPrimary">Expiry Tags List</h1>
+          <p className="text-gray-500 text-sm">Expiry Tag Management Dashboard</p>
+        </div>
         <button
           onClick={() => {
             resetForm();
             setIsSliderOpen(true);
           }}
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark transition-colors duration-200"
         >
           + Add Expiry Tag
         </button>
       </div>
 
       {/* Table */}
-      <div className="rounded-xl shadow p-4 sm:p-6 border border-gray-100">
-        {expiryTagList.map((tag) => (
-          <div key={tag._id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-3">
-            <div className="flex justify-between">
-              <div>
-                <p><strong>{tag.itemName}</strong> ({tag.itemCode})</p>
-                <p>Category: {tag.category}</p>
-                <p>Expiry: {tag.expiryDate}</p>
-              </div>
-              <div>
-                <button onClick={() => handleEdit(tag)} className="text-blue-500 mr-2">Edit</button>
-                <button onClick={() => handleDelete(tag._id)} className="text-red-500">Delete</button>
-              </div>
+      <div className="rounded-xl shadow p-6 border border-gray-100 w-full overflow-hidden">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="w-full">
+            {/* Table Headers */}
+            <div className="hidden lg:grid grid-cols-7 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+              <div>Item Name</div>
+              <div>Item Code</div>
+              <div>Category</div>
+              <div>Price</div>
+              <div>Sale Price</div>
+              <div>Expiry Date</div>
+              <div className="text-right">Actions</div>
+            </div>
+
+            {/* Expiry Tags Table */}
+            <div className="mt-4 flex flex-col gap-[14px] pb-14">
+              {expiryTagList.map((tag, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-7 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                >
+                  {/* Item Name */}
+                  <div className="text-sm font-medium text-gray-900">{tag.itemName}</div>
+
+                  {/* Item Code */}
+                  <div className="text-sm font-semibold text-green-600">{tag.itemCode}</div>
+
+                  {/* Category */}
+                  <div className="text-sm text-gray-500">{tag.category}</div>
+
+                  {/* Price */}
+                  <div className="text-sm text-gray-500">{tag.price}</div>
+
+                  {/* Sale Price */}
+                  <div className="text-sm text-gray-500">{tag.salePrice}</div>
+
+                  {/* Expiry Date */}
+                  <div className="text-sm text-gray-500">{tag.expiryDate}</div>
+
+                  {/* Actions */}
+                  <div className="text-right relative group">
+                    <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
+                    <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg 
+                      opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto 
+                      transition-opacity duration-300 z-50 flex flex-col justify-between">
+                      <button
+                        onClick={() => handleEdit(tag)}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-blue-100 text-blue-600 flex items-center gap-2"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(tag._id)}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-red-100 text-red-500 flex items-center gap-2"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Slider Form */}
+      {/* Right-Side Slider */}
       {isSliderOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-end z-50">
-          <div ref={sliderRef} className="bg-white p-6 h-full overflow-y-auto w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">{isEdit ? "Edit Expiry Tag" : "Add Expiry Tag"}</h2>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50">
+          <div
+            ref={sliderRef}
+            className="fixed right-0 top-0 h-full w-full max-w-lg bg-white shadow-xl overflow-y-auto"
+            style={{ display: "block" }}
+          >
+            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-xl font-bold text-newPrimary">{isEdit ? "Edit Expiry Tag" : "Add Expiry Tag"}</h2>
+              <button
+                className="w-6 h-6 text-white rounded-full flex justify-center items-center hover:text-gray-400 text-xl bg-newPrimary"
+                onClick={handleCloseSlider}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Expiry Tag Section */}
+              <div className="border rounded-lg p-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="block text-gray-700 mb-1">Receipt No</label>
+                    <input
+                      type="text"
+                      value={receiptNo}
+                      onChange={(e) => setReceiptNo(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                      placeholder="Enter receipt number"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Category</label>
+                    <select
+                      value={itemCategory}
+                      onChange={(e) => {
+                        const cat = e.target.value;
+                        setItemCategory(cat);
+                        if (cat) fetchItemsByCategory(cat);
+                      }}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                    >
+                      <option value="">Select Category</option>
+                      {categoryList.map((c) => (
+                        <option key={c._id} value={c.categoryName}>{c.categoryName}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Item Name</label>
+                    <select
+                      value={itemName}
+                      onChange={handleSelectItem}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                    >
+                      <option value="">Select Item</option>
+                      {suggestions.map((s) => (
+                        <option key={s._id} value={s.itemName}>{s.itemName}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Item Code</label>
+                    <input
+                      type="text"
+                      value={itemCode}
+                      onChange={(e) => setItemCode(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                      placeholder="Enter item code"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Price</label>
+                    <input
+                      type="number"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                      placeholder="Enter price"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Sale Price</label>
+                    <input
+                      type="number"
+                      value={salePrice}
+                      onChange={(e) => setSalePrice(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                      placeholder="Enter sale price"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Manufacturer</label>
+                    <input
+                      type="text"
+                      value={manufacturer}
+                      onChange={(e) => setManufacturer(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                      placeholder="Enter manufacturer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Supplier</label>
+                    <input
+                      type="text"
+                      value={supplier}
+                      onChange={(e) => setSupplier(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                      placeholder="Enter supplier"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Manufacture Date</label>
+                    <input
+                      type="datetime-local"
+                      value={manufactureDate}
+                      onChange={(e) => setManufactureDate(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">Expiry Date</label>
+                    <input
+                      type="datetime-local"
+                      value={expiryDate}
+                      onChange={(e) => setExpiryDate(e.target.value)}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
 
-            {/* Form fields */}
-            <input placeholder="Receipt No" value={receiptNo} onChange={(e) => setReceiptNo(e.target.value)} className="w-full border p-2 mb-2" />
-            <select
-              value={itemCategory}
-              onChange={(e) => {
-                const cat = e.target.value;
-                setItemCategory(cat);
-                if (cat) fetchItemsByCategory(cat);
-              }}
-              className="w-full border p-2 mb-2"
-            >
-              <option value="">Select Category</option>
-              {categoryList.map((c) => (
-                <option key={c._id} value={c.categoryName}>{c.categoryName}</option>
-              ))}
-            </select>
-
-            <select value={itemName} onChange={handleSelectItem} className="w-full border p-2 mb-2">
-              <option value="">Select Item</option>
-              {suggestions.map((s) => (
-                <option key={s._id} value={s.itemName}>{s.itemName}</option>
-              ))}
-            </select>
-
-            <input placeholder="Item Code" value={itemCode} onChange={(e) => setItemCode(e.target.value)} className="w-full border p-2 mb-2" />
-            <input placeholder="Price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border p-2 mb-2" />
-            <input placeholder="Sale Price" type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} className="w-full border p-2 mb-2" />
-            <input type="datetime-local" value={manufactureDate} onChange={(e) => setManufactureDate(e.target.value)} className="w-full border p-2 mb-2" />
-            <input type="datetime-local" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="w-full border p-2 mb-2" />
-
-            <div className="flex justify-between">
-              <button onClick={handleSave} className="bg-green-500 text-white px-4 py-2 rounded">Save</button>
-              <button onClick={handleCloseSlider} className="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                  onClick={handleCloseSlider}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-newPrimary text-white px-6 py-2 rounded-lg hover:bg-primaryDark transition-colors duration-200"
+                  onClick={handleSave}
+                >
+                  {isEdit ? "Update Expiry Tag" : "Save Expiry Tag"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

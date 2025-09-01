@@ -513,5 +513,4 @@ const ExpiryTags = () => {
     </div>
   );
 };
-
 export default ExpiryTags;

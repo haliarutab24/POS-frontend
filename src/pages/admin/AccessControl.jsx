@@ -8,9 +8,11 @@ import { FaEdit, FaTrash, FaCog, FaTimes } from "react-icons/fa";
 
 const AssignRights = () => {
   const [moduleList, setModuleList] = useState([]);
+  const [selectedModuleId, setSelectedModuleId] = useState("");
   const [assignRightsList, setAssignRightsList] = useState([]);
   const [groups, setGroups] = useState([]);
   const [functionalityList, setFunctionalityList] = useState([]);
+  const [functionalityModuleList, setFunctionalityModuleList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [groupId, setGroupId] = useState("");
   const [moduleId, setModuleId] = useState("");
@@ -89,23 +91,7 @@ const AssignRights = () => {
     }
   }, []);
 
-  // Fetch Module Data
-  const fetchModuleData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/modules`, { headers });
-      if (!response.ok) throw new Error("Failed to fetch modules");
-      const result = await response.json();
-      console.log("Modules:", result);
-      setModuleList(result);
-    } catch (error) {
-      console.error("Error fetching module data:", error);
-      toast.error("Failed to fetch modules");
-      setModuleList([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+
 
   // Fetch Functionality Data
   const fetchFunctionalityData = useCallback(async () => {
@@ -125,6 +111,61 @@ const AssignRights = () => {
     }
   }, []);
 
+  // Fetch Module Data
+  const fetchModuleData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/modules`, { headers });
+      if (!response.ok) throw new Error("Failed to fetch modules");
+      const result = await response.json();
+      console.log("Modules:", result);
+      setModuleList(result);
+
+    } catch (error) {
+      console.error("Error fetching module data:", error);
+      toast.error("Failed to fetch modules");
+      setModuleList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+
+  const selectModule = (e) => {
+    const id = e.target.value;
+    setModuleId(id);
+    fetchFunctionalityModuleData(id); // ✅ use fresh value directly
+  };
+
+  // Fetch Functionality Data
+  const fetchFunctionalityModuleData = useCallback(async (moduleId) => {
+    if (!moduleId) return;
+    console.log("Module ...... ", moduleId);
+
+    const controller = new AbortController();
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/functionality/module/${moduleId}`,
+        { signal: controller.signal }
+      );
+      if (!response.ok) throw new Error("Failed to fetch functionalities");
+      const result = await response.json();
+      setFunctionalityModuleList(result);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        toast.error("Failed to fetch functionalities");
+        setFunctionalityModuleList([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+    return () => controller.abort();
+  }, []);
+
+
+
+
   // Fetch all data on mount
   useEffect(() => {
     fetchGroupData();
@@ -133,18 +174,26 @@ const AssignRights = () => {
     fetchRights();
   }, [fetchGroupData, fetchModuleData, fetchFunctionalityData, fetchRights]);
 
+
   // Convert functionality names to IDs for API
   const getFunctionalityIds = (names) => {
-    return names
-      .map((name) => {
-        const func = functionalityList.find((f) => f.functionality === name);
-        return func ? func._id : null;
-      })
-      .filter((id) => id !== null);
-  };
+  console.log("Name ", names);
+
+  // Ensure names is an array
+  const nameArray = Array.isArray(names) ? names : Object.values(names);
+
+  return nameArray
+    .map((name) => {
+      const func = functionalityList.find((f) => f.functionality === name);
+      return func ? func._id : null;
+    })
+    .filter((id) => id !== null);
+};
+
 
   // Convert functionality IDs to names for display
   const getFunctionalityNames = (ids) => {
+
     return ids
       .map((id) => {
         const func = functionalityList.find((f) => f._id === id);
@@ -152,6 +201,7 @@ const AssignRights = () => {
       })
       .filter((name) => name !== null);
   };
+  // console.log("Selected Module ", selectedFunctionalities);
 
   // Save Assign Rights Data
   const handleSave = async () => {
@@ -166,18 +216,20 @@ const AssignRights = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("group", _id); // Match API field name
-    formData.append("module", moduleId); // Match API field name
-    formData.append("functionalities", JSON.stringify(functionalityIds)); // Send IDs to API
-
     try {
-      const groupName = groups.find((g) => g._id === _id)?.groupName || "";
+      const groupName = groups.find((g) => g._id === groupId)?.groupName || "";
       const moduleName = moduleList.find((m) => m._id === moduleId)?.moduleName || "";
+
+      const payload = {
+        group: groupId,          // ✅ match backend field
+        module: moduleId,        // ✅ match backend field
+        functionalities: functionalityIds,
+      };
+
       const config = {
         headers: {
           Authorization: `Bearer ${userInfo?.token || ""}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json", // ✅ correct
         },
       };
 
@@ -185,28 +237,28 @@ const AssignRights = () => {
       if (isEdit && editId) {
         newRight = {
           _id: editId,
-          _id: groupId,
+          groupId,
           groupName,
           moduleId,
           moduleName,
-          functionalities: functionalityIds, // Store IDs locally
+          functionalities: functionalityIds,
         };
         setAssignRightsList(
           assignRightsList.map((right) => (right._id === editId ? newRight : right))
         );
-        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/rights/${editId}`, formData, config);
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/rights/${editId}`, payload, config);
         toast.success("✅ Right updated successfully");
       } else {
         newRight = {
           _id: `r${assignRightsList.length + 1}`,
-          groupId: _id,
+          groupId,
           groupName,
           moduleId,
           moduleName,
-          functionalities: functionalityIds, // Store IDs locally
+          functionalities: functionalityIds,
         };
         setAssignRightsList([...assignRightsList, newRight]);
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/rights`, formData, config);
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/rights`, payload, config);
         toast.success("✅ Right added successfully");
       }
 
@@ -223,6 +275,7 @@ const AssignRights = () => {
       toast.error(`❌ ${isEdit ? "Update" : "Add"} right failed`);
     }
   };
+
 
   // Edit Assign Rights
   const handleEdit = (right) => {
@@ -442,7 +495,7 @@ const AssignRights = () => {
                     <label className="block text-gray-700 mb-1">Module</label>
                     <select
                       value={moduleId}
-                      onChange={(e) => setModuleId(e.target.value)}
+                      onChange={selectModule}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
                       <option value="">Select Module</option>
@@ -452,6 +505,7 @@ const AssignRights = () => {
                         </option>
                       ))}
                     </select>
+
                   </div>
                   <div>
                     <label className="block text-gray-700 mb-1">Functionalities</label>
@@ -460,7 +514,7 @@ const AssignRights = () => {
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
                       <option value="">Select functionality</option>
-                      {functionalityList
+                      {functionalityModuleList
                         .filter((func) => !selectedFunctionalities.includes(func.functionality))
                         .map((func) => (
                           <option key={func._id} value={func.functionality}>

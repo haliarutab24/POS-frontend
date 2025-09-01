@@ -14,7 +14,6 @@ const SalesInvoice = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [isReturn, setIsReturn] = useState(false);
   const [returnDescription, setReturnDescription] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchIndex, setSearchIndex] = useState(null);
@@ -37,10 +36,11 @@ const SalesInvoice = () => {
   const [returnAmount, setReturnAmount] = useState(0);
   const [balanceAmt, setBalanceAmt] = useState(0);     // ✅ was missing
 
-  const [totalPaid, setTotalPaid] = useState(0); // ✅ tracks cumulative paid
+  
   const [editId, setEditId] = useState(null);
   const [itemCategory, setItemCategory] = useState("");
-  const [categoryList, setCategoryList] = useState([]); const [suggestionsNo, setSuggestionsNo] = useState([]);
+  const [categoryList, setCategoryList] = useState([]); 
+  const [suggestionsNo, setSuggestionsNo] = useState([]);
 
 
   // Animate slider

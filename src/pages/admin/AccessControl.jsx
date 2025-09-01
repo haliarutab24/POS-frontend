@@ -1,76 +1,30 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { toast } from "react-toastify";
-import axios from 'axios';
+import axios from "axios";
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
-import { FaEdit, FaTrash, FaCog, FaTimes } from 'react-icons/fa';
-
-// Static data for groups
-const staticGroupData = [
-  { _id: "g1", name: "Admin" },
-  { _id: "g2", name: "Manager" },
-  { _id: "g3", name: "Viewer" },
-];
-
-// Static data for modules
-const staticModuleData = [
-  { _id: "1", name: "User Management" },
-  { _id: "2", name: "Inventory System" },
-  { _id: "3", name: "Payment Processing" },
-];
-
-// Static data for functionalities (independent of modules)
-const staticFunctionalityData = [
-  { _id: "f1", functionality: "User Login and Authentication" },
-  { _id: "f2", functionality: "Profile Editing" },
-  { _id: "f3", functionality: "Stock Update" },
-  { _id: "f4", functionality: "Process Credit Card Payments" },
-  { _id: "f5", functionality: "View Reports" },
-  { _id: "f6", functionality: "Manage Settings" },
-];
-
-// Static data for assign rights
-const staticAssignRightsData = [
-  {
-    _id: "r1",
-    groupId: "g1",
-    groupName: "Admin",
-    moduleId: "1",
-    moduleName: "User Management",
-    functionalities: JSON.stringify(["User Login and Authentication", "Profile Editing"]),
-  },
-  {
-    _id: "r2",
-    groupId: "g2",
-    groupName: "Manager",
-    moduleId: "2",
-    moduleName: "Inventory System",
-    functionalities: JSON.stringify(["Stock Update"]),
-  },
-  {
-    _id: "r3",
-    groupId: "g3",
-    groupName: "Viewer",
-    moduleId: "3",
-    moduleName: "Payment Processing",
-    functionalities: JSON.stringify(["Process Credit Card Payments"]),
-  },
-];
+import { FaEdit, FaTrash, FaCog, FaTimes } from "react-icons/fa";
 
 const AssignRights = () => {
-  const [assignRightsList, setAssignRightsList] = useState(staticAssignRightsData);
-  const [groups, setGroups] = useState(staticGroupData);
-  const [modules, setModules] = useState(staticModuleData);
-  const [functionalities, setFunctionalities] = useState(staticFunctionalityData);
+  const [moduleList, setModuleList] = useState([]);
+  const [assignRightsList, setAssignRightsList] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [functionalityList, setFunctionalityList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [groupId, setGroupId] = useState("");
   const [moduleId, setModuleId] = useState("");
-  const [selectedFunctionalities, setSelectedFunctionalities] = useState([]);
+  const [selectedFunctionalities, setSelectedFunctionalities] = useState([]); // Stores names for UI
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const sliderRef = useRef(null);
+
+  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+  const headers = {
+    Authorization: `Bearer ${userInfo?.token || ""}`,
+    "Content-Type": "application/json",
+  };
 
   const handleAddAssignRights = () => {
     setIsSliderOpen(true);
@@ -79,6 +33,7 @@ const AssignRights = () => {
   // GSAP Animation for Slider
   useEffect(() => {
     if (isSliderOpen) {
+      sliderRef.current.style.display = "block";
       gsap.fromTo(
         sliderRef.current,
         { x: "100%", opacity: 0 },
@@ -91,51 +46,46 @@ const AssignRights = () => {
         duration: 0.5,
         ease: "power2.in",
         onComplete: () => {
-          sliderRef.current.style.display = "none";
+          if (sliderRef.current) {
+            sliderRef.current.style.display = "none";
+          }
         },
       });
     }
   }, [isSliderOpen]);
 
-  // Token
-  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-  console.log("Admin", userInfo?.isAdmin);
-
   // Fetch Assign Rights Data
-  const fetchAssignRightsData = useCallback(async () => {
+  const fetchRights = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/assignRights`);
-      const result = await response.json();
-      console.log("Assign Rights ", result);
-      setAssignRightsList(result.length > 0 ? result : staticAssignRightsData);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/rights`, { headers });
+      if (!res.ok) throw new Error("Failed to fetch rights");
+      const result = await res.json();
+      console.log("Fetched Rights:", result);
+      setAssignRightsList(result);
     } catch (error) {
-      console.error("Error fetching assign rights data:", error);
-      setAssignRightsList(staticAssignRightsData);
+      console.error("Error fetching rights:", error);
+      toast.error("Failed to fetch rights");
+      setAssignRightsList([]);
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    fetchAssignRightsData();
-  }, [fetchAssignRightsData]);
-
-  console.log("Assign Rights Data", assignRightsList);
 
   // Fetch Group Data
   const fetchGroupData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/groups`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/groups`, { headers });
+      if (!response.ok) throw new Error("Failed to fetch groups");
       const result = await response.json();
-      console.log("Groups ", result);
-      setGroups(result.length > 0 ? result : staticGroupData);
+      setGroups(result);
     } catch (error) {
       console.error("Error fetching group data:", error);
-      setGroups(staticGroupData);
+      toast.error("Failed to fetch groups");
+      setGroups([]);
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setLoading(false);
     }
   }, []);
 
@@ -143,15 +93,17 @@ const AssignRights = () => {
   const fetchModuleData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/modules`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/modules`, { headers });
+      if (!response.ok) throw new Error("Failed to fetch modules");
       const result = await response.json();
-      console.log("Modules ", result);
-      setModules(result.length > 0 ? result : staticModuleData);
+      console.log("Modules:", result);
+      setModuleList(result);
     } catch (error) {
       console.error("Error fetching module data:", error);
-      setModules(staticModuleData);
+      toast.error("Failed to fetch modules");
+      setModuleList([]);
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setLoading(false);
     }
   }, []);
 
@@ -159,75 +111,102 @@ const AssignRights = () => {
   const fetchFunctionalityData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/functionalities`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/functionality`, { headers });
+      if (!response.ok) throw new Error("Failed to fetch functionalities");
       const result = await response.json();
-      console.log("Functionalities ", result);
-      setFunctionalities(result.length > 0 ? result : staticFunctionalityData);
+      console.log("Functionalities Response:", result);
+      setFunctionalityList(result);
     } catch (error) {
       console.error("Error fetching functionality data:", error);
-      setFunctionalities(staticFunctionalityData);
+      toast.error("Failed to fetch functionalities");
+      setFunctionalityList([]);
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setLoading(false);
     }
   }, []);
 
+  // Fetch all data on mount
   useEffect(() => {
     fetchGroupData();
     fetchModuleData();
     fetchFunctionalityData();
-  }, [fetchGroupData, fetchModuleData, fetchFunctionalityData]);
+    fetchRights();
+  }, [fetchGroupData, fetchModuleData, fetchFunctionalityData, fetchRights]);
+
+  // Convert functionality names to IDs for API
+  const getFunctionalityIds = (names) => {
+    return names
+      .map((name) => {
+        const func = functionalityList.find((f) => f.functionality === name);
+        return func ? func._id : null;
+      })
+      .filter((id) => id !== null);
+  };
+
+  // Convert functionality IDs to names for display
+  const getFunctionalityNames = (ids) => {
+    return ids
+      .map((id) => {
+        const func = functionalityList.find((f) => f._id === id);
+        return func ? func.functionality : null;
+      })
+      .filter((name) => name !== null);
+  };
 
   // Save Assign Rights Data
   const handleSave = async () => {
+    if (!groupId || !moduleId || selectedFunctionalities.length === 0) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    const functionalityIds = getFunctionalityIds(selectedFunctionalities);
+    if (functionalityIds.length === 0) {
+      toast.error("Invalid functionalities selected");
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("groupId", groupId);
-    formData.append("moduleId", moduleId);
-    formData.append("functionalities", JSON.stringify(selectedFunctionalities));
+    formData.append("group", _id); // Match API field name
+    formData.append("module", moduleId); // Match API field name
+    formData.append("functionalities", JSON.stringify(functionalityIds)); // Send IDs to API
 
     try {
-      const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
+      const groupName = groups.find((g) => g._id === _id)?.groupName || "";
+      const moduleName = moduleList.find((m) => m._id === moduleId)?.moduleName || "";
+      const config = {
+        headers: {
+          Authorization: `Bearer ${userInfo?.token || ""}`,
+          "Content-Type": "multipart/form-data",
+        },
       };
-
-      const groupName = groups.find((g) => g._id === groupId)?.name || "";
-      const moduleName = modules.find((m) => m._id === moduleId)?.name || "";
 
       let newRight;
       if (isEdit && editId) {
         newRight = {
           _id: editId,
-          groupId,
+          _id: groupId,
           groupName,
           moduleId,
           moduleName,
-          functionalities: JSON.stringify(selectedFunctionalities),
+          functionalities: functionalityIds, // Store IDs locally
         };
         setAssignRightsList(
           assignRightsList.map((right) => (right._id === editId ? newRight : right))
         );
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/assignRights/${editId}`,
-          formData,
-          { headers }
-        );
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/rights/${editId}`, formData, config);
         toast.success("✅ Right updated successfully");
       } else {
         newRight = {
           _id: `r${assignRightsList.length + 1}`,
-          groupId,
+          groupId: _id,
           groupName,
           moduleId,
           moduleName,
-          functionalities: JSON.stringify(selectedFunctionalities),
+          functionalities: functionalityIds, // Store IDs locally
         };
         setAssignRightsList([...assignRightsList, newRight]);
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/assignRights`,
-          formData,
-          { headers }
-        );
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/rights`, formData, config);
         toast.success("✅ Right added successfully");
       }
 
@@ -238,6 +217,7 @@ const AssignRights = () => {
       setGroupId("");
       setModuleId("");
       setSelectedFunctionalities([]);
+      fetchRights();
     } catch (error) {
       console.error(error);
       toast.error(`❌ ${isEdit ? "Update" : "Add"} right failed`);
@@ -248,22 +228,22 @@ const AssignRights = () => {
   const handleEdit = (right) => {
     setIsEdit(true);
     setEditId(right._id);
-    setGroupId(right.groupId || "");
-    setModuleId(right.moduleId || "");
-    setSelectedFunctionalities(right.functionalities ? JSON.parse(right.functionalities) : []);
+    setGroupId(right._id || ""); // Match API field name
+    setModuleId(right.moduleId || ""); // Match API field name
+    // Convert functionality IDs to names for UI
+    const functionalities = Array.isArray(right.functionalities)
+      ? getFunctionalityNames(right.functionalities)
+      : [];
+    setSelectedFunctionalities(functionalities);
     setIsSliderOpen(true);
-    console.log("Editing Right Data", right);
   };
 
   // Delete Assign Rights
   const handleDelete = async (id) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
-        actions: "space-x-2",
-        confirmButton:
-          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
-        cancelButton:
-          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+        confirmButton: "bg-newPrimary text-white px-4 py-2 rounded-lg",
+        cancelButton: "bg-gray-300 text-gray-700 px-4 py-2 rounded-lg",
       },
       buttonsStyling: false,
     });
@@ -281,41 +261,25 @@ const AssignRights = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const token = userInfo?.token;
-            if (!token) {
+            if (!userInfo?.token) {
               toast.error("Authorization token missing!");
               return;
             }
 
-            await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/assignRights/${id}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/rights/${id}`, {
+              headers: {
+                Authorization: `Bearer ${userInfo.token}`,
+              },
+            });
 
             setAssignRightsList(assignRightsList.filter((p) => p._id !== id));
-            swalWithTailwindButtons.fire(
-              "Deleted!",
-              "Right deleted successfully.",
-              "success"
-            );
+            swalWithTailwindButtons.fire("Deleted!", "Right deleted successfully.", "success");
           } catch (error) {
             console.error("Delete error:", error);
-            swalWithTailwindButtons.fire(
-              "Error!",
-              "Failed to delete Right.",
-              "error"
-            );
+            swalWithTailwindButtons.fire("Error!", "Failed to delete Right.", "error");
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
-          swalWithTailwindButtons.fire(
-            "Cancelled",
-            "Right is safe 🙂",
-            "error"
-          );
+          swalWithTailwindButtons.fire("Cancelled", "Right is safe 🙂", "info");
         }
       });
   };
@@ -326,7 +290,6 @@ const AssignRights = () => {
     if (selectedValue && !selectedFunctionalities.includes(selectedValue)) {
       setSelectedFunctionalities([...selectedFunctionalities, selectedValue]);
     }
-    // Reset the select value
     e.target.value = "";
   };
 
@@ -337,17 +300,32 @@ const AssignRights = () => {
     );
   };
 
+  // Render functionalities safely
+  const renderFunctionalities = (functionalities) => {
+    if (!functionalities) return "";
+    if (Array.isArray(functionalities)) {
+      const names = getFunctionalityNames(functionalities);
+      return names.length > 0 ? names.join(", ") : "Unknown functionalities";
+    }
+    if (typeof functionalities === "string") {
+      try {
+        const parsed = JSON.parse(functionalities);
+        const names = getFunctionalityNames(parsed);
+        return names.length > 0 ? names.join(", ") : "Unknown functionalities";
+      } catch (error) {
+        console.error("Error parsing functionalities:", error);
+        return "Invalid functionalities";
+      }
+    }
+    return "Invalid functionalities";
+  };
+
   // Show loading spinner
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader
-            height="150"
-            width="150"
-            radius={1}
-            color="#00809D"
-          />
+          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
         </div>
       </div>
     );
@@ -387,33 +365,20 @@ const AssignRights = () => {
 
             {/* Assign Rights Table */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
-              {assignRightsList.map((right, index) => (
+              {assignRightsList.map((right) => (
                 <div
-                  key={index}
+                  key={right._id}
                   className="grid grid-cols-4 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  {/* Group */}
-                  <div className="text-sm font-medium text-gray-900">
-                    {right.groupName}
-                  </div>
-
-                  {/* Module */}
-                  <div className="text-sm font-semibold text-green-600">
-                    {right.moduleName}
-                  </div>
-
-                  {/* Functionalities */}
+                  <div className="text-sm font-medium text-gray-900">{right.groupId}</div>
+                  <div className="text-sm font-semibold text-green-600">{right.moduleId}</div>
                   <div className="text-sm text-gray-500">
-                    {right.functionalities ? JSON.parse(right.functionalities).join(", ") : ""}
+                    {renderFunctionalities(right.name)}
                   </div>
-
-                  {/* Actions */}
                   {userInfo?.isAdmin && (
                     <div className="text-right relative group">
                       <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
-                      <div className="absolute right-0 top-6 w-28 h-20 bg-white border border-gray-200 rounded-md shadow-lg 
-                        opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto 
-                        transition-opacity duration-300 z-50 flex flex-col justify-between">
+                      <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50 flex flex-col justify-between">
                         <button
                           onClick={() => handleEdit(right)}
                           className="w-full text-left px-4 py-2 text-sm hover:bg-blue-100 text-blue-600 flex items-center gap-2"
@@ -456,7 +421,6 @@ const AssignRights = () => {
               </button>
             </div>
             <div className="p-6 space-y-6">
-              {/* Assign Rights Section */}
               <div className="border rounded-lg p-4">
                 <div className="grid grid-cols-1 gap-4">
                   <div>
@@ -469,7 +433,7 @@ const AssignRights = () => {
                       <option value="">Select Group</option>
                       {groups.map((group) => (
                         <option key={group._id} value={group._id}>
-                          {group.name}
+                          {group.groupName}
                         </option>
                       ))}
                     </select>
@@ -482,9 +446,9 @@ const AssignRights = () => {
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
                       <option value="">Select Module</option>
-                      {modules.map((module) => (
+                      {moduleList.map((module) => (
                         <option key={module._id} value={module._id}>
-                          {module.name}
+                          {module.moduleName}
                         </option>
                       ))}
                     </select>
@@ -496,17 +460,14 @@ const AssignRights = () => {
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
                       <option value="">Select functionality</option>
-                      {functionalities
-                        .filter(func => !selectedFunctionalities.includes(func.functionality))
+                      {functionalityList
+                        .filter((func) => !selectedFunctionalities.includes(func.functionality))
                         .map((func) => (
                           <option key={func._id} value={func.functionality}>
-                            {func.functionality}
+                            {func.name}
                           </option>
-                        ))
-                      }
+                        ))}
                     </select>
-                    
-                    {/* Selected Functionalities Tags */}
                     <div className="mt-2 flex flex-wrap gap-2">
                       {selectedFunctionalities.map((func, index) => (
                         <div
@@ -527,7 +488,6 @@ const AssignRights = () => {
                   </div>
                 </div>
               </div>
-
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200"

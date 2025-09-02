@@ -194,9 +194,8 @@ const ItemList = () => {
     formData.append("itemUnit", itemUnit);
     formData.append("perUnit", parseInt(perUnit) || 0);
     formData.append("purchase", parseFloat(purchase) || 0);
-    formData.append("sales", parseFloat(sales) || 0);
+    formData.append("price", parseFloat(sales) || 0);
     formData.append("stock", parseInt(stock) || 0);
-    formData.append("price", parseFloat(price) || 0);
     formData.append("labelBarcode", barcode);
     formData.append("reorder", parseInt(reorder) || 0);
     formData.append("isEnable", enabled);
@@ -450,7 +449,7 @@ const ItemList = () => {
             <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.purchase}</div>
 
             {/* Sales */}
-            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.sales}</div>
+            <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.price}</div>
 
             {/* Stock */}
             <div className="min-w-[80px] text-sm font-semibold text-gray-500">{item.stock}</div>

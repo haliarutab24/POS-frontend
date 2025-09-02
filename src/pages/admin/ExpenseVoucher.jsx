@@ -145,6 +145,7 @@ const ExpenseVoucher = () => {
             },
           }
         );
+        await axios.post('http://localhost:5000/api/dayBook/refresh');
         toast.success("Voucher saved successfully!");
       }
 
@@ -307,7 +308,7 @@ const ExpenseVoucher = () => {
                 >
                   {/* Date */}
                   <div className="text-sm font-medium text-gray-900">
-                    {voucher?.date}
+                    {voucher.date ? format(new Date(voucher.date), "yyyy-MM-dd") : ""}
                   </div>
 
                   {/* Head */}

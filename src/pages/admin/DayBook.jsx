@@ -1,15 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { PuffLoader } from "react-spinners";
+import { format } from "date-fns";
 
 // Static data for day book entries
-const staticDayBookData = [
-  { _id: "db1", date: "2025-08-01", sales: 10000, expense: 5000 },
-  { _id: "db2", date: "2025-08-15", sales: 7500, expense: 1200 },
-  { _id: "db3", date: "2025-08-29", sales: 12000, expense: 3000 },
-];
 
 const DayBook = () => {
-  const [dayBookList, setDayBookList] = useState(staticDayBookData);
+  const [dayBookList, setDayBookList] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -18,13 +15,12 @@ const DayBook = () => {
   const fetchDayBookData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/day-book`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/dayBook`);
       const result = await response.json();
       console.log("Day Book ", result);
-      setDayBookList(result.length > 0 ? result : staticDayBookData);
+      setDayBookList(result);
     } catch (error) {
       console.error("Error fetching day book data:", error);
-      setDayBookList(staticDayBookData);
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
@@ -34,23 +30,24 @@ const DayBook = () => {
     fetchDayBookData();
   }, [fetchDayBookData]);
 
-  console.log("Day Book Data", dayBookList);
 
   // Filter day book entries based on date range
-  const filteredDayBookList = dayBookList.filter((entry) => {
-    const entryDate = new Date(entry.date);
-    const from = fromDate ? new Date(fromDate) : null;
-    const to = toDate ? new Date(toDate) : null;
+  const filteredDayBookList = Array.isArray(dayBookList)
+    ? dayBookList.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      const from = fromDate ? new Date(fromDate) : null;
+      const to = toDate ? new Date(toDate) : null;
 
-    if (from && to) {
-      return entryDate >= from && entryDate <= to;
-    } else if (from) {
-      return entryDate >= from;
-    } else if (to) {
-      return entryDate <= to;
-    }
-    return true;
-  });
+      if (from && to) {
+        return entryDate >= from && entryDate <= to;
+      } else if (from) {
+        return entryDate >= from;
+      } else if (to) {
+        return entryDate <= to;
+      }
+      return true;
+    })
+    : [];
 
   // Show loading spinner
   if (loading) {
@@ -119,7 +116,7 @@ const DayBook = () => {
                 >
                   {/* Date */}
                   <div className="text-sm font-medium text-gray-900">
-                    {entry.date}
+                    {entry.date ? format(new Date(entry.date), "yyyy-MM-dd") : "" }
                   </div>
 
                   {/* Sales */}

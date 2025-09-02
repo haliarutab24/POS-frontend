@@ -80,11 +80,13 @@ const ExpenseHead = () => {
     formData.append("head", head);
     formData.append("description", description);
 
+    console.log("formdata", formData);
+    
     try {
       const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
       const headers = {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {

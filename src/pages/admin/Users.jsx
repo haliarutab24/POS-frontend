@@ -4,34 +4,11 @@ import { toast } from "react-toastify";
 import axios from 'axios';
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+
 
 const Users = () => {
-  const [userList, setUserList] = useState([
-    {
-      _id: "1",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      mobileNumber: "1234567890",
-      designation: "Developer",
-      password: "********",
-    },
-    {
-      _id: "2",
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      mobileNumber: "0987654321",
-      designation: "Manager",
-      password: "********",
-    },
-    {
-      _id: "3",
-      name: "Alice Johnson",
-      email: "alice.johnson@example.com",
-      mobileNumber: "5551234567",
-      designation: "Designer",
-      password: "********",
-    },
-  ]);
+  const [userList, setUserList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [isChangePassword, setIsChangePassword] = useState(false);
   const [name, setName] = useState("");
@@ -43,6 +20,7 @@ const Users = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const sliderRef = useRef(null); // Ref for the slider element
 
   const handleAddUser = () => {
@@ -53,23 +31,51 @@ const Users = () => {
   // GSAP Animation for Slider
   useEffect(() => {
     if (isSliderOpen) {
-      gsap.fromTo(
-        sliderRef.current,
-        { x: "100%", opacity: 0 },
-        { x: "0%", opacity: 1, duration: 0.5, ease: "power2.out" }
-      );
+      if (sliderRef.current) {
+        sliderRef.current.style.display = "block"; // show again when opening
+        gsap.fromTo(
+          sliderRef.current,
+          { x: "100%", opacity: 0 },
+          { x: "0%", opacity: 1, duration: 0.5, ease: "power2.out" }
+        );
+      }
     } else {
-      gsap.to(sliderRef.current, {
-        x: "100%",
-        opacity: 0,
-        duration: 0.5,
-        ease: "power2.in",
-        onComplete: () => {
-          sliderRef.current.style.display = "none";
-        },
-      });
+      if (sliderRef.current) {
+        gsap.to(sliderRef.current, {
+          x: "100%",
+          opacity: 0,
+          duration: 0.5,
+          ease: "power2.in",
+          onComplete: () => {
+            if (sliderRef.current) {
+              sliderRef.current.style.display = "none";
+            }
+          },
+        });
+      }
     }
   }, [isSliderOpen]);
+
+
+  // Fetch Expense Head Data
+  const fetchCompanyUser = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/company-users`);
+      const result = await response.json();
+      console.log("Company User ", result);
+      setUserList(result);
+    } catch (error) {
+      console.error("Error fetching expense head data:", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCompanyUser();
+  }, [fetchCompanyUser]);
+
 
   // Token
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -77,31 +83,39 @@ const Users = () => {
 
   // Save User Data
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", email);
-    formData.append("mobileNumber", mobileNumber);
-    formData.append("designation", designation);
-    formData.append("password", password);
+    const payload = {
+      name,
+      email,
+      number: mobileNumber,
+      designation,
+      password,
+    };
 
-    console.log("Form Data", formData);
+    console.log("Payload", payload);
 
     try {
       const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
       const headers = {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json", // ✅ JSON
       };
 
-      let newUser;
+      let response;
       if (isEdit && editId) {
-        newUser = { _id: editId, name, email, mobileNumber, designation, password: "********" };
-        setUserList(userList.map((user) => (user._id === editId ? newUser : user)));
-        toast.success("✅ User updated successfully");
+        response = await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/company-users/${editId}`,
+          payload,
+          { headers }
+        );
+        toast.success("Company User updated successfully!");
       } else {
-        newUser = { _id: `${userList.length + 1}`, name, email, mobileNumber, designation, password: "********" };
-        setUserList([...userList, newUser]);
-        toast.success("✅ User added successfully");
+        response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/company-users`,
+          payload,
+          { headers }
+        );
+        toast.success("Company User saved successfully!");
+        fetchCompanyUser()
       }
 
       // Reset fields
@@ -114,10 +128,11 @@ const Users = () => {
       setDesignation("");
       setPassword("");
     } catch (error) {
-      console.error(error);
+      console.error("Error creating company user:", error.response?.data || error.message);
       toast.error(`❌ ${isEdit ? "Update" : "Add"} user failed`);
     }
   };
+
 
   // Change Password
   const handleChangePassword = async () => {
@@ -207,7 +222,7 @@ const Users = () => {
             }
 
             await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/users/${id}`,
+              `${import.meta.env.VITE_API_BASE_URL}/company-users/${id}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -306,7 +321,16 @@ const Users = () => {
                   <div className="text-sm text-gray-500">{user.designation}</div>
 
                   {/* Password */}
-                  <div className="text-sm text-gray-500">{user.password}</div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    {showPassword ? user.password : "•••••••"}
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="ml-2 text-gray-600 hover:text-gray-800"
+                    >
+                      {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                    </button>
+                  </div>
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (

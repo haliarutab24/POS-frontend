@@ -52,7 +52,7 @@ const links = [
     label: "Security",
     icon: <FaUserShield />,
     children: [
-      { to: "/admin/company", label: "Company", icon: <FaInfoCircle /> },
+      // { to: "/admin/company", label: "Company", icon: <FaInfoCircle /> },
       { to: "/admin/users", label: "Users", icon: <FaUserCog /> },
 
       { to: "/admin/modules", label: "Modules", icon: <FaCubes /> },

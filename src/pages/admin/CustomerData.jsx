@@ -75,34 +75,34 @@ const CustomerData = () => {
 
   // Save Customer Data
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("customerName", customerName);
-    formData.append("address", address);
-    formData.append("mobileNumber", mobileNumber);
-    formData.append("previousBalance", previousBalance);
-    formData.append("nearby", nearby);
-    formData.append("paymentMethod", paymentMethod);
+const payload = {
+  customerName,
+  address,
+  mobileNumber,
+  previousBalance,
+  nearby,
+  paymentMethod,
+};
 
-    console.log("Form Data", formData);
+console.log("Payload", payload);
 
     try {
       const { token } = JSON.parse(localStorage.getItem("userInfo")) || {};
       const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`
       };
 
       if (isEdit && editId) {
         await axios.put(
           `${import.meta.env.VITE_API_BASE_URL}/customers/${editId}`,
-          formData,
+          payload,
           { headers }
         );
         toast.success("✅ Customer updated successfully");
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/customers`,
-          formData,
+          payload,
           { headers }
         );
         toast.success("✅ Customer added successfully");
@@ -117,7 +117,7 @@ const CustomerData = () => {
       setMobileNumber("");
       setPreviousBalance("");
       setNearby("");
-      setpaymentMethod("");
+      setPaymentMethod("");
 
       // Refresh list
       fetchCustomerData();
@@ -133,7 +133,7 @@ const CustomerData = () => {
     setEditId(client._id);
     setCustomerName(client.customerName || "");
     setCustomerAddress(client.address || "");
-    setsetMobileNumber(client.mobileNumber || "");
+    // setsetMobileNumber(client.mobileNumber || "");
     setPreviousBalance(client.previousBalance || "");
     setNearby(client.nearby || "");
     setpaymentMethod(client.paymentMethod || "");
@@ -384,11 +384,11 @@ const CustomerData = () => {
                     <label className="block text-gray-700 mb-1">Payment Terms</label>
                     <select
                       value={paymentMethod}
-                      onChange={(e) => setpaymentMethod(e.target.value)}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
                       className="w-full p-2 border rounded focus:ring-2 focus:ring-newPrimary/50 focus:border-newPrimary outline-none transition-all"
                     >
                       <option value="">Select Payment Method</option>
-                      <option value="Credit">Credit</option>
+                      <option value="Card">Card</option>   {/* ✅ Matches schema */}
                       <option value="Cash">Cash</option>
                       <option value="Cash on Delivery">Cash on Delivery</option>
                     </select>

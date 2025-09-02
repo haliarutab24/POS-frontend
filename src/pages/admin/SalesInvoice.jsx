@@ -220,7 +220,7 @@ const SalesInvoice = () => {
   const handleSaveInvoice = async () => {
     const formData = {
       customerName,
-      mobileNo,
+      mobile: mobileNo,
       items,
       discount,
       givenAmount,

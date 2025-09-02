@@ -8,7 +8,6 @@ import { FaEdit, FaTrash, FaCog, FaTimes } from "react-icons/fa";
 
 const AssignRights = () => {
   const [moduleList, setModuleList] = useState([]);
-  const [selectedModuleId, setSelectedModuleId] = useState("");
   const [assignRightsList, setAssignRightsList] = useState([]);
   const [groups, setGroups] = useState([]);
   const [functionalityList, setFunctionalityList] = useState([]);
@@ -133,6 +132,7 @@ const AssignRights = () => {
 
   const selectModule = (e) => {
     const id = e.target.value;
+    setSelectedFunctionalities([])
     setModuleId(id);
     fetchFunctionalityModuleData(id); // ✅ use fresh value directly
   };
@@ -175,21 +175,6 @@ const AssignRights = () => {
   }, [fetchGroupData, fetchModuleData, fetchFunctionalityData, fetchRights]);
 
 
-  // Convert functionality names to IDs for API
-  const getFunctionalityIds = (names) => {
-  console.log("Name ", names);
-
-  // Ensure names is an array
-  const nameArray = Array.isArray(names) ? names : Object.values(names);
-
-  return nameArray
-    .map((name) => {
-      const func = functionalityList.find((f) => f.functionality === name);
-      return func ? func._id : null;
-    })
-    .filter((id) => id !== null);
-};
-
 
   // Convert functionality IDs to names for display
   const getFunctionalityNames = (ids) => {
@@ -201,7 +186,6 @@ const AssignRights = () => {
       })
       .filter((name) => name !== null);
   };
-  // console.log("Selected Module ", selectedFunctionalities);
 
   // Save Assign Rights Data
   const handleSave = async () => {
@@ -210,11 +194,6 @@ const AssignRights = () => {
       return;
     }
 
-    const functionalityIds = getFunctionalityIds(selectedFunctionalities);
-    if (functionalityIds.length === 0) {
-      toast.error("Invalid functionalities selected");
-      return;
-    }
 
     try {
       const groupName = groups.find((g) => g._id === groupId)?.groupName || "";
@@ -279,17 +258,25 @@ const AssignRights = () => {
 
   // Edit Assign Rights
   const handleEdit = (right) => {
+    console.log("Right Edit", right);
+
     setIsEdit(true);
     setEditId(right._id);
-    setGroupId(right._id || ""); // Match API field name
-    setModuleId(right.moduleId || ""); // Match API field name
-    // Convert functionality IDs to names for UI
+
+    // ✅ group and module come as objects, so pick _id
+    setGroupId(right?.group?._id || "");
+    setModuleId(right?.module?._id || "");
+
+    // ✅ functionalities already have _id and name
     const functionalities = Array.isArray(right.functionalities)
-      ? getFunctionalityNames(right.functionalities)
+      ? right.functionalities.map(f => ({ _id: f._id, name: f.name }))
       : [];
+
     setSelectedFunctionalities(functionalities);
+
     setIsSliderOpen(true);
   };
+
 
   // Delete Assign Rights
   const handleDelete = async (id) => {
@@ -339,39 +326,39 @@ const AssignRights = () => {
 
   // Handle Functionality Selection
   const handleFunctionalitySelect = (e) => {
-    const selectedValue = e.target.value;
-    if (selectedValue && !selectedFunctionalities.includes(selectedValue)) {
-      setSelectedFunctionalities([...selectedFunctionalities, selectedValue]);
+    const selectedId = e.target.value;
+    if (!selectedId) return;
+
+    const selectedFunc = functionalityModuleList.find(
+      (func) => func._id === selectedId
+    );
+
+    if (selectedFunc) {
+      setSelectedFunctionalities((prev) => {
+        if (prev.some((f) => f._id === selectedFunc._id)) return prev;
+
+        const updated = [...prev, { _id: selectedFunc._id, name: selectedFunc.name }];
+        console.log("✅ Updated Selected Functionalities:", updated);
+        return updated;
+      });
     }
-    e.target.value = "";
+
+    e.target.value = ""; // reset dropdown
   };
 
+  const functionalityIds = selectedFunctionalities.map(f => f._id);
+  console.log("functionalityIds ", functionalityIds);
+
+
+
   // Remove a functionality
-  const removeFunctionality = (funcToRemove) => {
+  const removeFunctionality = (funcId) => {
     setSelectedFunctionalities(
-      selectedFunctionalities.filter((func) => func !== funcToRemove)
+      selectedFunctionalities.filter((func) => func._id !== funcId)
     );
   };
 
-  // Render functionalities safely
-  const renderFunctionalities = (functionalities) => {
-    if (!functionalities) return "";
-    if (Array.isArray(functionalities)) {
-      const names = getFunctionalityNames(functionalities);
-      return names.length > 0 ? names.join(", ") : "Unknown functionalities";
-    }
-    if (typeof functionalities === "string") {
-      try {
-        const parsed = JSON.parse(functionalities);
-        const names = getFunctionalityNames(parsed);
-        return names.length > 0 ? names.join(", ") : "Unknown functionalities";
-      } catch (error) {
-        console.error("Error parsing functionalities:", error);
-        return "Invalid functionalities";
-      }
-    }
-    return "Invalid functionalities";
-  };
+ 
 
   // Show loading spinner
   if (loading) {
@@ -423,11 +410,15 @@ const AssignRights = () => {
                   key={right._id}
                   className="grid grid-cols-4 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
-                  <div className="text-sm font-medium text-gray-900">{right.groupId}</div>
-                  <div className="text-sm font-semibold text-green-600">{right.moduleId}</div>
+                  <div className="text-sm font-medium text-gray-900">{right?.group?.groupName}</div>
+                  <div className="text-sm font-semibold text-green-600">{right?.module?.moduleName}</div>
                   <div className="text-sm text-gray-500">
-                    {renderFunctionalities(right.name)}
+                    {right?.functionalities?.map((func) => (
+                      <div key={func._id}>{func.name}</div>
+                    ))}
+
                   </div>
+
                   {userInfo?.isAdmin && (
                     <div className="text-right relative group">
                       <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
@@ -507,6 +498,8 @@ const AssignRights = () => {
                     </select>
 
                   </div>
+
+
                   <div>
                     <label className="block text-gray-700 mb-1">Functionalities</label>
                     <select
@@ -515,23 +508,24 @@ const AssignRights = () => {
                     >
                       <option value="">Select functionality</option>
                       {functionalityModuleList
-                        .filter((func) => !selectedFunctionalities.includes(func.functionality))
+                        .filter((func) => !selectedFunctionalities.some(f => f._id === func._id))
                         .map((func) => (
-                          <option key={func._id} value={func.functionality}>
+                          <option key={func._id} value={func._id}>
                             {func.name}
                           </option>
                         ))}
                     </select>
+
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {selectedFunctionalities.map((func, index) => (
+                      {selectedFunctionalities.map((func) => (
                         <div
-                          key={index}
+                          key={func._id}
                           className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center"
                         >
-                          {func}
+                          {func.name}
                           <button
                             type="button"
-                            onClick={() => removeFunctionality(func)}
+                            onClick={() => removeFunctionality(func._id)}
                             className="ml-2 text-blue-600 hover:text-blue-800"
                           >
                             <FaTimes className="text-xs" />
@@ -540,6 +534,8 @@ const AssignRights = () => {
                       ))}
                     </div>
                   </div>
+
+
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-4">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import {
   Table,
@@ -23,50 +23,143 @@ import {
 } from "recharts";
 
 const AdminDashboard = () => {
-  const [recentProducts, setRecentProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [customers, setCustomers] = useState(0);
+  const [items, setItems] = useState(0);
+  const [booking, setBooking] = useState(0);
+  const [users, setUsers] = useState(0);
+  const [sales, setSales] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState([]);
+  const [chart, setCharts] = useState([]);
+
+  const abortRef = useRef(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      try {
-        const [allProductsRes, recentProductsRes, usersRes, transactionsRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/products`),
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/products?limit=5&sort=desc`),
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/auth/users`),
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/transactions`),
-        ]);
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-        setAllProducts(allProductsRes.data.data);
-        setRecentProducts(recentProductsRes.data.data);
-        setUsers(usersRes.data.data);
-        setTransactions(transactionsRes.data.data);
-        setTimeout(() => {
-          setLoading(false);
-        }, 1500);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-        setLoading(false);
+    const base = import.meta.env.VITE_API_BASE_URL;
+    console.log("API Base URL:", base);
+
+    const fetchCustomers = async () => {
+      try {
+        const res = await axios.get(`${base}/customers/count`, { signal: controller.signal });
+        console.log("Customer Response:", res.data);
+        setCustomers(res.data?.totalCustomers ?? 0);
+      } catch (err) {
+        if (axios.isCancel(err)) console.log("Customer fetch cancelled");
+        else console.error("Customer fetch failed:", err);
       }
     };
 
-    fetchDashboardData();
+    const fetchItems = async () => {
+      try {
+        const res = await axios.get(`${base}/item-details/count`, { signal: controller.signal });
+        console.log("Items Response:", res.data);
+        setItems(res.data?.count ?? 0);
+      } catch (err) {
+        if (axios.isCancel(err)) console.log("Items fetch cancelled");
+        else console.error("Items fetch failed:", err);
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get(`${base}/company-users/count`, { signal: controller.signal });
+        console.log("Users Response:", res.data);
+        setUsers(res.data?.len ?? 0);
+      } catch (err) {
+        if (axios.isCancel(err)) console.log("Users fetch cancelled");
+        else console.error("Users fetch failed:", err);
+      }
+    };
+
+    const fetchBookings = async () => {
+      try {
+        const res = await axios.get(`${base}/bookings/count`, { signal: controller.signal });
+        console.log("Users Response:", res.data);
+        setBooking(res.data?.total ?? 0);
+      } catch (err) {
+        if (axios.isCancel(err)) console.log("Users fetch cancelled");
+        else console.error("Users fetch failed:", err);
+      }
+    };
+    const fetchSales = async () => {
+      try {
+        const res = await axios.get(`${base}/saleInvoices/count`, { signal: controller.signal });
+        console.log("Users Response:", res.data);
+        setSales(res.data?.total ?? 0);
+      } catch (err) {
+        if (axios.isCancel(err)) console.log("Users fetch cancelled");
+        else console.error("Users fetch failed:", err);
+      }
+    };
+
+    const fetchSalesChart = async () => {
+      try {
+        const res = await axios.get(`${base}/saleInvoices/per-date`, { signal: controller.signal });
+        console.log("API Response:", res.data); // [{ _id: "2025-08-18", count: 2 }, ...]
+
+        // Transform API data to chart format
+        const transformedData = res.data.map(item => {
+          const date = new Date(item._id);
+          const month = date.toLocaleString("default", { month: "short" }); // Jan, Feb, ...
+          const day = date.toLocaleString("default", { weekday: "short" }); // Sun, Mon, ...
+
+          return {
+            name: month, // or day if you want day chart
+            calls: item.count
+          };
+        });
+
+        setChartData(transformedData);
+      } catch (err) {
+        if (axios.isCancel(err)) console.log("Fetch cancelled");
+        else console.error("Fetch failed:", err);
+      }
+    };
+
+
+    const fetchAll = async () => {
+      setLoading(true);
+      await fetchCustomers();
+      await fetchItems();
+      await fetchUsers();
+      await fetchBookings();
+      await fetchSales()
+      await fetchSalesChart()
+      setLoading(false);
+    };
+
+    fetchAll();
+
+    return () => {
+      console.log("Aborting all fetches...");
+      controller.abort();
+    };
   }, []);
 
-  // Sample data for charts
+
+
+
+
   const summaryData = [
-    { name: "Customers", value: 32 },
-    { name: "Products", value: 9 },
-    { name: "Staff", value: 15 },
+    { name: "Total Customers", value: customers ?? 0 },
+    { name: "Total Items", value: items ?? 0 },
+    { name: "Total Staff", value: users ?? 0 },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-[200px] flex items-center justify-center">
+        <span className="text-gray-500">Loading…</span>
+      </div>
+    );
+  }
+
   const pieData = [
-    { name: "Success Rate", value: 81, color: "#ef4444" },
-    { name: "Pending Calls", value: 22, color: "#10b981" },
-    { name: "Follow Ups", value: 62, color: "#3b82f6" },
+    { name: "Success Booking", value: booking, color: "#10b981" },
+    { name: "Total Items", value: items, color: "#FFA500" },
+    { name: "Total Sales", value: sales, color: "#3b82f6" },
   ];
 
   const callData = [

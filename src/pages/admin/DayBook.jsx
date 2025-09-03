@@ -58,7 +58,7 @@ const DayBook = () => {
             height="150"
             width="150"
             radius={1}
-            color="#00809D"
+            color="#84CF16"
           />
         </div>
       </div>

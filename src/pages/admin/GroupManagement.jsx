@@ -5,16 +5,6 @@ import axios from "axios";
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
 
-// Static fallback data
-const staticGroups = [
-  { _id: "1", groupName: "Admin Group", users: ["68b29e168bb6d8c50b3e9d60"] },
-  { _id: "2", groupName: "User Group", users: ["68b29e168bb6d8c50b3e9d61"] },
-];
-
-const staticUsers = [
-  { _id: "68b29e168bb6d8c50b3e9d60", name: "John Doe" },
-  { _id: "68b29e168bb6d8c50b3e9d61", name: "Jane Smith" },
-];
 
 const GroupManagement = () => {
   const [groupList, setGroupList] = useState([]);
@@ -67,66 +57,69 @@ const GroupManagement = () => {
   }, [isSliderOpen]);
 
   // ✅ Fetch User Data (silent fallback)
-const fetchUserData = useCallback(async () => {
-  try {
-    const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/users`;
+  const fetchUserData = useCallback(async () => {
+    try {
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/company-users`;
 
-    const response = await fetch(apiUrl, {
-      headers: { Authorization: `Bearer ${userInfo?.token}` },
-    });
+      const response = await fetch(apiUrl, {
+        headers: { Authorization: `Bearer ${userInfo?.token}` },
+      });
 
-    let result = [];
-    if (response.ok) {
-      result = await response.json();
+      let result = [];
+      if (response.ok) {
+        result = await response.json();
+        console.log("User list ", result);
+
+      }
+
+      const list = Array.isArray(result) ? result : result?.data || [];
+
+      setUserList(list.length > 0 ? list : staticUsers);
+
+    } catch {
+      // ❌ No console.error / toast
+      setUserList(staticUsers);
     }
+  }, [userInfo?.token]);
 
-    const list = Array.isArray(result) ? result : result?.data || [];
-    setUserList(list.length > 0 ? list : staticUsers);
+  // ✅ Fetch Group Data (silent fallback)
+  const fetchGroupData = useCallback(async () => {
+    try {
+      setLoading(true);
 
-  } catch {
-    // ❌ No console.error / toast
-    setUserList(staticUsers);
-  }
-}, [userInfo?.token]);
+      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/groups`;
 
-// ✅ Fetch Group Data (silent fallback)
-const fetchGroupData = useCallback(async () => {
-  try {
-    setLoading(true);
+      const response = await fetch(apiUrl);
 
-    const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/groups`;
 
-    const response = await fetch(apiUrl, {
-      headers: { Authorization: `Bearer ${userInfo?.token}` },
-    });
+      let result = [];
+      if (response.ok) {
+        result = await response.json();
+      }
 
-    let result = [];
-    if (response.ok) {
-      result = await response.json();
+      const list = Array.isArray(result) ? result : result?.data || [];
+      // console.log("Response ", list);
+      setGroupList(list);
+
+    } catch {
+      setGroupList([]);
+    } finally {
+      setLoading(false);
     }
+  }, [userInfo?.token]);
 
-    const list = Array.isArray(result) ? result : result?.data || [];
-    setGroupList(list.length > 0 ? list : staticGroups);
-
-  } catch {
-    setGroupList(staticGroups);
-  } finally {
-    setLoading(false);
-  }
-}, [userInfo?.token]);
-
-// ✅ Fetch data on mount
-useEffect(() => {
-  if (!import.meta.env.VITE_API_BASE_URL) {
-    setGroupList(staticGroups);
-    setUserList(staticUsers);
-    setLoading(false);
-    return;
-  }
-  fetchGroupData();
-  fetchUserData();
-}, [fetchGroupData, fetchUserData]);
-   console.log("Group and User data fetched");
+  // ✅ Fetch data on mount
+  useEffect(() => {
+    if (!import.meta.env.VITE_API_BASE_URL) {
+      setGroupList(staticGroups);
+      setUserList(staticUsers);
+      setLoading(false);
+      return;
+    }
+    fetchGroupData();
+    fetchUserData();
+  }, [fetchGroupData, fetchUserData]);
+  console.log("Group and User data fetched");
 
   // Validate form
   const validateForm = () => {
@@ -178,10 +171,14 @@ useEffect(() => {
 
   // Edit Group
   const handleEdit = (group) => {
+    console.log("Edit   ", group.users);
+
     setIsEdit(true);
     setEditId(group._id);
     setGroupName(group.groupName || "");
-    setSelectedUsers(group.users || []);
+    console.log("Selected users", selectedUsers);
+
+    setSelectedUsers(group.users.map(u => u._id) || userList);
     setIsSliderOpen(true);
   };
 
@@ -297,7 +294,7 @@ useEffect(() => {
                   >
                     <div className="text-sm font-medium text-gray-900">{group.groupName}</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {group.users?.length || 0} user{group.users?.length !== 1 ? "s" : ""}
+                      {group.users.map((user) => user.name).join(", ")}
                     </div>
                     {userInfo?.isAdmin && (
                       <div className="text-right relative group">
@@ -375,6 +372,7 @@ useEffect(() => {
                         </option>
                       ))}
                     </select>
+
                     <p className="text-sm text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple users</p>
                   </div>
                 </div>

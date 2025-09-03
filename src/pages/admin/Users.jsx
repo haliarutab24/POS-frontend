@@ -20,7 +20,8 @@ const Users = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState({});
+
   const sliderRef = useRef(null); // Ref for the slider element
 
   const handleAddUser = () => {
@@ -254,6 +255,14 @@ const Users = () => {
       });
   };
 
+  const togglePasswordVisibility = (userId) => {
+    setVisiblePasswords((prev) => ({
+      ...prev,
+      [userId]: !prev[userId], // flip only that user's password state
+    }));
+  };
+
+
   // Show loading spinner
   if (loading) {
     return (
@@ -322,15 +331,16 @@ const Users = () => {
 
                   {/* Password */}
                   <div className="flex items-center text-sm text-gray-500">
-                    {showPassword ? user.password : "•••••••"}
+                    {visiblePasswords[user._id] ? user.password : "•••••••"}
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => togglePasswordVisibility(user._id)}
                       className="ml-2 text-gray-600 hover:text-gray-800"
                     >
-                      {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                      {visiblePasswords[user._id] ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                     </button>
                   </div>
+
 
                   {/* Actions */}
                   {userInfo?.isAdmin && (

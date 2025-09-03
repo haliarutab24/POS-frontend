@@ -204,6 +204,9 @@ const AdminDashboard = () => {
     };
   }, []);
 
+useEffect(()=> {
+  fetchSalesChart("weekly")
+},[])
 
   const fetchSalesChart = async (period = "daily") => {
     try {

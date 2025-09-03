@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import { format } from "date-fns";
 
 // Static data for day book entries
@@ -54,7 +54,7 @@ const DayBook = () => {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader
+          <HashLoader
             height="150"
             width="150"
             radius={1}

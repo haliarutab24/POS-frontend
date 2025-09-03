@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import axios from 'axios';
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash, FaCog } from 'react-icons/fa';
 import { format } from "date-fns";
@@ -218,7 +218,7 @@ const ExpenseVoucher = () => {
             }
 
             await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/expense-vouchers/${id}`,
+              `${import.meta.env.VITE_API_BASE_URL}/voucher/${id}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -255,7 +255,7 @@ const ExpenseVoucher = () => {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader
+          <HashLoader
             height="150"
             width="150"
             radius={1}

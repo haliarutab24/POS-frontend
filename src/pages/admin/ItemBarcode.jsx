@@ -3,7 +3,7 @@ import axios from "axios";
 import Barcode from "react-barcode";
 import { toast } from "react-toastify";
 import gsap from "gsap";
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 
 const ItemBarcode = () => {
   const [itemBarcodeList, setItemBarcodeList] = useState([]);
@@ -281,7 +281,7 @@ const ItemBarcode = () => {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+          <HashLoader height="150" width="150" radius={1} color="#00809D" />
         </div>
       </div>
     );

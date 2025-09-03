@@ -8,7 +8,7 @@ import {
   TableHead,
   TableCell,
 } from "../../components/ui/table";
-import { PuffLoader } from "react-spinners";
+import { HashLoader  } from "react-spinners";
 import {
   PieChart,
   Pie,
@@ -31,9 +31,11 @@ import {
   CreditCard,
   DollarSign,
   PieChart as PieChartIcon,
-  Search,
   Bell,
-  X
+  X,
+  Sun,
+  Moon,
+  Cloud
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -51,6 +53,7 @@ const AdminDashboard = () => {
   const [recentCustomer, setRecentCustomer] = useState([]);
   const [notifications, setNotifications] = useState([])
   const [open, setOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const dropdownRef = useRef(null);
 
   const abortRef = useRef(null);
@@ -58,11 +61,18 @@ const AdminDashboard = () => {
 
   const base = import.meta.env.VITE_API_BASE_URL;
 
+  // Update time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
     abortRef.current = controller;
-
-
 
     const fetchCustomers = async () => {
       try {
@@ -95,8 +105,6 @@ const AdminDashboard = () => {
       try {
         const res = await axios.get(`${base}/bookings/count`, { signal: controller.signal });
         setBooking(res.data?.total ?? 0);
-
-
       } catch (err) {
         if (!axios.isCancel(err)) console.error("Bookings fetch failed:", err);
       }
@@ -105,13 +113,10 @@ const AdminDashboard = () => {
       try {
         const res = await axios.get(`${base}/notifications`, {
           headers: {
-            Authorization: `Bearer ${userInfo.token}`, // 👈 set token in header
+            Authorization: `Bearer ${userInfo.token}`,
           }, signal: controller.signal
         });
         setNotifications(res.data);
-        console.log("Not....", res.data);
-
-
       } catch (err) {
         if (!axios.isCancel(err)) console.error("Bookings fetch failed:", err);
       }
@@ -121,9 +126,6 @@ const AdminDashboard = () => {
       try {
         const res = await axios.get(`${base}/bookings/recent`, { signal: controller.signal });
         setRecentCustomer(res.data);
-        // console.log("Data", res.data);
-
-
       } catch (err) {
         if (!axios.isCancel(err)) console.error("Bookings fetch failed:", err);
       }
@@ -133,8 +135,6 @@ const AdminDashboard = () => {
       try {
         const res = await axios.get(`${base}/bookings/completed`, { signal: controller.signal });
         setBookingCompleted(res.data?.total ?? 0);
-        console.log("Response", res);
-
       } catch (err) {
         if (!axios.isCancel(err)) console.error("Bookings fetch failed:", err);
       }
@@ -176,8 +176,6 @@ const AdminDashboard = () => {
       }
     };
 
-
-
     const fetchAll = async () => {
       setLoading(true);
       await Promise.allSettled([
@@ -204,9 +202,11 @@ const AdminDashboard = () => {
     };
   }, []);
 
-useEffect(()=> {
-  fetchSalesChart("weekly")
-},[])
+  useEffect(()=> {
+      fetchSalesChart("weekly")
+    
+  })
+
 
   const fetchSalesChart = async (period = "daily") => {
     try {
@@ -239,9 +239,6 @@ useEffect(()=> {
     }
   };
 
-
-
-
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -252,7 +249,6 @@ useEffect(()=> {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
 
   // ✅ Mark single notification as read
   const clearNotification = async (id) => {
@@ -269,7 +265,7 @@ useEffect(()=> {
     try {
       await axios.put(`${base}/notifications/mark-all`, {
         headers: {
-          Authorization: `Bearer ${userInfo.token}`, // 👈 set token in header
+          Authorization: `Bearer ${userInfo.token}`,
         },
       });
       setNotifications([]);
@@ -278,10 +274,36 @@ useEffect(()=> {
     }
   };
 
+  // Format time for display
+  const formatTime = (date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
+  // Format date for display
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
 
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
 
-
+  // Get appropriate icon based on time of day
+  const getGreetingIcon = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return <Sun className="text-amber-500" size={24} />;
+    if (hour < 17) return <Cloud className="text-blue-400" size={24} />;
+    return <Moon className="text-indigo-500" size={24} />;
+  };
 
   const summaryData = [
     {
@@ -334,9 +356,6 @@ useEffect(()=> {
     },
   ];
 
-  console.log("Notifications", notifications);
-
-
   const pieData = [
     { name: "Completed", value: bookingCompleted, color: "#58C5A0" },
     { name: "Pending", value: bookingPending, color: "#FF8901" },
@@ -351,7 +370,7 @@ useEffect(()=> {
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-[80vh]">
-        <PuffLoader color="#84CF16" />
+        <HashLoader  color="#84CF16" />
         <span className="ml-4 text-gray-500 mt-4">Loading dashboard data...</span>
       </div>
     );
@@ -359,23 +378,36 @@ useEffect(()=> {
 
   return (
     <div className="p-6 w-full bg-gray-50 min-h-screen">
-      {/* Header */}
+      {/* Updated Header - Replaced Search Bar */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div className="mb-4 md:mb-0">
-          <h1 className="text-2xl font-bold text-newPrimary">POS Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening with your store today.</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary/30 focus:border-newPrimary"
-            />
+          <div className="flex items-center gap-2 mb-2">
+            {getGreetingIcon()}
+            <h1 className="text-2xl font-bold text-newPrimary">{getGreeting()}, {userInfo?.name || 'Admin'}!</h1>
           </div>
+          <p className="text-gray-600">{formatDate(currentTime)} • {formatTime(currentTime)}</p>
+        </div>
+        
+        {/* Quick Stats Overview */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center bg-gradient-to-r from-newPrimary/10 to-green-100/30 p-4 rounded-xl border border-newPrimary/20">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-newPrimary">{sales}</div>
+            <div className="text-xs text-gray-600">Today's Sales</div>
+          </div>
+          <div className="h-8 w-px bg-newPrimary/30 hidden sm:block"></div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-newPrimary">${revenue.toLocaleString()}</div>
+            <div className="text-xs text-gray-600">Revenue</div>
+          </div>
+          <div className="h-8 w-px bg-newPrimary/30 hidden sm:block"></div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-newPrimary">{bookingPending}</div>
+            <div className="text-xs text-gray-600">  Orders</div>
+          </div>
+          
+          {/* Notification Bell */}
+          <div className="h-8 w-px bg-newPrimary/30 hidden sm:block"></div>
           <div className="relative" ref={dropdownRef}>
-            {/* Bell Button */}
             <button
               className="relative p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               onClick={() => setOpen(!open)}
@@ -416,7 +448,6 @@ useEffect(()=> {
                           <p className="font-medium text-sm">{notif.title}</p>
                           <p className="text-xs text-gray-600">{notif.message}</p>
                         </div>
-                        {/* Clear single notification button */}
                         <button
                           onClick={() => clearNotification(notif._id)}
                           className="ml-2 text-gray-400 hover:text-red-500"
@@ -604,60 +635,6 @@ useEffect(()=> {
           </div>
         )}
       </div>
-
-      {/* Quick Stats
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div
-          className="bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl shadow-sm p-6 text-white"
-          style={{ animation: "slideInUp 0.5s ease-out 0.2s both" }}
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold">Top Selling Product</h3>
-              <p className="text-blue-100">Wireless Headphones</p>
-            </div>
-            <TrendingUp size={24} />
-          </div>
-          <div className="mt-4">
-            <div className="text-2xl font-bold">142 units</div>
-            <div className="text-blue-100 text-sm mt-1">+24% from last week</div>
-          </div>
-        </div>
-
-        <div
-          className="bg-gradient-to-r from-green-400 to-green-500 rounded-xl shadow-sm p-6 text-white"
-          style={{ animation: "slideInUp 0.5s ease-out 0.3s both" }}
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold">Average Order Value</h3>
-              <p className="text-green-100">Last 30 days</p>
-            </div>
-            <ShoppingCart size={24} />
-          </div>
-          <div className="mt-4">
-            <div className="text-2xl font-bold">$89.67</div>
-            <div className="text-green-100 text-sm mt-1">+8% from last month</div>
-          </div>
-        </div>
-
-        <div
-          className="bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl shadow-sm p-6 text-white"
-          style={{ animation: "slideInUp 0.5s ease-out 0.4s both" }}
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold">Inventory Alert</h3>
-              <p className="text-purple-100">Low stock items</p>
-            </div>
-            <Package size={24} />
-          </div>
-          <div className="mt-4">
-            <div className="text-2xl font-bold">7 products</div>
-            <div className="text-purple-100 text-sm mt-1">Need restocking</div>
-          </div>
-        </div>
-      </div> */}
 
       {/* CSS Animations */}
       <style jsx>{`

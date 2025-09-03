@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import gsap from "gsap";
-import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -200,16 +199,16 @@ const ItemUnit = () => {
       });
   };
 
-//   // Show loading spinner
-//   if (loading) {
-//     return (
-//       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-//         <div className="text-center">
-//           <PuffLoader height="150" width="150" radius={1} color="#00809D" />
-//         </div>
-//       </div>
-//     );
-//   }
+  // Show loading spinner
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <HashLoader height="150" width="150" radius={1} color="#00809D" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

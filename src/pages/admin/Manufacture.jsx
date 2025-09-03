@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -253,7 +253,7 @@ const Manufacture = () => {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+          <HashLoader height="150" width="150" radius={1} color="#00809D" />
         </div>
       </div>
     );

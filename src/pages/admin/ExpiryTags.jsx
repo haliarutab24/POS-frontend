@@ -3,7 +3,7 @@ import gsap from "gsap";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 
 const ExpiryTags = () => {
   const [expiryTagList, setExpiryTagList] = useState([]);
@@ -269,7 +269,7 @@ const ExpiryTags = () => {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-        <PuffLoader size={150} color="#00809D" />
+        <HashLoader size={150} color="#00809D" />
       </div>
     );
   }

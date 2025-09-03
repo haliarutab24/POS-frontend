@@ -2,19 +2,13 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import axios from 'axios';
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash, FaCog } from 'react-icons/fa';
 
-// Static data for expense heads
-const staticExpenseHeadData = [
-  { _id: "eh1", head: "Office Rent", description: "Monthly rent for office space" },
-  { _id: "eh2", head: "Utilities", description: "Electricity and water bills" },
-  { _id: "eh3", head: "Staff Salaries", description: "Monthly salaries for employees" },
-];
 
 const ExpenseHead = () => {
-  const [expenseHeadList, setExpenseHeadList] = useState(staticExpenseHeadData);
+  const [expenseHeadList, setExpenseHeadList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [head, setHead] = useState("");
   const [description, setDescription] = useState("");
@@ -59,10 +53,9 @@ const ExpenseHead = () => {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/heads`);
       const result = await response.json();
       console.log("Expense Heads ", result);
-      setExpenseHeadList(result.length > 0 ? result : staticExpenseHeadData);
+      setExpenseHeadList(result);
     } catch (error) {
       console.error("Error fetching expense head data:", error);
-      setExpenseHeadList(staticExpenseHeadData);
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
@@ -200,7 +193,7 @@ const ExpenseHead = () => {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader
+          <HashLoader
             height="150"
             width="150"
             radius={1}

@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import axios from 'axios';
-import { PuffLoader } from "react-spinners";
+import { HashLoader } from "react-spinners";
 import Swal from "sweetalert2";
 
 
@@ -202,7 +202,7 @@ const Modules = () => {
     return (
       <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <PuffLoader
+          <HashLoader
             height="150"
             width="150"
             radius={1}

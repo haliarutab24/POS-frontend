@@ -151,6 +151,45 @@ const BookingOrder = () => {
 
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
+    // ===== Edit Booking =====
+    const handleEditClick = (booking) => {
+        console.log("Booking ", booking);
+        
+        // Populate formData with booking values
+        setFormData({
+            customerName: booking.customerName || "",
+            mobileNo: booking.mobileNo || "",
+            address: booking.address || "",
+            date: booking.date ? booking.date.split("T")[0] : "", // keep only YYYY-MM-DD
+            time: booking.time || "",
+            items: booking.items || [{ itemName: "", rate: 0, qty: 1, amount: 0 }],
+            discount: booking.discount || 0,
+            payable: booking.payable || 0,
+            paid: booking.paid || 0,
+            balance: booking.balance || 0,
+            paymentMethod: booking.paymentMethod || "",
+        });
+
+        // Other states
+        setItems(booking.items || []);
+        setDiscount(booking.discount || 0);
+        setGivenAmount(booking.paid || 0);
+        setPayable(booking.payable || 0);
+        setReturnAmount(booking.returnAmount || 0);
+        setItemCategory(booking.itemCategory?._id || ""); // if category is stored as object
+
+        // Set edit mode
+        setIsEdit(true);
+        setEditId(booking._id);
+
+        // Open slider (form)
+        setIsSliderOpen(true);
+
+        console.log("Editing booking:", booking);
+    };
+
+
+
     // slider styling
     useEffect(() => {
         if (isSliderOpen && sliderRef.current) {
@@ -950,7 +989,7 @@ const BookingOrder = () => {
                                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-green-500 w-full"
                                 onClick={handleSave}
                             >
-                                Save Item
+                                {isEdit ? "Update Item" : "Save Item"}
                             </button>
                         </div>
                     </div>

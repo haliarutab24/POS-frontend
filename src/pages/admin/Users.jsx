@@ -331,7 +331,7 @@ const Users = () => {
 
                   {/* Password */}
                   <div className="flex items-center text-sm text-gray-500">
-                    {visiblePasswords[user._id] ? user.password : "•••••••"}
+                    {visiblePasswords[user._id] ? user.password : "•••••"}
                     <button
                       type="button"
                       onClick={() => togglePasswordVisibility(user._id)}

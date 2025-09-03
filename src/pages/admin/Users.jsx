@@ -315,7 +315,7 @@ const Users = () => {
                   <div className="text-sm text-gray-500">{user.email}</div>
 
                   {/* Mobile Number */}
-                  <div className="text-sm text-gray-500">{user.mobileNumber}</div>
+                  <div className="text-sm text-gray-500">{user.number}</div>
 
                   {/* Designation */}
                   <div className="text-sm text-gray-500">{user.designation}</div>

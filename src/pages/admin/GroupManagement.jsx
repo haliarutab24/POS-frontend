@@ -61,9 +61,7 @@ const GroupManagement = () => {
     try {
       const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/company-users`;
 
-      const response = await fetch(apiUrl, {
-        headers: { Authorization: `Bearer ${userInfo?.token}` },
-      });
+      const response = await fetch(apiUrl);
 
       let result = [];
       if (response.ok) {

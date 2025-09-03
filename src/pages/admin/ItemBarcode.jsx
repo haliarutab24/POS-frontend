@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
 import Barcode from "react-barcode";
+import { toast } from "react-toastify";
 import gsap from "gsap";
+import { PuffLoader } from "react-spinners";
 
 const ItemBarcode = () => {
   const [itemBarcodeList, setItemBarcodeList] = useState([]);
@@ -15,6 +17,8 @@ const ItemBarcode = () => {
   const [supplierId, setSupplierId] = useState("");
   const [itemDetailId, setItemDetailId] = useState("");
   const [unitId, setUnitId] = useState("");
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [code, setCode] = useState("");
   const [stock, setStock] = useState("");
   const [reorderLevel, setReorderLevel] = useState("");
@@ -22,6 +26,21 @@ const ItemBarcode = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const sliderRef = useRef(null);
+
+
+  // Safe userInfo parsing
+  const getUserInfo = () => {
+    try {
+      const info = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      // console.log("Parsed userInfo:", info);
+      return info;
+    } catch (error) {
+      console.error("Error parsing userInfo:", error);
+      return {};
+    }
+  };
+
+  const userInfo = getUserInfo();
 
   // Animate slider
   useEffect(() => {
@@ -111,7 +130,7 @@ const ItemBarcode = () => {
   const fetchUnits = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/units`);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/item-unit`);
       if (!res.ok) throw new Error("Failed to fetch units");
       const result = await res.json();
       setUnitList(result);
@@ -130,12 +149,14 @@ const ItemBarcode = () => {
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/itemBarcode`);
       if (!res.ok) throw new Error("Failed to fetch barcodes");
       const result = await res.json();
+      console.log("Result", result);
+
       setItemBarcodeList(result);
     } catch (error) {
       console.error("Error fetching barcodes:", error);
       setItemBarcodeList([]);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 1000);
     }
   }, []);
 
@@ -153,29 +174,63 @@ const ItemBarcode = () => {
   };
 
   const handleSave = async () => {
-    if (!code || !categoryId || !manufacturerId || !itemDetailId || !unitId || !stock || !reorderLevel || !salePrice) {
+    if (!code || !categoryId || !manufacturerId || !itemDetailId || !stock || !reorderLevel || !salePrice) {
       alert("Please fill in all required fields!");
       return;
     }
 
     const newItem = {
       code,
+      unit: unitId,
       category: categoryId,
       manufacturer: manufacturerId,
-      supplier: supplierId || null, // Optional, as not required in API
+      supplier: supplierId || null, // optional
       itemDetail: itemDetailId,
-      unit: unitId,
       stock: parseInt(stock),
       reorderLevel: parseInt(reorderLevel),
       salePrice: parseFloat(salePrice),
     };
+    // console.log("New item", newItem);
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/itemBarcode`, newItem);
-      setItemBarcodeList([...itemBarcodeList, res.data]);
+      const token = userInfo?.token;
+      if (!token) {
+        toast.error("❌ Authorization token missing!");
+        return;
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
+      let res;
+      if (isEdit && editId) {
+        // Update
+        res = await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/itemBarcode/${editId}`,
+          newItem,
+          { headers }
+        );
+        toast.success("✅ Item updated successfully");
+      } else {
+        // Create
+        res = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/itemBarcode`,
+          newItem,
+          { headers }
+        );
+        toast.success("✅ Item added successfully");
+      }
+
+      // Update local list with new/updated data
+      if (res?.data) {
+        setItemBarcodeList([...itemBarcodeList, res.data]);
+      }
+
       setIsSliderOpen(false);
 
-      // Reset fields
+      // Reset form fields
       setCode("");
       setCategoryId("");
       setManufacturerId("");
@@ -185,11 +240,13 @@ const ItemBarcode = () => {
       setStock("");
       setReorderLevel("");
       setSalePrice("");
+      fetchBarcodes()
     } catch (error) {
-      console.error("Error saving item:", error);
-      alert("Failed to save item!");
+      console.error("❌ Error saving item:", error);
+      toast.error("Failed to save item!");
     }
   };
+
 
   // Print individual barcode
   const handlePrint = (item) => {
@@ -218,13 +275,17 @@ const ItemBarcode = () => {
     printWindow.document.close();
   };
 
-  // Helper functions to resolve IDs to names
-  const getCategoryName = (id) => categoryList.find((c) => c._id === id)?.categoryName || "Unknown";
-  const getManufacturerName = (id) => manufacturerList.find((m) => m._id === id)?.manufacturerName || "Unknown";
-  const getSupplierName = (id) => supplierList.find((s) => s._id === id)?.supplierName || "Unknown";
-  const getItemDetailName = (id) => itemDetailList.find((d) => d._id === id)?.itemName || "Unknown";
-  const getUnitName = (id) => unitList.find((u) => u._id === id)?.unitName || "Unknown";
 
+  // Show loading spinner
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <PuffLoader height="150" width="150" radius={1} color="#00809D" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* HEADER */}
@@ -246,7 +307,7 @@ const ItemBarcode = () => {
         <div className="overflow-x-auto scrollbar-hide">
           <div className="w-full">
             {/* Table Headers */}
-            <div className="hidden lg:grid grid-cols-8 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
+            <div className="hidden lg:grid grid-cols-9 gap-4 bg-gray-50 py-3 px-6 text-xs font-medium text-gray-500 uppercase rounded-lg">
               <div>Code</div>
               <div>Item Name</div>
               <div>Category</div>
@@ -254,6 +315,7 @@ const ItemBarcode = () => {
               <div>Supplier</div>
               <div>Unit</div>
               <div>Stock</div>
+              <div>Barcode</div>
               <div className="text-right">Actions</div>
             </div>
 
@@ -269,15 +331,15 @@ const ItemBarcode = () => {
                   <div className="text-sm font-medium text-gray-500">Code</div>
                   <div className="text-sm text-gray-900">{item.code}</div>
                   <div className="text-sm font-medium text-gray-500">Item Name</div>
-                  <div className="text-sm text-gray-900 truncate">{getItemDetailName(item.itemName)}</div>
+                  <div className="text-sm text-gray-900 truncate">{(item?.itemDetail?.itemName)}</div>
                   <div className="text-sm font-medium text-gray-500">Category</div>
-                  <div className="text-sm text-gray-900">{getCategoryName(item.category)}</div>
+                  <div className="text-sm text-gray-900">{item?.category?.categoryName}</div>
                   <div className="text-sm font-medium text-gray-500">Manufacturer</div>
-                  <div className="text-sm text-gray-900">{getManufacturerName(item.manufacturer)}</div>
+                  <div className="text-sm text-gray-900">{item?.manufacturer?.manufacturerName}</div>
                   <div className="text-sm font-medium text-gray-500">Supplier</div>
-                  <div className="text-sm text-gray-900">{item.supplier ? getSupplierName(item.supplier) : "N/A"}</div>
+                  <div className="text-sm text-gray-900">{item?.supplier?.supplierName}</div>
                   <div className="text-sm font-medium text-gray-500">Unit</div>
-                  <div className="text-sm text-gray-900">{getUnitName(item.unit)}</div>
+                  <div className="text-sm text-gray-900">{(item?.unit?.unitName)}</div>
                   <div className="text-sm font-medium text-gray-500">Stock</div>
                   <div className="text-sm text-gray-900">{item.stock}</div>
                   <div className="text-sm font-medium text-gray-500">Reorder Level</div>
@@ -312,15 +374,18 @@ const ItemBarcode = () => {
               {itemBarcodeList.map((item, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-8 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
+                  className="grid grid-cols-9 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   <div className="text-sm text-gray-600">{item.code}</div>
-                  <div className="text-sm text-gray-600 truncate">{getItemDetailName(item.itemDetail)}</div>
-                  <div className="text-sm text-gray-600">{getCategoryName(item.category)}</div>
-                  <div className="text-sm text-gray-600">{getManufacturerName(item.manufacturer)}</div>
-                  <div className="text-sm text-gray-600">{item.supplier ? getSupplierName(item.supplier) : "N/A"}</div>
-                  <div className="text-sm text-gray-600">{getUnitName(item.unit)}</div>
+                  <div className="text-sm text-gray-600 truncate">{(item?.itemDetail?.itemName)}</div>
+                  <div className="text-sm text-gray-600">{(item?.category?.categoryName)}</div>
+                  <div className="text-sm text-gray-600">{(item?.manufacturer?.manufacturerName)}</div>
+                  <div className="text-sm text-gray-600">{item?.supplier?.supplierName}</div>
+                  <div className="text-sm text-gray-600">{(item?.unit?.unitName)}</div>
                   <div className="text-sm text-gray-600">{item.stock}</div>
+                  <div id={`barcode-${item.code}`}>
+                    <Barcode value={item.code} height={40} width={1.5} />
+                  </div>
                   <div className="text-right relative group">
                     <button className="text-gray-400 hover:text-gray-600 text-xl">⋯</button>
                     <div className="absolute right-0 top-6 w-28 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-300 z-50">

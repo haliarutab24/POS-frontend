@@ -640,20 +640,7 @@ const ItemList = () => {
                 />
               </div>
 
-              {/* Price */}
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Price <span className="text-newPrimary">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={price}
-                  required
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-
+              
               {/* Barcode */}
               <div>
                 <label className="block text-gray-700 font-medium">

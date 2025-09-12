@@ -927,7 +927,7 @@ const BookingOrder = () => {
                                     className="w-full p-2 border rounded"
                                 >
                                     <option value="">Select Payment</option>
-                                    <option value="Cash">Cash</option>
+                                    <option value="Online">Online</option>
                                     <option value="Card">Card</option>
                                     <option value="Cash on Delivery">Cash on Delivery</option>
                                 </select>

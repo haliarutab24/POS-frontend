@@ -438,7 +438,7 @@ const ItemList = () => {
                 className="w-7 h-7 object-cover rounded-full"
               />
               <span className="text-sm font-medium text-gray-900">
-                {capitalizeFirstLetter(item.itemCategory.categoryName)}
+                {capitalizeFirstLetter(item?.itemCategory?.categoryName)}
               </span>
             </div>
 

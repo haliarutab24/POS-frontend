@@ -10,7 +10,7 @@ import { ToastContainer } from "react-toastify";
 import ShelveLocation from "./pages/admin/ShelveLocation";
 import "react-toastify/dist/ReactToastify.css";
 import CategoryItem from "./pages/admin/CategoryItem";
-// import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierList from "./pages/admin/Supplier";
 import Manufacture from "./pages/admin/Manufacture";
 import ItemBarcode from "./pages/admin/ItemBarcode";

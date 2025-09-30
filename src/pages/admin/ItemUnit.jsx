@@ -3,7 +3,7 @@ import { HashLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-
+import axios from "axios";
 const ItemUnit = () => {
   const [manufacturerList, setManufacturerList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -32,44 +32,23 @@ const ItemUnit = () => {
     }
   }, [isSliderOpen]);
 
-  // Static Data for Manufacturers
-  const itemUnit = [
-    {
-      _id: "10001",
-      name: "Samsung",
-      des: "123 Tech Street, Seoul, South Korea",
-     
-    },
-    {
-      _id: "10002",
-      name: "Ikea",
-      des: "456 Furniture Ave, Stockholm, Sweden",
-    
-    },
-    {
-      _id: "10003",
-      name: "Haier",
-      des: "789 Appliance Road, Qingdao, China",
-    
-    },
-    {
-      _id: "10004",
-      name: "Levis",
-      des: "101 Fashion Blvd, San Francisco, USA",
-     
-    },
-    {
-      _id: "10005",
-      name: "Oxford",
-      des: "202 Stationery Lane, London, UK",
-    },
-  ];
 
-//   // Initialize manufacturer list with static data
-//   useEffect(() => {
-//     setManufacturerList(manufacturers);
-//     setTimeout(() => setLoading(false), 1000);
-//   }, []);
+  // Shelves List Fetch 
+  const fetchShelvesList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/item-unit`);
+      setManufacturerList(res.data); // store actual categories array
+      console.log("Item Unit ", res.data);
+    } catch (error) {
+      console.error("Failed to fetch Shelves", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchShelvesList();
+  }, [fetchShelvesList]);
 
   // Handlers
   const handleAddManufacturer = () => {
@@ -87,12 +66,8 @@ const ItemUnit = () => {
   // Save or Update Manufacturer
   const handleSave = async () => {
     const formData = {
-      name: manufacturerName,
-      address,
-      productsSupplied,
-      email,
-      gstNumber,
-      status,
+      unitName: manufacturerName,
+      description:address,
     };
 
     try {
@@ -102,23 +77,23 @@ const ItemUnit = () => {
         "Content-Type": "application/json",
       };
 
-      if (isEdit && editId) {
-        // Simulate API update
-        setManufacturerList(
-          manufacturerList.map((m) =>
-            m._id === editId ? { ...m, ...formData } : m
-          )
-        );
-        toast.success("✅ Manufacturer updated successfully");
-      } else {
-        // Simulate API create
-        const newManufacturer = {
-          ...formData,
-          _id: String(10000 + manufacturerList.length + 1),
-        };
-        setManufacturerList([...manufacturerList, newManufacturer]);
-        toast.success("✅ Manufacturer added successfully");
-      }
+       if (editId) {
+                // Update existing purchase
+                await axios.put(
+                    `${import.meta.env.VITE_API_BASE_URL}/item-unit/${editId}`,
+                    formData,
+                    { headers }
+                );
+                toast.success("Item Unit updated successfully!");
+            } else {
+                // Create new purchase
+                await axios.post(
+                    `${import.meta.env.VITE_API_BASE_URL}/item-unit`,
+                    formData,
+                    { headers }
+                );
+                toast.success("Item Unit created successfully!");
+            }
 
       // Reset form
       setManufacturerName("");
@@ -130,6 +105,7 @@ const ItemUnit = () => {
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
+      fetchShelvesList()
     } catch (error) {
       console.error(error);
       toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
@@ -215,15 +191,15 @@ const ItemUnit = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">
-            Manufacturers List
+           Item Unit List
           </h1>
-          <p className="text-gray-500 text-sm">Manage your manufacturer details</p>
+          
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
           onClick={handleAddManufacturer}
         >
-          + Add Manufacturer
+          + Add Item Unit
         </button>
       </div>
 
@@ -242,24 +218,24 @@ const ItemUnit = () => {
 
             {/* Manufacturers in Table */}
             <div className="mt-4 flex flex-col gap-[14px] pb-14">
-              {itemUnit.map((manufacturer) => (
+              {manufacturerList.map((manufacturer, index) => (
                 <div
                   key={manufacturer._id}
                   className="px-8 grid grid-cols-4 items-center gap-4 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100"
                 >
                   {/* Manufacturer ID */}
                   <div className="text-sm font-medium text-gray-900">
-                    {manufacturer._id}
+                    {index+1}
                   </div>
 
                   {/* Name */}
                   <div className="text-sm text-gray-500">
-                    {manufacturer.name}
+                    {manufacturer.unitName}
                   </div>
 
                   {/* Address */}
                   <div className="text-sm text-gray-500">
-                    {manufacturer.des}
+                    {manufacturer.description}
                   </div>
 
 

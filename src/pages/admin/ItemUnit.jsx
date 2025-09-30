@@ -67,7 +67,7 @@ const ItemUnit = () => {
   const handleSave = async () => {
     const formData = {
       unitName: manufacturerName,
-      description:address,
+      description: address,
     };
 
     try {
@@ -77,23 +77,23 @@ const ItemUnit = () => {
         "Content-Type": "application/json",
       };
 
-       if (editId) {
-                // Update existing purchase
-                await axios.put(
-                    `${import.meta.env.VITE_API_BASE_URL}/item-unit/${editId}`,
-                    formData,
-                    { headers }
-                );
-                toast.success("Item Unit updated successfully!");
-            } else {
-                // Create new purchase
-                await axios.post(
-                    `${import.meta.env.VITE_API_BASE_URL}/item-unit`,
-                    formData,
-                    { headers }
-                );
-                toast.success("Item Unit created successfully!");
-            }
+      if (editId) {
+        // Update existing purchase
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/item-unit/${editId}`,
+          formData,
+          { headers }
+        );
+        toast.success("Item Unit updated successfully!");
+      } else {
+        // Create new purchase
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/item-unit`,
+          formData,
+          { headers }
+        );
+        toast.success("Item Unit created successfully!");
+      }
 
       // Reset form
       setManufacturerName("");
@@ -151,6 +151,16 @@ const ItemUnit = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
+            const { token } = userInfo || {};
+            const headers = {
+              Authorization: `Bearer ${token}`,
+
+            };
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/item-unit/${id}`,
+
+              { headers }
+            );
             setManufacturerList(manufacturerList.filter((m) => m._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
@@ -191,9 +201,9 @@ const ItemUnit = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">
-           Item Unit List
+            Item Unit List
           </h1>
-          
+
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
@@ -212,7 +222,7 @@ const ItemUnit = () => {
               <div>Unit Item ID</div>
               <div>Name</div>
               <div>Description</div>
-            
+
               {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
 
@@ -225,7 +235,7 @@ const ItemUnit = () => {
                 >
                   {/* Manufacturer ID */}
                   <div className="text-sm font-medium text-gray-900">
-                    {index+1}
+                    {index + 1}
                   </div>
 
                   {/* Name */}
